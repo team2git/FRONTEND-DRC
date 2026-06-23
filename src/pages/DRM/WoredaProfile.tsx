@@ -540,7 +540,7 @@ const HierarchySummaryView: React.FC<{ profile: WProfile }> = ({ profile }) => {
 };
 
 // ——— Strategic City Map (Choropleth) ————————————————————————————————————————
-const StrategicCityMap: React.FC<{ profiles: WProfile[] }> = ({ profiles }) => {
+export const StrategicCityMap: React.FC<{ profiles: WProfile[] }> = ({ profiles }) => {
     const mapRef = React.useRef<L.Map | null>(null);
     const geoLayerRef = React.useRef<L.GeoJSON | null>(null);
     const containerRef = React.useRef<HTMLDivElement>(null);
@@ -1159,12 +1159,12 @@ const DetailView: React.FC<{ profile: WProfile; onClose: () => void }> = ({ prof
                                                 <div className="flex justify-between items-start mb-2">
                                                     <div>
                                                         <p className="text-xs font-black text-slate-800">{l.livelihood_type}</p>
-                                                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tight mt-0.5">{l.households.toLocaleString()} households</p>
+                                                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tight mt-0.5">{(l.households ?? 0).toLocaleString()} households</p>
                                                     </div>
-                                                    <span className="text-xs font-black text-indigo-600">{l.percentage.toFixed(1)}%</span>
+                                                    <span className="text-xs font-black text-indigo-600">{(l.percentage ?? 0).toFixed(1)}%</span>
                                                 </div>
                                                 <div className="mt-2">
-                                                    {renderProgressBar(l.percentage, 100, 'bg-indigo-500')}
+                                                    {renderProgressBar(l.percentage ?? 0, 100, 'bg-indigo-500')}
                                                 </div>
                                             </div>
                                         ))}
@@ -1267,7 +1267,7 @@ const DetailView: React.FC<{ profile: WProfile; onClose: () => void }> = ({ prof
                                                 {(profile.critical_facilities || []).map((f, i) => (
                                                     <tr key={i}>
                                                         <td className="py-3.5">{f.facility_type}</td>
-                                                        <td className="py-3.5 text-slate-900">{f.distance_to_nearest_emergency_service.toFixed(1)} km</td>
+                                                        <td className="py-3.5 text-slate-900">{(f.distance_to_nearest_emergency_service ?? 0).toFixed(1)} km</td>
                                                         <td className="py-3.5">
                                                             <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase ${f.structural_safety === 'Good' ? 'bg-emerald-50 text-emerald-600' :
                                                                     f.structural_safety === 'Fair' ? 'bg-amber-50 text-amber-600' :
@@ -1310,7 +1310,7 @@ const DetailView: React.FC<{ profile: WProfile; onClose: () => void }> = ({ prof
                                                         <p className="text-xs font-black text-slate-800 mt-0.5">{vg.group_type}</p>
                                                     </div>
                                                     <div className="text-right">
-                                                        <span className="text-sm font-black text-rose-500">{vg.number.toLocaleString()}</span>
+                                                        <span className="text-sm font-black text-rose-500">{(vg.number ?? 0).toLocaleString()}</span>
                                                         <span className="text-[9px] text-slate-400 font-bold uppercase block">Residents</span>
                                                     </div>
                                                 </div>
@@ -1439,7 +1439,7 @@ const DetailView: React.FC<{ profile: WProfile; onClose: () => void }> = ({ prof
                                             { label: 'Institution Name', value: profile.survey_metadata?.institution_name || 'Addis Ababa DRM Agency' },
                                             { label: 'Assessment Date', value: profile.assessment_date ? new Date(profile.assessment_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }) : '—' },
                                             { label: 'GPS Location', value: profile.survey_metadata?.gps_coordinates || (hh.identity_location?.gps_latitude ? `${hh.identity_location.gps_latitude}, ${hh.identity_location.gps_longitude}` : 'No coordinates') },
-                                            { label: 'Consent Status', value: hh.identity_location?.respondent_consent_status, isBadge: true }
+                                            { label: 'Consent Status', value: hh.identity_location?.respondent_consent_status as any, isBadge: true }
                                         ].map((item, i) => (
                                             <div key={i} className="flex justify-between items-center py-2 border-b border-slate-50 last:border-0">
                                                 <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{item.label}</span>
@@ -3436,3 +3436,4 @@ const WoredaProfile: React.FC = () => {
 };
 
 export default WoredaProfile;
+

@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { useNavigate } from 'react-router';
-import { ArrowLeft, Map as MapIcon, Loader2, Sparkles, Activity, Info } from 'lucide-react';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { ArrowLeft, Map as MapIcon, Loader2, Activity, Info } from 'lucide-react';
 import { getWoredaProfiles, type WoredaProfile as WProfile } from '../../api/woredaProfileService';
 import {
     addisAbabaGeoData, ADDIS_ABABA_CENTER, ADDIS_ABABA_ZOOM, ADDIS_ABABA_BOUNDS,
@@ -10,14 +9,12 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
 export default function WoredaGeneralMap() {
-    const navigate = useNavigate();
     const mapContainerRef = useRef<HTMLDivElement>(null);
     const mapRef = useRef<L.Map | null>(null);
     const geoLayerRef = useRef<L.GeoJSON | null>(null);
     
     const [profiles, setProfiles] = useState<WProfile[]>([]);
     const [loading, setLoading] = useState(true);
-    const [hoveredSubCity, setHoveredSubCity] = useState<string | null>(null);
 
     // Fetch all profiles on mount
     useEffect(() => {
@@ -222,11 +219,9 @@ export default function WoredaGeneralMap() {
                             fillOpacity: 0.9
                         });
                         target.bringToFront();
-                        setHoveredSubCity(name);
                     },
                     mouseout: (e) => {
                         geoLayer.resetStyle(e.target);
-                        setHoveredSubCity(null);
                     }
                 });
             }

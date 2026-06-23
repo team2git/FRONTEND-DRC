@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router';
 import api from '../../api/axios';
-import { Mail, Lock, Eye, EyeOff, CheckCircle2, AlertCircle, ArrowLeft } from 'lucide-react';
+import { Lock, Eye, EyeOff, CheckCircle2, AlertCircle, ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { usePortalContent } from "../../hooks/usePortalContent";
 import { resolvePortalAssetUrl } from "../../utils/resolvePortalAssetUrl";
