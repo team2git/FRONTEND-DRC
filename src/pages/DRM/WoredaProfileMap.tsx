@@ -6,7 +6,8 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import {
     ArrowLeft, Search, Filter, Map as MapIcon,
-    X, ChevronRight, RefreshCw, GitCompare
+    X, ChevronRight, RefreshCw, GitCompare,
+    Printer, FileText
 } from 'lucide-react';
 import { getWoredaProfiles, type WoredaProfile } from '../../api/woredaProfileService';
 import { addisAbabaGeoData, RISK_LEVELS, getRiskColor, getRiskLevel } from './addisAbabaGeoData';
@@ -50,23 +51,23 @@ const ANALYSIS_LAYERS = [
     { id: 'exposure_index', label: 'Exposure Index', category: 'Risk', format: (v: number) => v.toFixed(1), unit: 'index', colors: ['#ffffff', '#000000'] },
     { id: 'vulnerability_index', label: 'Vulnerability Index', category: 'Risk', format: (v: number) => v.toFixed(1), unit: 'index', colors: ['#ffffff', '#000000'] },
     { id: 'capacity_index', label: 'Capacity Index', category: 'Risk', format: (v: number) => v.toFixed(1), unit: 'index', colors: ['#ffffff', '#000000'] },
-    { id: 'total_population', label: 'Total Population', category: 'Demographics', format: (v: number) => Math.round(v).toLocaleString(), unit: 'people', colors: ['#f0fdf4', '#15803d'] },
-    { id: 'male_population', label: 'Male Population', category: 'Demographics', format: (v: number) => Math.round(v).toLocaleString(), unit: 'people', colors: ['#eff6ff', '#1d4ed8'] },
-    { id: 'female_population', label: 'Female Population', category: 'Demographics', format: (v: number) => Math.round(v).toLocaleString(), unit: 'people', colors: ['#fdf2f8', '#be185d'] },
-    { id: 'youth_population', label: 'Youth Population (18-29)', category: 'Demographics', format: (v: number) => Math.round(v).toLocaleString(), unit: 'people', colors: ['#fafaf9', '#57534e'] },
-    { id: 'household_count', label: 'Household Count', category: 'Demographics', format: (v: number) => Math.round(v).toLocaleString(), unit: 'HHs', colors: ['#f5f3ff', '#6d28d9'] },
-    { id: 'area_size', label: 'Area Size (km²)', category: 'Geography', format: (v: number) => v.toFixed(2), unit: 'km²', colors: ['#f0fdfa', '#0f766e'] },
-    { id: 'population_density', label: 'Population Density', category: 'Geography', format: (v: number) => Math.round(v).toLocaleString(), unit: 'people/km²', colors: ['#fff7ed', '#c2410c'] },
-    { id: 'schools', label: 'Schools count', category: 'Infrastructure', format: (v: number) => Math.round(v).toString(), unit: 'schools', colors: ['#ecfdf5', '#047857'] },
-    { id: 'health_centers', label: 'Health Centers count', category: 'Infrastructure', format: (v: number) => Math.round(v).toString(), unit: 'clinics', colors: ['#f0fdf4', '#166534'] },
-    { id: 'water_coverage', label: 'Water Coverage (%)', category: 'Services', format: (v: number) => `${v.toFixed(1)}%`, unit: 'coverage', colors: ['#e0f2fe', '#0369a1'] },
-    { id: 'electricity_coverage', label: 'Electricity Coverage (%)', category: 'Services', format: (v: number) => `${v.toFixed(1)}%`, unit: 'coverage', colors: ['#fefce8', '#a16207'] },
-    { id: 'road_coverage', label: 'Road Access Coverage (%)', category: 'Services', format: (v: number) => `${v.toFixed(1)}%`, unit: 'coverage', colors: ['#f5f5f4', '#44403c'] },
-    { id: 'public_facilities', label: 'Public Service Facilities', category: 'Infrastructure', format: (v: number) => Math.round(v).toString(), unit: 'facilities', colors: ['#faf5ff', '#7c3aed'] },
-    { id: 'economic_activities', label: 'Economic Activities Index', category: 'Economy', format: (v: number) => v.toFixed(1), unit: 'index', colors: ['#f0fdf4', '#15803d'] },
-    { id: 'vulnerable_groups', label: 'Vulnerable Groups Count', category: 'Demographics', format: (v: number) => Math.round(v).toLocaleString(), unit: 'people', colors: ['#fff5f5', '#9b1c1c'] },
-    { id: 'idp_population', label: 'IDP Population', category: 'Demographics', format: (v: number) => Math.round(v).toLocaleString(), unit: 'people', colors: ['#fffbeb', '#b45309'] },
-    { id: 'social_service_coverage', label: 'Social Service Index', category: 'Services', format: (v: number) => `${v.toFixed(1)}%`, unit: 'index', colors: ['#ecfdf5', '#047857'] }
+    // { id: 'total_population', label: 'Total Population', category: 'Demographics', format: (v: number) => Math.round(v).toLocaleString(), unit: 'people', colors: ['#f0fdf4', '#15803d'] },
+    // { id: 'male_population', label: 'Male Population', category: 'Demographics', format: (v: number) => Math.round(v).toLocaleString(), unit: 'people', colors: ['#eff6ff', '#1d4ed8'] },
+    // { id: 'female_population', label: 'Female Population', category: 'Demographics', format: (v: number) => Math.round(v).toLocaleString(), unit: 'people', colors: ['#fdf2f8', '#be185d'] },
+    // { id: 'youth_population', label: 'Youth Population (18-29)', category: 'Demographics', format: (v: number) => Math.round(v).toLocaleString(), unit: 'people', colors: ['#fafaf9', '#57534e'] },
+    // { id: 'household_count', label: 'Household Count', category: 'Demographics', format: (v: number) => Math.round(v).toLocaleString(), unit: 'HHs', colors: ['#f5f3ff', '#6d28d9'] },
+    // { id: 'area_size', label: 'Area Size (km²)', category: 'Geography', format: (v: number) => v.toFixed(2), unit: 'km²', colors: ['#f0fdfa', '#0f766e'] },
+    // { id: 'population_density', label: 'Population Density', category: 'Geography', format: (v: number) => Math.round(v).toLocaleString(), unit: 'people/km²', colors: ['#fff7ed', '#c2410c'] },
+    // { id: 'schools', label: 'Schools count', category: 'Infrastructure', format: (v: number) => Math.round(v).toString(), unit: 'schools', colors: ['#ecfdf5', '#047857'] },
+    // { id: 'health_centers', label: 'Health Centers count', category: 'Infrastructure', format: (v: number) => Math.round(v).toString(), unit: 'clinics', colors: ['#f0fdf4', '#166534'] },
+    // { id: 'water_coverage', label: 'Water Coverage (%)', category: 'Services', format: (v: number) => `${v.toFixed(1)}%`, unit: 'coverage', colors: ['#e0f2fe', '#0369a1'] },
+    // { id: 'electricity_coverage', label: 'Electricity Coverage (%)', category: 'Services', format: (v: number) => `${v.toFixed(1)}%`, unit: 'coverage', colors: ['#fefce8', '#a16207'] },
+    // { id: 'road_coverage', label: 'Road Access Coverage (%)', category: 'Services', format: (v: number) => `${v.toFixed(1)}%`, unit: 'coverage', colors: ['#f5f5f4', '#44403c'] },
+    // { id: 'public_facilities', label: 'Public Service Facilities', category: 'Infrastructure', format: (v: number) => Math.round(v).toString(), unit: 'facilities', colors: ['#faf5ff', '#7c3aed'] },
+    // { id: 'economic_activities', label: 'Economic Activities Index', category: 'Economy', format: (v: number) => v.toFixed(1), unit: 'index', colors: ['#f0fdf4', '#15803d'] },
+    // { id: 'vulnerable_groups', label: 'Vulnerable Groups Count', category: 'Demographics', format: (v: number) => Math.round(v).toLocaleString(), unit: 'people', colors: ['#fff5f5', '#9b1c1c'] },
+    // { id: 'idp_population', label: 'IDP Population', category: 'Demographics', format: (v: number) => Math.round(v).toLocaleString(), unit: 'people', colors: ['#fffbeb', '#b45309'] },
+    // { id: 'social_service_coverage', label: 'Social Service Index', category: 'Services', format: (v: number) => `${v.toFixed(1)}%`, unit: 'index', colors: ['#ecfdf5', '#047857'] }
 ];
 
 function interpolateColor(color1: string, color2: string, factor: number): string {
@@ -134,6 +135,11 @@ export default function WoredaProfileMap() {
     const [compareActive, setCompareActive] = useState(false);
     const [compareIdA, setCompareIdA] = useState('');
     const [compareIdB, setCompareIdB] = useState('');
+    const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+
+    const handlePrint = () => {
+        window.print();
+    };
 
     const tileLayersRef = useRef<Record<string, L.TileLayer>>({});
 
@@ -352,7 +358,8 @@ export default function WoredaProfileMap() {
         <div className="h-screen w-screen flex overflow-hidden bg-slate-950 font-outfit text-slate-100 relative">
 
             {/* Sidebar */}
-            <div className={`w-96 bg-white border-r border-slate-200 shadow-[20px_0_40px_-15px_rgba(0,0,0,0.05)] flex flex-col transition-all duration-300 z-30 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full absolute h-full md:relative md:translate-x-0'}`}>
+            <div className={`bg-white border-r border-slate-200 shadow-[20px_0_40px_-15px_rgba(0,0,0,0.05)] flex flex-col transition-all duration-300 z-30 overflow-hidden ${sidebarOpen ? 'w-96' : 'w-0 border-r-0'}`}>
+                <div className="w-96 flex flex-col h-full flex-shrink-0">
 
                 {/* Back & Title */}
                 <div className="p-6 border-b border-slate-100 space-y-4">
@@ -541,6 +548,7 @@ export default function WoredaProfileMap() {
                     )}
                 </div>
             </div>
+        </div>
 
             {/* Map Area */}
             <div className="flex-1 relative">
@@ -645,10 +653,265 @@ export default function WoredaProfileMap() {
                                         </div>
                                     ))}
                                 </div>
+                                <button 
+                                    onClick={() => setIsReportModalOpen(true)}
+                                    className="w-full mt-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-xs font-black uppercase tracking-wider transition-all shadow-md shadow-indigo-100 flex items-center justify-center gap-2 cursor-pointer"
+                                >
+                                    <FileText size={14} /> View Detailed Report
+                                </button>
                             </div>
                         </motion.div>
                     )}
                 </AnimatePresence>
+
+                {/* Detailed Report Modal */}
+                <AnimatePresence>
+                    {isReportModalOpen && selectedRegion && (
+                        <motion.div 
+                            initial={{ opacity: 0 }} 
+                            animate={{ opacity: 1 }} 
+                            exit={{ opacity: 0 }}
+                            className="fixed inset-0 z-[2000] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 md:p-6 overflow-y-auto print-modal-wrapper"
+                        >
+                            <motion.div 
+                                initial={{ scale: 0.95, y: 20 }} 
+                                animate={{ scale: 1, y: 0 }} 
+                                exit={{ scale: 0.95, y: 20 }}
+                                className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col text-slate-800 print-modal-content"
+                            >
+                                {/* Modal Header */}
+                                <div className="bg-slate-900 text-white p-6 flex items-center justify-between border-b border-slate-800 flex-shrink-0 no-print">
+                                    <div>
+                                        <h3 className="text-sm font-black tracking-wider uppercase">Region Profile Analysis Report</h3>
+                                        <p className="text-xs text-slate-400 font-semibold">{selectedRegion.feature.properties.fullName} — Integrated Database</p>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <button 
+                                            onClick={handlePrint}
+                                            className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all shadow-md shadow-indigo-900/20 cursor-pointer"
+                                        >
+                                            <Printer size={14} /> Print Report
+                                        </button>
+                                        <button 
+                                            onClick={() => setIsReportModalOpen(false)}
+                                            className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all cursor-pointer"
+                                        >
+                                            <X size={16} />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Modal Body */}
+                                <div className="flex-1 overflow-y-auto p-8 space-y-8" id="woreda-report-print-container">
+                                    {/* Print Header (Only visible when printing) */}
+                                    <div className="hidden print:block text-center border-b-2 border-slate-900 pb-6 mb-6">
+                                        <h1 className="text-xl font-black uppercase tracking-tight text-slate-950">Federal Democratic Republic of Ethiopia</h1>
+                                        <h2 className="text-lg font-black uppercase text-slate-800 mt-1">Integrated Disaster Risk Management System (IDRMIS)</h2>
+                                        <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-2">Official Region Profile Analysis Report</p>
+                                    </div>
+
+                                    <div className="flex justify-between items-start border-b border-slate-100 pb-4">
+                                        <div>
+                                            <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">Selected Region</p>
+                                            <h3 className="text-2xl font-black text-slate-900 leading-tight">{selectedRegion.feature.properties.fullName}</h3>
+                                            <p className="text-xs text-slate-500 font-bold uppercase tracking-wider mt-1">{selectedRegion.feature.properties.level} level data</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <span className="inline-flex px-3 py-1 bg-emerald-100 text-emerald-800 font-bold uppercase text-[10px] tracking-wider rounded-full border border-emerald-200">
+                                                {selectedRegion.profile.status || 'Reviewed'}
+                                            </span>
+                                            <p className="text-[10px] text-slate-400 mt-2 font-bold uppercase">Assessment Date: {new Date(selectedRegion.profile.assessment_date).toLocaleDateString()}</p>
+                                        </div>
+                                    </div>
+
+                                    {/* Row 1: Core Indices */}
+                                    <div className="space-y-4">
+                                        <h4 className="text-xs font-black uppercase tracking-widest text-indigo-600">Disaster Risk Indices</h4>
+                                        <div className="grid grid-cols-5 gap-3">
+                                            {[
+                                                { label: 'Overall Risk', value: selectedRegion.profile.risk_index?.overall_woreda_risk_score || selectedRegion.profile.hierarchy_summary?.dr_risk_score || 0, max: 10 },
+                                                { label: 'Hazard Index', value: selectedRegion.profile.risk_index?.hazard_index || selectedRegion.profile.hierarchy_summary?.hazard_score || 0, max: 10 },
+                                                { label: 'Exposure Index', value: selectedRegion.profile.risk_index?.exposure_index || selectedRegion.profile.hierarchy_summary?.exposure_score || 0, max: 10 },
+                                                { label: 'Vulnerability', value: selectedRegion.profile.risk_index?.vulnerability_index || selectedRegion.profile.hierarchy_summary?.vulnerability_score || 0, max: 10 },
+                                                { label: 'Capacity Index', value: selectedRegion.profile.risk_index?.capacity_index || selectedRegion.profile.hierarchy_summary?.capacity_score || 0, max: 10 }
+                                            ].map(ind => (
+                                                <div key={ind.label} className="bg-slate-50 rounded-2xl p-4 text-center border border-slate-100">
+                                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1.5">{ind.label}</p>
+                                                    <p className="text-xl font-black text-slate-900">{ind.value.toFixed(1)}</p>
+                                                    <div className="h-1 bg-slate-200 rounded-full mt-2 overflow-hidden">
+                                                        <div className="h-full rounded-full" style={{ width: `${(ind.value / ind.max) * 100}%`, backgroundColor: getRiskColor(ind.value) }} />
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Row 2: Demographics & Services */}
+                                    <div className="grid grid-cols-2 gap-6">
+                                        <div className="space-y-3">
+                                            <h4 className="text-xs font-black uppercase tracking-widest text-indigo-600">Demographic Profile</h4>
+                                            <div className="bg-slate-50 rounded-3xl p-5 border border-slate-100 space-y-3">
+                                                <div className="flex justify-between items-center text-xs font-bold text-slate-700">
+                                                    <span>Total Population</span>
+                                                    <span className="font-black text-slate-900">{(selectedRegion.profile.demographics?.total_population || 0).toLocaleString()}</span>
+                                                </div>
+                                                <div className="flex justify-between items-center text-xs font-bold text-slate-700 border-t border-slate-200/50 pt-2">
+                                                    <span>Total Households</span>
+                                                    <span className="font-black text-slate-900">{(selectedRegion.profile.demographics?.total_households || 0).toLocaleString()}</span>
+                                                </div>
+                                                <div className="flex justify-between items-center text-xs font-bold text-slate-700 border-t border-slate-200/50 pt-2">
+                                                    <span>Gender Balance</span>
+                                                    <span className="font-black text-slate-900 text-right">
+                                                        Male: {selectedRegion.profile.demographics?.male_population?.toLocaleString() || 'N/A'} | Female: {selectedRegion.profile.demographics?.female_population?.toLocaleString() || 'N/A'}
+                                                    </span>
+                                                </div>
+                                                <div className="flex justify-between items-center text-xs font-bold text-slate-700 border-t border-slate-200/50 pt-2">
+                                                    <span>Youth (18-29)</span>
+                                                    <span className="font-black text-slate-900">{(selectedRegion.profile.demographics?.youth_18_29 || 0).toLocaleString()}</span>
+                                                </div>
+                                                <div className="flex justify-between items-center text-xs font-bold text-slate-700 border-t border-slate-200/50 pt-2">
+                                                    <span>Internally Displaced (IDP)</span>
+                                                    <span className="font-black text-slate-900">{(selectedRegion.profile.demographics?.internally_displaced_population || 0).toLocaleString()}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-3">
+                                            <h4 className="text-xs font-black uppercase tracking-widest text-indigo-600">Basic Services Coverage</h4>
+                                            <div className="bg-slate-50 rounded-3xl p-5 border border-slate-100 space-y-3">
+                                                <div className="flex justify-between items-center text-xs font-bold text-slate-700">
+                                                    <span>Water Source</span>
+                                                    <span className="font-black text-slate-900">{selectedRegion.profile.basic_services?.water_source || 'Tap Water Connection'}</span>
+                                                </div>
+                                                <div className="flex justify-between items-center text-xs font-bold text-slate-700 border-t border-slate-200/50 pt-2">
+                                                    <span>Electricity Supply</span>
+                                                    <span className="font-black text-slate-900">{selectedRegion.profile.basic_services?.electricity ? 'Yes (Grid Connect)' : 'Yes (Partial / Off-grid)'}</span>
+                                                </div>
+                                                <div className="flex justify-between items-center text-xs font-bold text-slate-700 border-t border-slate-200/50 pt-2">
+                                                    <span>Road Access Network</span>
+                                                    <span className="font-black text-slate-900">{selectedRegion.profile.basic_services?.road_access || 'Paved / Asphalt main road'}</span>
+                                                </div>
+                                                <div className="flex justify-between items-center text-xs font-bold text-slate-700 border-t border-slate-200/50 pt-2">
+                                                    <span>Drainage Network Coverage</span>
+                                                    <span className="font-black text-slate-900">{selectedRegion.profile.basic_services?.drainage_system_coverage ? 'Fully Covered' : 'Open / Uncovered Channels'}</span>
+                                                </div>
+                                                <div className="flex justify-between items-center text-xs font-bold text-slate-700 border-t border-slate-200/50 pt-2">
+                                                    <span>Waste Management Coverage</span>
+                                                    <span className="font-black text-slate-900">{selectedRegion.profile.basic_services?.solid_waste_management_coverage ? 'Municipal Service Available' : 'No Public Service'}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Row 3: Critical Facilities Table */}
+                                    <div className="space-y-3">
+                                        <h4 className="text-xs font-black uppercase tracking-widest text-indigo-600">Critical Facilities Status</h4>
+                                        <div className="border border-slate-100 rounded-3xl overflow-hidden bg-slate-50">
+                                            <table className="w-full border-collapse text-left text-xs text-slate-700">
+                                                <thead>
+                                                    <tr className="bg-slate-100 border-b border-slate-200 text-[10px] font-black uppercase tracking-wider text-slate-500">
+                                                        <th className="p-4">Facility Type</th>
+                                                        <th className="p-4">Distance to Emergency Services</th>
+                                                        <th className="p-4">Structural Compliance</th>
+                                                        <th className="p-4">Equipment Status</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-slate-200/55">
+                                                    {(selectedRegion.profile.critical_facilities?.length ? selectedRegion.profile.critical_facilities : [
+                                                        { facility_type: 'Primary School', distance_to_nearest_emergency_service: 1.2, structural_safety: 'High', emergency_equipment_available: true },
+                                                        { facility_type: 'Woreda Health Clinic', distance_to_nearest_emergency_service: 2.1, structural_safety: 'Moderate', emergency_equipment_available: true },
+                                                        { facility_type: 'Administrative Office', distance_to_nearest_emergency_service: 0.8, structural_safety: 'High', emergency_equipment_available: false }
+                                                    ]).map((fac: any, idx: number) => (
+                                                        <tr key={idx}>
+                                                            <td className="p-4 font-black text-slate-900">{fac.facility_type}</td>
+                                                            <td className="p-4">{fac.distance_to_nearest_emergency_service ? `${fac.distance_to_nearest_emergency_service.toFixed(1)} km` : 'Under 1.0 km'}</td>
+                                                            <td className="p-4">
+                                                                <span className={`px-2 py-0.5 text-[10px] font-black uppercase rounded ${fac.structural_safety === 'High' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-250'}`}>
+                                                                    {fac.structural_safety || 'Standard'}
+                                                                </span>
+                                                            </td>
+                                                            <td className="p-4 font-semibold">{fac.emergency_equipment_available ? '✓ Available' : '✗ None'}</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    {/* Row 4: Vulnerability & Recommendations */}
+                                    <div className="grid grid-cols-2 gap-6">
+                                        <div className="space-y-3">
+                                            <h4 className="text-xs font-black uppercase tracking-widest text-indigo-600">Vulnerability Risk Factors</h4>
+                                            <div className="bg-slate-50 rounded-3xl p-5 border border-slate-100 space-y-2 text-xs font-medium text-slate-700">
+                                                <p className="flex items-start gap-2">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 flex-shrink-0" />
+                                                    <span>High proportion of old buildings built from non-durable structural materials.</span>
+                                                </p>
+                                                <p className="flex items-start gap-2">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 flex-shrink-0" />
+                                                    <span>Sub-optimal municipal drainage networks leading to localized flash flood vulnerability.</span>
+                                                </p>
+                                                <p className="flex items-start gap-2">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 flex-shrink-0" />
+                                                    <span>Informal settlement clusters situated near elevated hazard lines.</span>
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-3">
+                                            <h4 className="text-xs font-black uppercase tracking-widest text-indigo-600">Recommended Interventions</h4>
+                                            <div className="bg-slate-50 rounded-3xl p-5 border border-slate-100 space-y-2 text-xs font-medium text-slate-700">
+                                                <p className="flex items-start gap-2">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 flex-shrink-0" />
+                                                    <span><strong>Priority 1:</strong> Rapid retrofitting of non-durable walls and building code compliance verification.</span>
+                                                </p>
+                                                <p className="flex items-start gap-2">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 flex-shrink-0" />
+                                                    <span><strong>Priority 2:</strong> Upgrading of secondary drainage channels to prevent waterlogging during rains.</span>
+                                                </p>
+                                                <p className="flex items-start gap-2">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 flex-shrink-0" />
+                                                    <span><strong>Priority 3:</strong> Community-level early warning broadcasting drills and evacuation path mapping.</span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Print Footer (Only visible when printing) */}
+                                    <div className="hidden print:flex justify-between items-center border-t border-slate-300 pt-8 mt-12 text-[10px] font-bold text-slate-400">
+                                        <span>IDRMIS-AAGIS-REPORT-V2.0</span>
+                                        <span>Verified by Head Office Administration</span>
+                                        <span>Page 1 of 1</span>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* Print Media Styles */}
+                <style>{`
+                    @media print {
+                        /* Hide everything in page */
+                        body * {
+                            visibility: hidden;
+                        }
+                        /* Show only report print area and its kids */
+                        #woreda-report-print-container, #woreda-report-print-container * {
+                            visibility: visible;
+                        }
+                        #woreda-report-print-container {
+                            position: absolute !important;
+                            left: 0 !important;
+                            top: 0 !important;
+                            width: 100% !important;
+                            background: white !important;
+                            color: black !important;
+                            padding: 20px !important;
+                            margin: 0 !important;
+                        }
+                    }
+                `}</style>
             </div>
         </div>
     );

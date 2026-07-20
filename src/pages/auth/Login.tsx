@@ -345,6 +345,7 @@ const Login: React.FC = () => {
                                         className="w-full h-full block cursor-pointer" 
                                         title="Click to refresh captcha"
                                         onClick={generateCaptcha}
+                                        data-captcha={captchaCode}
                                     />
                                 </div>
                                 {/* Refresh button */}

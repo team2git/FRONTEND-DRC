@@ -64,6 +64,7 @@ type NavItem = {
   subItems?: SubItem[];
   permission?: string;
   superAdminOnly?: boolean;
+  target?: string;
 };
 
 // ─── Navigation Items ─────────────────────────────────────────────────────────
@@ -124,7 +125,7 @@ const adminItems: NavItem[] = [
   },
   {
     icon: <ListIcon />,
-    name: "Portal Menu",
+    name: "Portal ",
     subItems: [
       {
         name: "Alert Subscriptions",
@@ -142,13 +143,13 @@ const adminItems: NavItem[] = [
         name: "Incident Reports",
         path: "/admin/incident-reports",
         icon: <AlertIcon />,
-        permission: "view_template",
+        permission: "incidentreport_view",
       },
       {
         name: "Concern Reports",
         path: "/admin/concern-reports",
         icon: <DocsIcon />,
-        permission: "view_template",
+        permission: "incidentreport_view",
       },
       {
         name: "Inspection Requests",
@@ -189,6 +190,12 @@ const adminItems: NavItem[] = [
         name: "Graph",
         path: "/admin/structure-graph",
         icon: <GridIcon />,
+        permission: "organization_view",
+      },
+      {
+        name: "Locations",
+        path: "/admin/locations",
+        icon: <GISIcon />,
         permission: "organization_view",
       },
     ],
@@ -296,21 +303,14 @@ const AppSidebar: React.FC = () => {
 
   const filterItems = (items: NavItem[]) => {
     const isSuperAdmin = user?.roles?.some(r =>
-      ['superadmin', 'super admin', 'super_admin', "admin", "Admin", "branch_admin", "Branch Admin", "manager", "Manager"]
-        .includes(r.name.toLowerCase())
+      ['superadmin', 'super admin', 'super_admin'].includes(r.name.toLowerCase())
     );
 
     return items.map(item => {
       if (item.superAdminOnly && !isSuperAdmin) return null;
 
-      let filteredSub: SubItem[] = [];
       if (item.subItems) {
-        filteredSub = item.subItems.filter(sub => checkPermission(sub.permission));
-      }
-
-      if (isSuperAdmin) return item;
-
-      if (item.subItems) {
+        const filteredSub = item.subItems.filter(sub => checkPermission(sub.permission));
         if (filteredSub.length > 0) return { ...item, subItems: filteredSub };
         return null;
       }
@@ -367,20 +367,17 @@ const AppSidebar: React.FC = () => {
           {nav.subItems ? (
             <button
               onClick={() => handleSubmenuToggle(index, menuType)}
-              className={`menu-item group ${
-                openSubmenu?.type === menuType && openSubmenu?.index === index
+              className={`menu-item group ${openSubmenu?.type === menuType && openSubmenu?.index === index
                   ? "menu-item-active"
                   : "menu-item-inactive"
-              } cursor-pointer ${
-                !isExpanded && !isHovered ? "lg:justify-center" : "lg:justify-start"
-              }`}
+                } cursor-pointer ${!isExpanded && !isHovered ? "lg:justify-center" : "lg:justify-start"
+                }`}
             >
               <span
-                className={`menu-item-icon-size ${
-                  openSubmenu?.type === menuType && openSubmenu?.index === index
+                className={`menu-item-icon-size ${openSubmenu?.type === menuType && openSubmenu?.index === index
                     ? "menu-item-icon-active"
                     : "menu-item-icon-inactive"
-                }`}
+                  }`}
               >
                 {nav.icon}
               </span>
@@ -389,11 +386,10 @@ const AppSidebar: React.FC = () => {
               )}
               {(isExpanded || isHovered || isMobileOpen) && (
                 <ChevronDownIcon
-                  className={`ml-auto w-5 h-5 transition-transform duration-200 ${
-                    openSubmenu?.type === menuType && openSubmenu?.index === index
+                  className={`ml-auto w-5 h-5 transition-transform duration-200 ${openSubmenu?.type === menuType && openSubmenu?.index === index
                       ? "rotate-180 text-brand-500"
                       : ""
-                  }`}
+                    }`}
                 />
               )}
             </button>
@@ -401,14 +397,13 @@ const AppSidebar: React.FC = () => {
             nav.path && (
               <Link
                 to={nav.path}
-                className={`menu-item group ${
-                  isActive(nav.path) ? "menu-item-active" : "menu-item-inactive"
-                }`}
+                target={nav.target}
+                className={`menu-item group ${isActive(nav.path) ? "menu-item-active" : "menu-item-inactive"
+                  }`}
               >
                 <span
-                  className={`menu-item-icon-size ${
-                    isActive(nav.path) ? "menu-item-icon-active" : "menu-item-icon-inactive"
-                  }`}
+                  className={`menu-item-icon-size ${isActive(nav.path) ? "menu-item-icon-active" : "menu-item-icon-inactive"
+                    }`}
                 >
                   {nav.icon}
                 </span>
@@ -436,11 +431,10 @@ const AppSidebar: React.FC = () => {
                     <Link
                       to={subItem.path}
                       target={subItem.target}
-                      className={`menu-dropdown-item ${
-                        isActive(subItem.path)
+                      className={`menu-dropdown-item ${isActive(subItem.path)
                           ? "menu-dropdown-item-active"
                           : "menu-dropdown-item-inactive"
-                      }`}
+                        }`}
                     >
                       {subItem.icon && (
                         <span className="[&>svg]:w-5 [&>svg]:h-5">{subItem.icon}</span>
@@ -449,22 +443,20 @@ const AppSidebar: React.FC = () => {
                       <span className="flex items-center gap-1 ml-auto">
                         {subItem.new && (
                           <span
-                            className={`ml-auto ${
-                              isActive(subItem.path)
+                            className={`ml-auto ${isActive(subItem.path)
                                 ? "menu-dropdown-badge-active"
                                 : "menu-dropdown-badge-inactive"
-                            } menu-dropdown-badge`}
+                              } menu-dropdown-badge`}
                           >
                             new
                           </span>
                         )}
                         {subItem.pro && (
                           <span
-                            className={`ml-auto ${
-                              isActive(subItem.path)
+                            className={`ml-auto ${isActive(subItem.path)
                                 ? "menu-dropdown-badge-active"
                                 : "menu-dropdown-badge-inactive"
-                            } menu-dropdown-badge`}
+                              } menu-dropdown-badge`}
                           >
                             pro
                           </span>
@@ -508,9 +500,8 @@ const AppSidebar: React.FC = () => {
           <div className="flex flex-col gap-4">
             <div>
               <h2
-                className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
-                  !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
-                }`}
+                className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${!isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
+                  }`}
               >
                 {isExpanded || isHovered || isMobileOpen ? (
                   "Menu"
@@ -525,9 +516,8 @@ const AppSidebar: React.FC = () => {
               {hasAdminAccess && (
                 <>
                   <h2
-                    className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
-                      !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
-                    }`}
+                    className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${!isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
+                      }`}
                   >
                     {isExpanded || isHovered || isMobileOpen ? (
                       "Admin"

@@ -6,6 +6,7 @@ import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
 import SetupAccount from "./pages/auth/SetupAccount";
 import ProtectedRoute from "./components/ProtectedRoute";
+import PermissionRoute from "./components/auth/PermissionRoute";
 import { AuthProvider } from "./context/AuthContext";
 import { HierarchyProvider } from "./context/HierarchyContext";
 import Roles from "./pages/admin/Roles";
@@ -17,6 +18,7 @@ import PermissionList from "./pages/admin/PermissionList";
 import Teams from "./pages/admin/Teams";
 import StructureGraph from "./pages/admin/StructureGraph";
 import HierarchyManagement from "./pages/admin/HierarchyManagement";
+import LocationManagement from "./pages/admin/LocationManagement";
 import AuditLogs from "./pages/admin/AuditLogs";
 import AdminLogs from "./pages/admin/AdminLogs";
 import EmailLogs from "./pages/admin/EmailLogs";
@@ -30,7 +32,6 @@ import ConcernReports from "./pages/admin/ConcernReports";
 import TemplateLibrary from "./components/TemplateEngine/TemplateLibrary/TemplateLibrary";
 import FormBuilder from "./components/TemplateEngine/FormBuilder/FormBuilder";
 
-import UserProfiles from "./pages/UserProfiles";
 import DisasterRiskAssessment from "./pages/DRM/DisasterRiskAssessment";
 import DisasterRiskDatabase from "./pages/DRM/DisasterRiskDatabase";
 import CommunityManagement from "./pages/DRM/CommunityManagement";
@@ -62,10 +63,8 @@ import Avatars from "./pages/UiElements/Avatars";
 import Buttons from "./pages/UiElements/Buttons";
 import LineChart from "./pages/Charts/LineChart";
 import BarChart from "./pages/Charts/BarChart";
-import Calendar from "./pages/Calendar";
 import BasicTables from "./pages/Tables/BasicTables";
 import FormElements from "./pages/Forms/FormElements";
-import Blank from "./pages/Blank";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
@@ -97,8 +96,8 @@ export default function App() {
                 {/* Dashboard Layout Routes */}
                 <Route element={<AppLayout />}>
                   <Route path="/dashboard" element={<Home />} />
-                  <Route path="/woreda-profile" element={<WoredaProfile />} />
-                  <Route path="/woreda-profile/:section" element={<WoredaProfile />} />
+                  <Route path="/woreda-profile" element={<PermissionRoute resource="woredaprofile" action="view" element={<WoredaProfile />} />} />
+                  <Route path="/woreda-profile/:section" element={<PermissionRoute resource="woredaprofile" action="view" element={<WoredaProfile />} />} />
 
                   {/* DRM Routes */}
                   <Route path="/disaster-risk-assessment" element={<DisasterRiskAssessment />} />
@@ -111,39 +110,34 @@ export default function App() {
                   <Route path="/analytics" element={<Analytics />} />
 
                   {/* Admin Routes */}
-                  <Route path="/admin/organizations" element={<OrganizationList />} />
-                  <Route path="/admin/sectors" element={<SectorList />} />
-                  <Route path="/admin/departments" element={<DepartmentList />} />
-                  <Route path="/admin/permissions" element={<PermissionList />} />
-                  <Route path="/admin/roles" element={<Roles />} />
-                  <Route path="/admin/users" element={<Users />} />
-                  <Route path="/admin/teams" element={<Teams />} />
-                  <Route path="/admin/structure-graph" element={<StructureGraph />} />
-                  <Route path="/admin/hierarchy" element={<HierarchyManagement />} />
-                  <Route path="/admin/audit-logs" element={<AuditLogs />} />
-                  <Route path="/admin/admin-logs" element={<AdminLogs />} />
-                  <Route path="/admin/email-logs" element={<EmailLogs />} />
-                  <Route path="/admin/site-settings" element={<PortalContentPage />} />
-                  <Route path="/admin/alert-subscriptions" element={<AlertSubscriptions />} />
-                  <Route path="/admin/emergency-contacts" element={<EmergencyContacts />} />
-                  <Route path="/admin/incident-reports" element={<IncidentReports />} />
-                  <Route path="/admin/concern-reports" element={<ConcernReports />} />
+                  <Route path="/admin/organizations" element={<PermissionRoute resource="organization" action="view" element={<OrganizationList />} />} />
+                  <Route path="/admin/sectors" element={<PermissionRoute resource="sector" action="view" element={<SectorList />} />} />
+                  <Route path="/admin/departments" element={<PermissionRoute resource="department" action="view" element={<DepartmentList />} />} />
+                  <Route path="/admin/permissions" element={<PermissionRoute resource="permission" action="view" element={<PermissionList />} />} />
+                  <Route path="/admin/roles" element={<PermissionRoute resource="role" action="view" element={<Roles />} />} />
+                  <Route path="/admin/users" element={<PermissionRoute resource="user" action="view" element={<Users />} />} />
+                  <Route path="/admin/teams" element={<PermissionRoute resource="team" action="view" element={<Teams />} />} />
+                  <Route path="/admin/structure-graph" element={<PermissionRoute resource="organization" action="view" element={<StructureGraph />} />} />
+                  <Route path="/admin/hierarchy" element={<PermissionRoute resource="organization" action="view" element={<HierarchyManagement />} />} />
+                  <Route path="/admin/locations" element={<PermissionRoute resource="organization" action="view" element={<LocationManagement />} />} />
+                  <Route path="/admin/audit-logs" element={<PermissionRoute resource="audit_log" action="view" element={<AuditLogs />} />} />
+                  <Route path="/admin/admin-logs" element={<PermissionRoute resource="adminlog" action="view" element={<AdminLogs />} />} />
+                  <Route path="/admin/email-logs" element={<PermissionRoute resource="audit_log" action="view" element={<EmailLogs />} />} />
+                  <Route path="/admin/site-settings" element={<PermissionRoute resource="portalcontent" action="view" element={<PortalContentPage />} />} />
+                  <Route path="/admin/alert-subscriptions" element={<PermissionRoute resource="alertsubscription" action="view" element={<AlertSubscriptions />} />} />
+                  <Route path="/admin/emergency-contacts" element={<PermissionRoute resource="emergencycontact" action="view" element={<EmergencyContacts />} />} />
+                  <Route path="/admin/incident-reports" element={<PermissionRoute resource="incidentreport" action="view" element={<IncidentReports />} />} />
+                  <Route path="/admin/concern-reports" element={<PermissionRoute resource="incidentreport" action="view" element={<ConcernReports />} />} />
+                  <Route path="/admin/responses/:templateId" element={<PermissionRoute resource="FormResponse" action="view" element={<ResponseExplorerPage />} />} />
+
+                  {/* Template Engine & Survey Routes */}
+                  <Route path="/survey-library" element={<PermissionRoute resource="template" action="view" element={<TemplateLibrary mode="published_only" />} />} />
+                  <Route path="/admin/template-library" element={<PermissionRoute resource="template" action="create" element={<TemplateLibrary mode="admin" />} />} />
+                  <Route path="/admin/form-builder" element={<PermissionRoute resource="template" action="create" element={<FormBuilder />} />} />
+                  <Route path="/admin/form-builder/:id" element={<PermissionRoute resource="template" action="create" element={<FormBuilder />} />} />
+                  <Route path="/admin/profile-mapping" element={<PermissionRoute resource="profilemapping" action="view" element={<MappingConfig />} />} />
+
                   {/* Backward compatible */}
-                  <Route path="/admin/portal-content" element={<PortalContentPage />} />
-
-                  {/* Template Engine Routes */}
-                  <Route path="/survey-library" element={<TemplateLibrary mode="published_only" />} />
-                  <Route path="/admin/template-library" element={<TemplateLibrary mode="admin" />} />
-                  <Route path="/admin/form-builder" element={<FormBuilder />} />
-                  <Route path="/admin/form-builder/:id" element={<FormBuilder />} />
-                  <Route path="/admin/profile-mapping" element={<MappingConfig />} />
-                  <Route path="/admin/responses/:templateId" element={<ResponseExplorerPage />} />
-
-                  {/* Others Page */}
-                  <Route path="/profile" element={<UserProfiles />} />
-                  <Route path="/calendar" element={<Calendar />} />
-                  <Route path="/blank" element={<Blank />} />
-
                   {/* Forms */}
                   <Route path="/form-elements" element={<FormElements />} />
 

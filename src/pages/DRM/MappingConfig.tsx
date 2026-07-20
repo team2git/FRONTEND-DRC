@@ -1,17 +1,17 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-    Plus, Edit3, Trash2, X, 
+import {
+    Plus, Edit3, Trash2, X,
     CheckCircle, Database, Layers, ArrowRightLeft,
-    Calculator, Hash, RefreshCw, 
+    Calculator, Hash, RefreshCw,
     Info, Sparkles, Filter, Search,
     ArrowRight, Binary, Zap, ShieldCheck, Box, Send, RotateCcw
 } from 'lucide-react';
 import { toast } from 'react-toastify';
-import { 
-    getProfileMappings, 
-    createProfileMapping, 
-    updateProfileMapping, 
+import {
+    getProfileMappings,
+    createProfileMapping,
+    updateProfileMapping,
     deleteProfileMapping,
     permanentlyDeleteProfileMapping,
     type ProfileMapping,
@@ -111,6 +111,88 @@ const SOURCE_TYPES = [
     { value: 'InterviewTemplate', label: 'Interview' },
 ];
 
+const TARGET_MODEL_OPTIONS = [
+    { value: 'WoredaProfile', label: 'Woreda Profile (Legacy)', color: 'text-slate-600', bg: 'bg-slate-100', border: 'border-slate-200', desc: 'Maps to aggregated woreda-level profile (backward-compatible).' },
+    { value: 'HouseholdProfile', label: 'Household Profile', color: 'text-emerald-700', bg: 'bg-emerald-50', border: 'border-emerald-200', desc: 'Maps to a household-level assessment record (HH demographics, housing, livelihoods).' },
+    { value: 'WoredaAssessment', label: 'Woreda Assessment', color: 'text-blue-700', bg: 'bg-blue-50', border: 'border-blue-200', desc: 'Maps to a woreda-level KII/CGD assessment record (hazards, capacity, environment).' },
+];
+
+// ─── Target Field Lists ───────────────────────────────────────────────────────
+const HOUSEHOLD_PROFILE_FIELDS = [
+    { group: 'Location', path: 'location.subcity', label: 'Subcity' },
+    { group: 'Location', path: 'location.woreda', label: 'Woreda' },
+    { group: 'Location', path: 'location.kebele', label: 'Kebele' },
+    { group: 'Location', path: 'location.block', label: 'Block' },
+    { group: 'Location', path: 'location.house_no', label: 'House No' },
+    { group: 'Demographics', path: 'demographics.total_household_members', label: 'Total Members' },
+    { group: 'Demographics', path: 'demographics.male_members', label: 'Male Members' },
+    { group: 'Demographics', path: 'demographics.female_members', label: 'Female Members' },
+    { group: 'Demographics', path: 'demographics.children_0_17', label: 'Children (0-17)' },
+    { group: 'Demographics', path: 'demographics.youth_18_29', label: 'Youth (18-29)' },
+    { group: 'Demographics', path: 'demographics.elderly_60_plus', label: 'Elderly (60+)' },
+    { group: 'Demographics', path: 'demographics.female_headed_household', label: 'Female-Headed HH' },
+    { group: 'Demographics', path: 'demographics.idp_status', label: 'IDP Status' },
+    { group: 'Demographics', path: 'demographics.education_level_of_head', label: 'Education of Head' },
+    { group: 'Demographics', path: 'demographics.employment_status', label: 'Employment Status' },
+    { group: 'Livelihood', path: 'livelihood_economy.primary_livelihood_type', label: 'Primary Livelihood' },
+    { group: 'Livelihood', path: 'livelihood_economy.household_income_level', label: 'Income Level' },
+    { group: 'Livelihood', path: 'livelihood_economy.daily_labour_dependency', label: 'Daily Labour Dependency' },
+    { group: 'Livelihood', path: 'livelihood_economy.insurance_coverage', label: 'Insurance Coverage' },
+    { group: 'Livelihood', path: 'livelihood_economy.access_to_credit_safety_nets', label: 'Access to Credit / Safety Nets' },
+    { group: 'Housing', path: 'housing_physical_conditions.wall_material_type', label: 'Wall Material' },
+    { group: 'Housing', path: 'housing_physical_conditions.roof_material_type', label: 'Roof Material' },
+    { group: 'Housing', path: 'housing_physical_conditions.building_age_years', label: 'Building Age (years)' },
+    { group: 'Housing', path: 'housing_physical_conditions.informal_settlement', label: 'Informal Settlement' },
+    { group: 'Housing', path: 'housing_physical_conditions.proximity_to_hazard_zone', label: 'Proximity to Hazard Zone' },
+    { group: 'Preparedness', path: 'preparedness.knows_nearest_emergency_shelter', label: 'Knows Emergency Shelter' },
+    { group: 'Preparedness', path: 'preparedness.knows_local_evacuation_route', label: 'Knows Evacuation Route' },
+    { group: 'Preparedness', path: 'preparedness.family_emergency_plan_exists', label: 'Family Emergency Plan' },
+    { group: 'Preparedness', path: 'preparedness.emergency_supplies_stockpiled', label: 'Emergency Supplies Stockpiled' },
+    { group: 'Recovery', path: 'recovery_capacity.past_disaster_experience_type', label: 'Past Disaster Experience' },
+    { group: 'Recovery', path: 'recovery_capacity.self_help_savings_group_membership', label: 'Self-Help Group Member' },
+    { group: 'Recovery', path: 'recovery_capacity.government_safety_net_access', label: 'Safety Net Access' },
+    { group: 'Recovery', path: 'recovery_capacity.income_diversification_2plus_sources', label: 'Income Diversification' },
+];
+
+const WOREDA_ASSESSMENT_FIELDS = [
+    { group: 'Location', path: 'location.subcity', label: 'Subcity' },
+    { group: 'Location', path: 'location.woreda', label: 'Woreda' },
+    { group: 'Hazards', path: 'hazards.hazard_name', label: 'Hazard Name' },
+    { group: 'Hazards', path: 'hazards.frequency', label: 'Hazard Frequency' },
+    { group: 'Hazards', path: 'hazards.severity', label: 'Hazard Severity' },
+    { group: 'Hazards', path: 'hazards.spatial_extent', label: 'Spatial Extent' },
+    { group: 'CGD', path: 'cgd_community_voice.coping_strategies', label: 'Coping Strategies' },
+    { group: 'CGD', path: 'cgd_community_voice.collective_action_structure', label: 'Collective Action Structure' },
+    { group: 'CGD', path: 'cgd_community_voice.suggested_interventions', label: 'Suggested Interventions' },
+    { group: 'KII Capacity', path: 'kii_capacity_indicators.ews', label: 'Early Warning System (1-5)' },
+    { group: 'KII Capacity', path: 'kii_capacity_indicators.drm_committee', label: 'DRM Committee (1-5)' },
+    { group: 'KII Capacity', path: 'kii_capacity_indicators.focal_persons', label: 'Focal Persons (1-5)' },
+    { group: 'KII Capacity', path: 'kii_capacity_indicators.training_freq', label: 'Training Frequency (1-5)' },
+    { group: 'KII Capacity', path: 'kii_capacity_indicators.shelters', label: 'Shelters (1-5)' },
+    { group: 'KII Capacity', path: 'kii_capacity_indicators.community_structures', label: 'Community Structures (1-5)' },
+    { group: 'KII Capacity', path: 'kii_capacity_indicators.emergency_services', label: 'Emergency Services (1-5)' },
+    { group: 'KII Capacity', path: 'kii_capacity_indicators.inter_sector_coordination', label: 'Inter-Sector Coordination (1-5)' },
+    { group: 'KII Capacity', path: 'kii_capacity_indicators.institutional_strength', label: 'Institutional Strength (1-5)' },
+    { group: 'KII Capacity', path: 'kii_capacity_indicators.recovery_plan', label: 'Recovery Plan (1-5)' },
+    { group: 'KII Capacity', path: 'kii_capacity_indicators.budget', label: 'Budget (1-5)' },
+    { group: 'KII Capacity', path: 'kii_capacity_indicators.drm_mainstreaming', label: 'DRM Mainstreaming (1-5)' },
+    { group: 'KII Infrastructure', path: 'kii_infrastructure_exposure.health', label: 'Health Infrastructure (1-5)' },
+    { group: 'KII Infrastructure', path: 'kii_infrastructure_exposure.water', label: 'Water Infrastructure (1-5)' },
+    { group: 'KII Infrastructure', path: 'kii_infrastructure_exposure.energy', label: 'Energy Infrastructure (1-5)' },
+    { group: 'KII Infrastructure', path: 'kii_infrastructure_exposure.emergency', label: 'Emergency Infrastructure (1-5)' },
+    { group: 'KII Infrastructure', path: 'kii_infrastructure_exposure.communications', label: 'Communications (1-5)' },
+    { group: 'KII Environment', path: 'kii_environmental_indicators.drainage', label: 'Drainage (1-5)' },
+    { group: 'KII Environment', path: 'kii_environmental_indicators.green_cover', label: 'Green Cover (1-5)' },
+    { group: 'KII Environment', path: 'kii_environmental_indicators.waste_mgmt', label: 'Waste Management (1-5)' },
+    { group: 'KII Environment', path: 'kii_environmental_indicators.pollution', label: 'Pollution (1-5)' },
+];
+
+const getTargetFields = (targetModel: string) => {
+    if (targetModel === 'HouseholdProfile') return HOUSEHOLD_PROFILE_FIELDS;
+    if (targetModel === 'WoredaAssessment') return WOREDA_ASSESSMENT_FIELDS;
+    return WOREDA_PROFILE_FIELDS;
+};
+
 
 // ─── Transformation Types ───────────────────────────────────────────────────
 const TRANSFORMATION_TYPES = [
@@ -122,16 +204,17 @@ const TRANSFORMATION_TYPES = [
 ];
 
 // ─── Helper Components ────────────────────────────────────────────────────────
-const MappingRow: React.FC<{ 
-    item: ProfileMappingItem; 
+const MappingRow: React.FC<{
+    item: ProfileMappingItem;
     templateFields: any[];
+    activeFields: { group: string; path: string; label: string }[];
     updateRow: (u: Partial<ProfileMappingItem>) => void;
     removeRow: () => void;
-}> = ({ item, templateFields, updateRow, removeRow }) => {
+}> = ({ item, templateFields, activeFields, updateRow, removeRow }) => {
     const transformation = TRANSFORMATION_TYPES.find(t => t.value === item.transformation) || TRANSFORMATION_TYPES[0];
 
     return (
-        <motion.div 
+        <motion.div
             initial={{ opacity: 0, y: 10, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, x: -50 }}
@@ -141,7 +224,7 @@ const MappingRow: React.FC<{
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Source Variable</label>
                 <div className="relative">
                     <Hash className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={14} />
-                    <select 
+                    <select
                         className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-100 text-[11px] font-bold text-slate-700 focus:outline-none focus:border-indigo-200 focus:bg-white transition-all appearance-none"
                         value={item.sourceKey} onChange={e => updateRow({ sourceKey: e.target.value })}
                     >
@@ -156,7 +239,7 @@ const MappingRow: React.FC<{
             <div className="col-span-3">
                 <div className="flex flex-col items-center gap-2">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Transformer</label>
-                    <button 
+                    <button
                         onClick={() => {
                             const currentIdx = TRANSFORMATION_TYPES.findIndex(t => t.value === item.transformation);
                             const nextIdx = (currentIdx + 1) % TRANSFORMATION_TYPES.length;
@@ -176,13 +259,13 @@ const MappingRow: React.FC<{
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Profile Target</label>
                 <div className="relative">
                     <Database className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={14} />
-                    <select 
+                    <select
                         className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-100 text-[11px] font-bold text-slate-700 focus:outline-none focus:border-indigo-200 focus:bg-white transition-all appearance-none"
                         value={item.targetFieldPath} onChange={e => updateRow({ targetFieldPath: e.target.value })}
                     >
                         <option value="">Choose Database Field...</option>
                         {Object.entries(
-                            WOREDA_PROFILE_FIELDS.reduce((acc: any, curr) => {
+                            activeFields.reduce((acc: any, curr) => {
                                 if (!acc[curr.group]) acc[curr.group] = [];
                                 acc[curr.group].push(curr);
                                 return acc;
@@ -199,8 +282,8 @@ const MappingRow: React.FC<{
             </div>
 
             <div className="col-span-1 pt-6 flex justify-end">
-                <button 
-                    onClick={removeRow} 
+                <button
+                    onClick={removeRow}
                     className="w-8 h-8 flex items-center justify-center text-slate-200 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all"
                 >
                     <Trash2 size={14} />
@@ -216,7 +299,7 @@ const MappingRow: React.FC<{
                             <p className="text-[10px] font-bold text-indigo-400 uppercase">Sum, Average, Concat or Logic Across Multiple Inputs</p>
                         </div>
                     </div>
-                    
+
                     <div className="space-y-6">
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-4">
                             <div className="space-y-4">
@@ -231,7 +314,7 @@ const MappingRow: React.FC<{
                                         { id: 'or', label: 'OR' },
                                         { id: 'count', label: '# Count' }
                                     ].map(op => (
-                                        <button 
+                                        <button
                                             key={op.id}
                                             onClick={() => updateRow({ operation: op.id as any })}
                                             className={`py-2 px-1 rounded-xl text-[9px] font-black uppercase transition-all ${item.operation === op.id ? 'bg-indigo-600 text-white shadow-md shadow-indigo-100' : 'text-slate-400 hover:bg-slate-50'}`}
@@ -244,7 +327,7 @@ const MappingRow: React.FC<{
 
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Source Factors</label>
-                                <select 
+                                <select
                                     className="w-full px-6 py-3 rounded-2xl bg-white border border-slate-100 text-[11px] font-bold text-slate-700 shadow-sm transition-all focus:border-indigo-200 outline-none"
                                     onChange={e => {
                                         if (!e.target.value) return;
@@ -265,7 +348,7 @@ const MappingRow: React.FC<{
                         {item.operation === 'formula' ? (
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Formula (Use {"{{Q_CODE}}"})</label>
-                                <input 
+                                <input
                                     className="w-full px-6 py-3 rounded-2xl bg-white border border-slate-200 text-[11px] font-bold text-slate-700 shadow-sm focus:border-indigo-400 outline-none transition-all"
                                     placeholder="e.g. {{Q1}} + {{Q2}}"
                                     value={item.formula || ''}
@@ -275,7 +358,7 @@ const MappingRow: React.FC<{
                         ) : item.operation === 'concat' ? (
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Separator</label>
-                                <input 
+                                <input
                                     className="w-full px-6 py-3 rounded-2xl bg-white border border-slate-200 text-[11px] font-bold text-slate-700 shadow-sm focus:border-indigo-400 outline-none transition-all"
                                     placeholder="Fixed string separator (e.g. , or /)"
                                     value={item.separator || ' '}
@@ -354,17 +437,17 @@ const STATUS_CONFIG: Record<string, { bg: string; text: string; dot: string }> =
     Archived: { bg: 'bg-gray-100', text: 'text-gray-600', dot: 'bg-gray-400' },
 };
 
-const MappingCard: React.FC<{ 
-    mapping: ProfileMapping; 
-    onEdit: () => void; 
+const MappingCard: React.FC<{
+    mapping: ProfileMapping;
+    onEdit: () => void;
     onDelete: (permanent?: boolean) => void;
     onStatusChange: (status: ProfileMapping['status']) => void;
 }> = ({ mapping, onEdit, onDelete, onStatusChange }) => (
-    <motion.div 
-        layout 
-        initial={{ opacity: 0, y: 20 }} 
-        animate={{ opacity: 1, y: 0 }} 
-        whileHover={{ y: -5 }} 
+    <motion.div
+        layout
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        whileHover={{ y: -5 }}
         className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:border-indigo-200 transition-all duration-300 group flex flex-col overflow-hidden"
     >
         {/* Top color strip */}
@@ -381,7 +464,7 @@ const MappingCard: React.FC<{
                         ${STATUS_CONFIG[mapping.status]?.bg || STATUS_CONFIG.Draft.bg} 
                         ${STATUS_CONFIG[mapping.status]?.text || STATUS_CONFIG.Draft.text}
                     `}>
-                        <div className={`w-1.5 h-1.5 rounded-full ${STATUS_CONFIG[mapping.status]?.dot || STATUS_CONFIG.Draft.dot} ${mapping.status === 'Published' ? 'animate-pulse' : ''}`} /> 
+                        <div className={`w-1.5 h-1.5 rounded-full ${STATUS_CONFIG[mapping.status]?.dot || STATUS_CONFIG.Draft.dot} ${mapping.status === 'Published' ? 'animate-pulse' : ''}`} />
                         {mapping.status}
                     </div>
                 </div>
@@ -412,15 +495,15 @@ const MappingCard: React.FC<{
             <div className="flex items-center gap-1">
                 {mapping.status === 'Archived' ? (
                     <>
-                        <button 
-                            onClick={(e) => { e.stopPropagation(); onStatusChange('Draft'); }} 
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onStatusChange('Draft'); }}
                             className="p-2 rounded-lg text-emerald-500 hover:bg-emerald-50 transition-all"
                             title="Restore Connector"
                         >
                             <RotateCcw size={16} />
                         </button>
-                        <button 
-                            onClick={(e) => { e.stopPropagation(); onDelete(true); }} 
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onDelete(true); }}
                             className="p-2 rounded-lg text-rose-600 hover:bg-rose-50 transition-all"
                             title="Delete Permanently"
                         >
@@ -430,31 +513,31 @@ const MappingCard: React.FC<{
                 ) : (
                     <>
                         {mapping.status === 'Draft' ? (
-                            <button 
-                                onClick={(e) => { e.stopPropagation(); onStatusChange('Published'); }} 
+                            <button
+                                onClick={(e) => { e.stopPropagation(); onStatusChange('Published'); }}
                                 className="p-2 rounded-lg text-amber-500 hover:bg-amber-50 transition-all"
                                 title="Publish Mapping"
                             >
                                 <Send size={16} />
                             </button>
                         ) : (
-                            <button 
-                                onClick={(e) => { e.stopPropagation(); onStatusChange('Draft'); }} 
+                            <button
+                                onClick={(e) => { e.stopPropagation(); onStatusChange('Draft'); }}
                                 className="p-2 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-all"
                                 title="Revert to Draft"
                             >
                                 <RotateCcw size={16} />
                             </button>
                         )}
-                        <button 
-                            onClick={onEdit} 
+                        <button
+                            onClick={onEdit}
                             className="p-2 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-white border border-transparent hover:border-indigo-100 transition-all"
                             title="Edit Connector"
                         >
                             <Edit3 size={16} />
                         </button>
-                        <button 
-                            onClick={(e) => { e.stopPropagation(); onDelete(false); }} 
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onDelete(false); }}
                             className="p-2 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-white border border-transparent hover:border-rose-100 transition-all"
                             title="Archive Connector"
                         >
@@ -467,16 +550,17 @@ const MappingCard: React.FC<{
     </motion.div>
 );
 
-const MappingForm: React.FC<{ 
-    initial: ProfileMapping | null; 
-    templates: any[]; 
-    onClose: () => void; 
-    onSave: () => void 
+const MappingForm: React.FC<{
+    initial: ProfileMapping | null;
+    templates: any[];
+    onClose: () => void;
+    onSave: () => void
 }> = ({ initial, templates, onClose, onSave }) => {
     const [name, setName] = useState(initial?.name || '');
     const [description, setDescription] = useState(initial?.description || '');
     const [sourceId, setSourceId] = useState(initial?.sourceId || '');
     const [sourceType, setSourceType] = useState<ProfileMapping['sourceType']>(initial?.sourceType || 'SiteSurveyTemplate');
+    const [targetModel, setTargetModel] = useState<'WoredaProfile' | 'WoredaAssessment' | 'HouseholdProfile'>(initial?.targetModel || 'WoredaProfile');
     const [mappings, setMappings] = useState<ProfileMappingItem[]>(initial?.mappings || []);
     const [status, setStatus] = useState<'Draft' | 'Published' | 'Archived'>(initial?.status || 'Draft');
     const [saving, setSaving] = useState(false);
@@ -492,7 +576,7 @@ const MappingForm: React.FC<{
 
     const templateFields = useMemo(() => {
         if (!selectedTemplate) return [];
-        return selectedTemplate.modules.flatMap((m: any) => 
+        return selectedTemplate.modules.flatMap((m: any) =>
             m.sections.flatMap((s: any) => s.fields.map((f: any) => ({
                 code: f.questionCode,
                 label: f.label
@@ -500,13 +584,16 @@ const MappingForm: React.FC<{
         );
     }, [selectedTemplate]);
 
+    const activeFields = useMemo(() => getTargetFields(targetModel), [targetModel]);
+
     const handleSave = async () => {
         if (!name || !sourceId) return toast.error('Check your configuration settings');
         try {
             setSaving(true);
-            const payload = { 
-                name, description, 
-                sourceType, 
+            const payload = {
+                name, description,
+                sourceType,
+                targetModel,
                 sourceId, mappings,
                 status
             };
@@ -531,8 +618,8 @@ const MappingForm: React.FC<{
         let count = 0;
         templateFields.forEach((tf: any) => {
             if (newMappings.some(m => m.sourceKey === tf.code)) return;
-            const match = WOREDA_PROFILE_FIELDS.find(pf => 
-                tf.label.toLowerCase().includes(pf.label.toLowerCase()) || 
+            const match = activeFields.find((pf: any) =>
+                tf.label.toLowerCase().includes(pf.label.toLowerCase()) ||
                 pf.label.toLowerCase().includes(tf.label.toLowerCase()) ||
                 tf.code.toLowerCase().includes(pf.path.split('.').pop() || '')
             );
@@ -619,6 +706,33 @@ const MappingForm: React.FC<{
                                             )}
                                         </div>
                                     </div>
+                                    {/* ── Target Module Selector ── */}
+                                    <div className="space-y-3 pt-2">
+                                        <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Target Module</label>
+                                        <p className="text-[10px] text-slate-400 ml-1 -mt-1">Where should synced data be stored?</p>
+                                        <div className="grid grid-cols-1 gap-2">
+                                            {TARGET_MODEL_OPTIONS.map(opt => (
+                                                <button
+                                                    key={opt.value}
+                                                    type="button"
+                                                    onClick={() => { setTargetModel(opt.value as any); setMappings([]); }}
+                                                    className={`w-full text-left px-4 py-3 rounded-2xl border-2 transition-all flex items-start gap-3 ${targetModel === opt.value
+                                                            ? `${opt.bg} ${opt.border} ${opt.color}`
+                                                            : 'bg-white border-slate-100 text-slate-400 hover:border-slate-200'
+                                                        }`}
+                                                >
+                                                    <div className={`mt-0.5 w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${targetModel === opt.value ? `${opt.border} ${opt.bg}` : 'border-slate-300'
+                                                        }`}>
+                                                        {targetModel === opt.value && <div className={`w-2 h-2 rounded-full ${opt.color.replace('text-', 'bg-')}`} />}
+                                                    </div>
+                                                    <div>
+                                                        <p className={`text-[11px] font-black uppercase tracking-widest ${targetModel === opt.value ? opt.color : 'text-slate-500'}`}>{opt.label}</p>
+                                                        <p className="text-[10px] font-medium text-slate-400 mt-0.5">{opt.desc}</p>
+                                                    </div>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
                                     {initial && (
                                         <div className="space-y-4 pt-2 border-t border-slate-100 mt-6">
                                             <div className="flex items-center justify-between">
@@ -665,7 +779,7 @@ const MappingForm: React.FC<{
                             </div>
                             <div className="space-y-3">
                                 <AnimatePresence>
-                                    {mappings.map((m, idx) => <MappingRow key={idx} item={m} templateFields={templateFields} updateRow={(updates) => setMappings(mappings.map((row, i) => i === idx ? { ...row, ...updates } : row))} removeRow={() => setMappings(mappings.filter((_, i) => i !== idx))} />)}
+                                    {mappings.map((m, idx) => <MappingRow key={idx} item={m} templateFields={templateFields} activeFields={activeFields} updateRow={(updates) => setMappings(mappings.map((row, i) => i === idx ? { ...row, ...updates } : row))} removeRow={() => setMappings(mappings.filter((_, i) => i !== idx))} />)}
                                 </AnimatePresence>
                                 {mappings.length === 0 && (
                                     <div className="flex flex-col items-center justify-center py-24 bg-white/50 rounded-3xl border-2 border-dashed border-slate-200">
@@ -700,9 +814,9 @@ const MappingForm: React.FC<{
                     </div>
                     <div className="flex items-center gap-3">
                         <button onClick={onClose} className="px-6 py-2.5 text-sm font-bold text-slate-400 hover:text-slate-900 transition-colors uppercase tracking-widest">Discard</button>
-                        <button 
-                            disabled={saving || !name || !sourceId} 
-                            onClick={handleSave} 
+                        <button
+                            disabled={saving || !name || !sourceId}
+                            onClick={handleSave}
                             className={`
                                 px-10 py-3 rounded-xl text-sm font-black uppercase tracking-tight flex items-center gap-2 transition-all shadow-md
                                 ${saving || !name || !sourceId ? 'bg-slate-100 text-slate-300 cursor-not-allowed' : 'bg-indigo-600 text-white hover:bg-slate-900 hover:shadow-xl hover:-translate-y-0.5 shadow-indigo-100'}
@@ -761,12 +875,12 @@ const MappingConfig: React.FC = () => {
     });
 
     const handleDelete = async (id: string, isPermanent: boolean = false) => {
-        const msg = isPermanent 
-            ? 'This mapping will be gone forever. Continue?' 
+        const msg = isPermanent
+            ? 'This mapping will be gone forever. Continue?'
             : 'Archive this mapping? You can restore it later.';
-            
+
         if (!window.confirm(msg)) return;
-        
+
         try {
             if (isPermanent) {
                 await permanentlyDeleteProfileMapping(id);
@@ -809,8 +923,8 @@ const MappingConfig: React.FC = () => {
                         <p className="text-slate-500 mt-1 font-medium">Map survey data to your Woreda Profile database with precision.</p>
                     </div>
                     <div className="flex items-center gap-3">
-                        <button 
-                            onClick={() => { setEditingMapping(null); setShowForm(true); }} 
+                        <button
+                            onClick={() => { setEditingMapping(null); setShowForm(true); }}
                             className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-blue-700 text-white px-8 py-3.5 rounded-xl font-bold hover:shadow-xl hover:shadow-indigo-100 transition-all"
                         >
                             <Plus size={20} />
@@ -866,7 +980,7 @@ const MappingConfig: React.FC = () => {
                             </button>
                         ))}
                     </div>
-                    
+
                     <div className="flex flex-1 items-center gap-4 w-full">
                         <div className="relative flex-1 group">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" size={18} />
@@ -897,13 +1011,13 @@ const MappingConfig: React.FC = () => {
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {filteredMappings.map(m => (
-                                <MappingCard 
-                                    key={m._id} 
-                                    mapping={m} 
-                                    onEdit={() => { setEditingMapping(m); setShowForm(true); }} 
-                                    onDelete={(permanent) => handleDelete(m._id, permanent)} 
-                                    onStatusChange={(status) => handleStatusUpdate(m._id, status)}
-                                />
+                            <MappingCard
+                                key={m._id}
+                                mapping={m}
+                                onEdit={() => { setEditingMapping(m); setShowForm(true); }}
+                                onDelete={(permanent) => handleDelete(m._id, permanent)}
+                                onStatusChange={(status) => handleStatusUpdate(m._id, status)}
+                            />
                         ))}
                     </div>
                 )}

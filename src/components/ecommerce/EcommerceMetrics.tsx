@@ -1,12 +1,10 @@
 import { useEffect, useState } from "react";
-import {
-  GridIcon,
-  GroupIcon,
-  TaskIcon,
-} from "../../icons";
 import { getDashboardStats, DashboardStats } from "../../api/dashboardService";
+import { Map, ClipboardList, Layers, FileText, Users, Shield } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 
 export default function EcommerceMetrics() {
+  const { user } = useAuth();
   const [stats, setStats] = useState<DashboardStats>({
     permissions: {
       canViewOrganizations: false,
@@ -65,189 +63,136 @@ export default function EcommerceMetrics() {
     );
   }
 
+  const isSuperAdmin = user?.roles?.some(r => ['superadmin', 'super admin', 'super_admin'].includes(r.name.toLowerCase()));
+  const isHeadOfficeSuperAdmin = (user?.accessLevel === 'super_admin' || isSuperAdmin) && user?.organizationType === 'head_office';
+  const isBranchAdmin = user?.accessLevel === 'branch_admin';
+  const isAdmin = isHeadOfficeSuperAdmin || isBranchAdmin;
+
   return (
-    <div className="space-y-6">
-      {/* User Context Info */}
-      {stats.userInfo && (
-        <div className="rounded-2xl border border-blue-200 bg-blue-50 p-5 dark:border-blue-800 dark:bg-blue-900/10 md:p-6">
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90 mb-3">
-            Your Dashboard Context
-          </h3>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
-            <div>
-              <span className="text-gray-500 dark:text-gray-400">Access Level:</span>
-              <p className="font-medium text-gray-800 dark:text-white/90 capitalize">
-                {stats.userInfo.accessLevel.replace(/_/g, ' ')}
-              </p>
-            </div>
-            <div>
-              <span className="text-gray-500 dark:text-gray-400">Organization Type:</span>
-              <p className="font-medium text-gray-800 dark:text-white/90 capitalize">
-                {stats.userInfo.organizationType.replace(/_/g, ' ')}
-              </p>
-            </div>
-            <div>
-              <span className="text-gray-500 dark:text-gray-400">Organization:</span>
-              <p className="font-medium text-gray-800 dark:text-white/90">
-                {stats.userInfo.organizationName}
-              </p>
-            </div>
-            <div>
-              <span className="text-gray-500 dark:text-gray-400">Sector:</span>
-              <p className="font-medium text-gray-800 dark:text-white/90">
-                {stats.userInfo.sectorName}
-              </p>
-            </div>
-            <div>
-              <span className="text-gray-500 dark:text-gray-400">Department:</span>
-              <p className="font-medium text-gray-800 dark:text-white/90">
-                {stats.userInfo.departmentName}
-              </p>
-            </div>
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 md:gap-6">
+      {/* Card 1: Woreda Profiles */}
+      <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5">
+        <div className="flex items-center justify-center w-12 h-12 bg-red-100 rounded-xl dark:bg-red-900/20">
+          <Map className="text-red-600 size-6 dark:text-red-400" />
+        </div>
+        <div className="flex items-end justify-between mt-5">
+          <div>
+            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+              Woreda Profiles
+            </span>
+            <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
+              {stats.totalWoredaProfiles || 0}
+            </h4>
           </div>
         </div>
-      )}
-
-
-      {/* Main Statistics Grid */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5 md:gap-6">
-        {/* Total Organizations - Only show if user has permission */}
-        {stats.permissions.canViewOrganizations && (
-          <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
-            <div className="flex items-center justify-center w-12 h-12 bg-purple-100 rounded-xl dark:bg-purple-800/20">
-              <GridIcon className="text-purple-600 size-6 dark:text-purple-400" />
-            </div>
-            <div className="flex items-end justify-between mt-5">
-              <div>
-                <span className="text-sm text-gray-500 dark:text-gray-400">
-                  Organizations
-                </span>
-                <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
-                  {stats.totalOrganizations || 0}
-                </h4>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Total Sectors - Only show if user has permission */}
-        {stats.permissions.canViewSectors && (
-          <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
-            <div className="flex items-center justify-center w-12 h-12 bg-indigo-100 rounded-xl dark:bg-indigo-800/20">
-              <GridIcon className="text-indigo-600 size-6 dark:text-indigo-400" />
-            </div>
-            <div className="flex items-end justify-between mt-5">
-              <div>
-                <span className="text-sm text-gray-500 dark:text-gray-400">
-                  Sectors
-                </span>
-                <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
-                  {stats.totalSectors || 0}
-                </h4>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Total Departments - Only show if user has permission */}
-        {stats.permissions.canViewDepartments && (
-          <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
-            <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-xl dark:bg-blue-800/20">
-              <GridIcon className="text-blue-600 size-6 dark:text-blue-400" />
-            </div>
-            <div className="flex items-end justify-between mt-5">
-              <div>
-                <span className="text-sm text-gray-500 dark:text-gray-400">
-                  Departments
-                </span>
-                <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
-                  {stats.totalDepartments || 0}
-                </h4>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Total Users - Only show if user has permission */}
-        {stats.permissions.canViewUsers && (
-          <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
-            <div className="flex items-center justify-center w-12 h-12 bg-green-100 rounded-xl dark:bg-green-800/20">
-              <GroupIcon className="text-green-600 size-6 dark:text-green-400" />
-            </div>
-            <div className="flex items-end justify-between mt-5">
-              <div>
-                <span className="text-sm text-gray-500 dark:text-gray-400">
-                  Users
-                </span>
-                <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
-                  {stats.totalUsers || 0}
-                </h4>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Total Roles - Only show if user has permission */}
-        {stats.permissions.canViewRoles && (
-          <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
-            <div className="flex items-center justify-center w-12 h-12 bg-orange-100 rounded-xl dark:bg-orange-800/20">
-              <TaskIcon className="text-orange-600 size-6 dark:text-orange-400" />
-            </div>
-            <div className="flex items-end justify-between mt-5">
-              <div>
-                <span className="text-sm text-gray-500 dark:text-gray-400">
-                  Roles
-                </span>
-                <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
-                  {stats.totalRoles || 0}
-                </h4>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
-
-
-      {/* Advanced Statistics for Admins/Managers */}
-      {stats.permissions.canViewAdvancedStats && stats.usersByAccessLevel && stats.usersByAccessLevel.length > 0 && (
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90 mb-4">
-            Users by Access Level
-          </h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {stats.usersByAccessLevel.map((item) => (
-              <div key={item.accessLevel} className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">
-                  {item.accessLevel.replace(/_/g, ' ')}
-                </p>
-                <p className="text-xl font-bold text-gray-800 dark:text-white/90 mt-1">
-                  {item.count}
-                </p>
+      {isAdmin ? (
+        <>
+          {/* Admin Card 2: Total Surveys */}
+          <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5">
+            <div className="flex items-center justify-center w-12 h-12 bg-emerald-100 rounded-xl dark:bg-emerald-900/20">
+              <ClipboardList className="text-emerald-600 size-6 dark:text-emerald-400" />
+            </div>
+            <div className="flex items-end justify-between mt-5">
+              <div>
+                <span className="text-sm font-medium text-gray-500 dark:text-gray-400 font-medium">
+                  Total Surveys
+                </span>
+                <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
+                  {stats.totalSurveys || 0}
+                </h4>
               </div>
-            ))}
+            </div>
           </div>
-        </div>
-      )}
 
-      {stats.permissions.canViewAdvancedStats && stats.usersByOrganization && stats.usersByOrganization.length > 0 && (
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90 mb-4">
-            Users by Organization
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {stats.usersByOrganization.map((item) => (
-              <div key={item.organizationId} className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {item.organizationName || 'Unknown Organization'}
-                </p>
-                <p className="text-xl font-bold text-gray-800 dark:text-white/90 mt-1">
-                  {item.count}
-                </p>
+          {/* Admin Card 3: Total Mappings */}
+          <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5">
+            <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-xl dark:bg-blue-900/20">
+              <Layers className="text-blue-600 size-6 dark:text-blue-400" />
+            </div>
+            <div className="flex items-end justify-between mt-5">
+              <div>
+                <span className="text-sm font-medium text-gray-500 dark:text-gray-400 font-medium">
+                  Total Mappings
+                </span>
+                <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
+                  {stats.totalMappings || 0}
+                </h4>
               </div>
-            ))}
+            </div>
           </div>
-        </div>
+
+          {/* Admin Card 4: Total Templates */}
+          <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5">
+            <div className="flex items-center justify-center w-12 h-12 bg-amber-100 rounded-xl dark:bg-amber-900/20">
+              <FileText className="text-amber-600 size-6 dark:text-amber-400" />
+            </div>
+            <div className="flex items-end justify-between mt-5">
+              <div>
+                <span className="text-sm font-medium text-gray-500 dark:text-gray-400 font-medium">
+                  Total Templates
+                </span>
+                <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
+                  {stats.totalTemplates || 0}
+                </h4>
+              </div>
+            </div>
+          </div>
+        </>
+      ) : (
+        <>
+          {/* DRM Card 2: Household Profiles */}
+          <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5">
+            <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-xl dark:bg-blue-900/20">
+              <Users className="text-blue-600 size-6 dark:text-blue-400" />
+            </div>
+            <div className="flex items-end justify-between mt-5">
+              <div>
+                <span className="text-sm font-medium text-gray-500 dark:text-gray-400 font-medium">
+                  Household Profiles
+                </span>
+                <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
+                  {stats.totalHouseholdProfiles || 0}
+                </h4>
+              </div>
+            </div>
+          </div>
+
+          {/* DRM Card 3: Woreda Assessments */}
+          <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5">
+            <div className="flex items-center justify-center w-12 h-12 bg-amber-100 rounded-xl dark:bg-amber-900/20">
+              <Shield className="text-amber-600 size-6 dark:text-amber-400" />
+            </div>
+            <div className="flex items-end justify-between mt-5">
+              <div>
+                <span className="text-sm font-medium text-gray-500 dark:text-gray-400 font-medium">
+                  Woreda Assessments
+                </span>
+                <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
+                  {stats.totalWoredaAssessments || 0}
+                </h4>
+              </div>
+            </div>
+          </div>
+
+          {/* DRM Card 4: Total Surveys */}
+          <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5">
+            <div className="flex items-center justify-center w-12 h-12 bg-emerald-100 rounded-xl dark:bg-emerald-900/20">
+              <ClipboardList className="text-emerald-600 size-6 dark:text-emerald-400" />
+            </div>
+            <div className="flex items-end justify-between mt-5">
+              <div>
+                <span className="text-sm font-medium text-gray-500 dark:text-gray-400 font-medium">
+                  Total Surveys
+                </span>
+                <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
+                  {stats.totalSurveys || 0}
+                </h4>
+              </div>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );

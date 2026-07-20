@@ -818,3 +818,33 @@ span.flatpickr-weekday,
 .simplebar-scrollbar.simplebar-visible:before {
   @apply opacity-100;
 }
+
+/* Utility: hide scrollbar while preserving scroll */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Assessment modal range input styling */
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #465FFF;
+  cursor: pointer;
+  box-shadow: 0 0 0 3px rgba(70, 95, 255, 0.15);
+  border: 2px solid white;
+}
+input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #465FFF;
+  cursor: pointer;
+  box-shadow: 0 0 0 3px rgba(70, 95, 255, 0.15);
+  border: 2px solid white;
+}
