@@ -449,6 +449,140 @@ export const syncFromInterview = async (data: {
     return response.data;
 };
 
+export const bulkImportProfiles = async (
+    type: 'woreda' | 'household',
+    items: any[]
+): Promise<{ success: boolean; count: number }> => {
+    let successCount = 0;
+    for (const item of items) {
+        try {
+            if (type === 'household') {
+                await createHouseholdProfile({
+                    location: {
+                        subcity: item.Subcity || item.subcity || '',
+                        woreda: item.Woreda || item.woreda || '',
+                        kebele: item.Kebele || item.kebele || '',
+                        block: item.Block || item.block || 'Block 01',
+                        house_no: item['House No'] || item.house_no || 'H-01'
+                    },
+                    assessment_date: item['Survey Date (YYYY-MM-DD)'] || item.survey_date || new Date().toISOString(),
+                    identity_location: {
+                        subcity: item.Subcity || item.subcity || '',
+                        woreda: item.Woreda || item.woreda || '',
+                        kebele: item.Kebele || item.kebele || '',
+                        block: item.Block || item.block || 'Block 01',
+                        house_no: item['House No'] || item.house_no || 'H-01',
+                        enumerator_name: item['Enumerator Name'] || item.enumerator_name || '',
+                        survey_date: item['Survey Date (YYYY-MM-DD)'] || item.survey_date || new Date().toISOString(),
+                        respondent_consent_status: item['Consent (Yes/No)'] || item.consent || 'Yes'
+                    },
+                    demographics: {
+                        total_household_members: Number(item['Total Household Members'] || item.family_size || 1),
+                        male_members: Number(item['Male Members'] || 0),
+                        female_members: Number(item['Female Members'] || 0),
+                        children_0_17: Number(item['Children (0-17)'] || 0),
+                        youth_18_29: Number(item['Youth (18-29)'] || 0),
+                        elderly_60_plus: Number(item['Elderly (60+)'] || 0),
+                        female_headed_household: item['Female Headed (Yes/No)'] || 'No',
+                        idp_status: item['IDP Status (Yes/No)'] || 'No',
+                        idp_reason: item['IDP Reason'] || '',
+                        education_level_of_head: item['Education Level'] || '',
+                        employment_status: item['Employment Status'] || ''
+                    },
+                    livelihood_economy: {
+                        primary_livelihood_type: item['Primary Livelihood'] || '',
+                        secondary_livelihood_type: item['Secondary Livelihood'] || '',
+                        household_income_level: item['Household Income Level'] || item['Income Level'] || '',
+                        small_business_ownership: item['Small Business Ownership (Yes/No)'] || 'No',
+                        daily_labour_dependency: item['Daily Labour Dependency (Yes/No)'] || 'No',
+                        insurance_coverage: item['Insurance Coverage (Yes/No)'] || 'No'
+                    },
+                    housing_physical_conditions: {
+                        wall_material_type: item['Wall Material'] || '',
+                        roof_material_type: item['Roof Material'] || '',
+                        building_age_years: Number(item['Building Age Years'] || 10),
+                        informal_settlement: item['Informal Settlement (Yes/No)'] || 'No',
+                        sleeping_rooms: Number(item['Sleeping Rooms'] || 2),
+                        proximity_to_hazard_zone: item['Proximity to Hazard Zone'] || ''
+                    },
+                    preparedness: {
+                        knows_nearest_emergency_shelter: item['Shelter Known (Yes/No)'] || 'Yes',
+                        knows_local_evacuation_route: item['Evacuation Route Known (Yes/No)'] || 'Yes',
+                        drm_training_received_type: item['DRM Training Received'] || '',
+                        family_emergency_plan_exists: item['Emergency Plan Exists (Yes/No)'] || 'Yes',
+                        emergency_supplies_stockpiled: item['Supplies Stockpiled (Yes/Partial/No)'] || 'Partial',
+                        early_warning_received_channel: item['Early Warning Channel'] || '',
+                        community_awareness_self_rated_1_5: Number(item['Community Awareness Rating (1-5)'] || 4)
+                    },
+                    recovery_capacity: {
+                        past_disaster_experience_type: item['Past Disaster Experience'] || '',
+                        recovery_duration_months: Number(item['Recovery Duration Months'] || 3),
+                        self_help_savings_group_membership: item['Savings Group Member (Yes/No)'] || 'Yes',
+                        government_safety_net_access: item['Safety Net Access (Yes/No)'] || 'Yes',
+                        resilience_enumerator_assessment_1_5: Number(item['Resilience Rating (1-5)'] || 4)
+                    },
+                    status: item.Status || item.status || 'Draft'
+                } as any);
+            } else {
+                await createWoredaAssessment({
+                    location: {
+                        subcity: item.Subcity || item.subcity || '',
+                        woreda: item.Woreda || item.woreda || ''
+                    },
+                    assessment_date: item['Assessment Date (YYYY-MM-DD)'] || item.assessment_date || new Date().toISOString(),
+                    remarks: item.Remarks || item.remarks || '',
+                    status: item.Status || item.status || 'Draft',
+                    hazards: [{
+                        hazard_name: item['Primary Hazard Name'] || item.hazard_name || 'Urban Flash Flood',
+                        frequency: item['Hazard Frequency'] || item.frequency || 'Annual',
+                        severity: item['Hazard Severity'] || item.severity || 'Medium',
+                        duration: item['Hazard Duration'] || item.duration || '2-4 hours',
+                        spatial_extent: item['Spatial Extent'] || item.spatial_extent || 'Woreda-wide',
+                        seasonality: item['Seasonality'] || item.seasonality || 'Kiremt',
+                        historical_events: item['Historical Events'] || item.historical_events || ''
+                    }],
+                    cgd_community_voice: {
+                        coping_strategies: item['Coping Strategies'] || item.coping_strategies || '',
+                        collective_action_structure: item['Collective Action Structure'] || item.collective_action_structure || '',
+                        suggested_interventions: item['Suggested Interventions'] || item.suggested_interventions || ''
+                    },
+                    kii_capacity_indicators: {
+                        ews: Number(item['EWS Rating (1-5)'] || 3),
+                        drm_committee: Number(item['DRM Committee Rating (1-5)'] || 3),
+                        focal_persons: Number(item['Focal Persons Rating (1-5)'] || 3),
+                        training_freq: Number(item['Training Freq Rating (1-5)'] || 3),
+                        shelters: Number(item['Shelters Rating (1-5)'] || 3),
+                        community_structures: Number(item['Community Structures Rating (1-5)'] || 3),
+                        emergency_services: Number(item['Emergency Services Rating (1-5)'] || 3),
+                        inter_sector_coordination: Number(item['Inter-sector Coordination Rating (1-5)'] || 3),
+                        institutional_strength: Number(item['Institutional Strength Rating (1-5)'] || 3),
+                        recovery_plan: Number(item['Recovery Plan Rating (1-5)'] || 3),
+                        budget: Number(item['Budget Rating (1-5)'] || 3),
+                        drm_mainstreaming: Number(item['DRM Mainstreaming Rating (1-5)'] || 3)
+                    },
+                    kii_infrastructure_exposure: {
+                        health: Number(item['Health Exposure Rating (1-5)'] || 3),
+                        water: Number(item['Water Exposure Rating (1-5)'] || 3),
+                        energy: Number(item['Energy Exposure Rating (1-5)'] || 3),
+                        emergency: Number(item['Emergency Facilities Rating (1-5)'] || 3),
+                        communications: Number(item['Communications Exposure Rating (1-5)'] || 3)
+                    },
+                    kii_environmental_indicators: {
+                        drainage: Number(item['Drainage Rating (1-5)'] || 3),
+                        green_cover: Number(item['Green Cover Rating (1-5)'] || 3),
+                        waste_mgmt: Number(item['Waste Mgmt Rating (1-5)'] || 3),
+                        pollution: Number(item['Pollution Rating (1-5)'] || 3)
+                    }
+                } as any);
+            }
+            successCount++;
+        } catch (err) {
+            console.error('Failed to import profile item:', item, err);
+        }
+    }
+    return { success: true, count: successCount };
+};
+
 // ─── Household Profile ─────────────────────────────────────────────────────────
 export interface HouseholdProfileInput {
     location: {
