@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useRef, useMemo, useState } from 'react';
+import React, { useEffect, useRef, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { MapPin, Activity, Info } from 'lucide-react';
 import L from 'leaflet';
@@ -224,7 +224,7 @@ export const StrategicCityMap: React.FC<{ profiles: WProfile[] }> = ({ profiles 
             {/* Map Header */}
             <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 px-8 py-5 flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-500 to-accent-600 flex items-center justify-center shadow-lg shadow-brand-500/20">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
                         <MapPin size={22} className="text-white" />
                     </div>
                     <div>
@@ -251,7 +251,7 @@ export const StrategicCityMap: React.FC<{ profiles: WProfile[] }> = ({ profiles 
                 {/* Risk Legend - Bottom Right */}
                 <div className="absolute bottom-6 right-6 z-[1000] bg-white/95 backdrop-blur-xl p-5 rounded-3xl border border-slate-200 shadow-2xl max-w-[200px]">
                     <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-900 mb-4 flex items-center gap-2">
-                        <Activity size={12} className="text-brand-600" />
+                        <Activity size={12} className="text-indigo-600" />
                         Risk Classification
                     </p>
                     <div className="space-y-1.5">
@@ -332,7 +332,7 @@ export const StrategicCityMap: React.FC<{ profiles: WProfile[] }> = ({ profiles 
             <div className="bg-gradient-to-r from-slate-50 to-white border-t border-slate-100 px-8 py-4 flex items-center justify-between">
                 <div className="flex items-center gap-6">
                     {[
-                        { label: 'Total Population', value: cityStats.totalPop.toLocaleString(), color: 'text-brand-600' },
+                        { label: 'Total Population', value: cityStats.totalPop.toLocaleString(), color: 'text-indigo-600' },
                         { label: 'High Risk Areas', value: `${cityStats.highRisk} sub-cities`, color: 'text-rose-600' },
                         { label: 'Avg Risk Score', value: cityStats.avgRisk.toFixed(1), color: cityStats.avgRisk >= 7 ? 'text-rose-600' : cityStats.avgRisk >= 4 ? 'text-amber-600' : 'text-emerald-600' }
                     ].map((item, i) => (

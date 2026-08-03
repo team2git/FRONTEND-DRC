@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
     Upload, FileSpreadsheet, Loader2, ArrowRightLeft, RefreshCw, AlertCircle, CheckCircle

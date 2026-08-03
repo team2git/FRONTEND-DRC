@@ -25,7 +25,7 @@ const ResponseDetailsModal: React.FC<{
         const answers = response.answers;
         if (!answers) return undefined;
         const val = answers instanceof Map ? answers.get(fieldCode) : answers[fieldCode];
-        
+
         // Handle new structured value { value, answerId }
         if (typeof val === 'object' && val !== null && 'value' in val) {
             return val;
@@ -35,7 +35,7 @@ const ResponseDetailsModal: React.FC<{
 
     const renderAnswerValue = (field: any) => {
         const { value, answerId } = getAnswer(field.questionCode) || {};
-        
+
         if (value === undefined || value === null || value === '') {
             return <span className="text-gray-300 italic">No response</span>;
         }
@@ -185,7 +185,7 @@ const ResponseExplorerPage: React.FC = () => {
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState<'ALL' | 'SYNCED' | 'UNSYNCED' | 'UPDATED'>('ALL');
     const [selectedResponse, setSelectedResponse] = useState<any>(null);
-    
+
     // Pagination
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
@@ -213,17 +213,21 @@ const ResponseExplorerPage: React.FC = () => {
 
 
     const handleSync = (resId: string) => {
-        navigator.clipboard.writeText(resId).then(() => {
-            toast.success("Response ID copied! Switching to Woreda Profile...");
-            setTimeout(() => {
-                navigate(`/woreda-profile?syncResponseId=${resId}`);
-            }, 1200);
-        });
+        // Only attempt clipboard write in secure contexts (HTTPS / localhost).
+        // On plain HTTP (production server), window.isSecureContext is false and
+        // navigator.clipboard.writeText would throw a browser-level console error.
+        if (window.isSecureContext && navigator.clipboard) {
+            navigator.clipboard.writeText(resId).catch(() => { });
+        }
+        toast.success("Switching to Woreda Profile...");
+        setTimeout(() => {
+            navigate(`/woreda-profile?syncResponseId=${resId}`);
+        }, 800);
     };
 
     const filteredResponses = responses.filter(r => {
         const searchText = search.toLowerCase();
-        
+
         // Sync Status Filter
         if (statusFilter !== 'ALL' && r.syncStatus !== statusFilter) return false;
 
@@ -231,7 +235,7 @@ const ResponseExplorerPage: React.FC = () => {
             r.respondentMetadata?.fullName?.toLowerCase().includes(searchText) ||
             r._id.toLowerCase().includes(searchText)
         );
-        
+
         // Comprehensive search in all answers
         const matchesAnswers = Object.values(r.answers || {}).some((v: any) => {
             const val = (v?.value ?? v)?.toString() || '';
@@ -322,7 +326,7 @@ const ResponseExplorerPage: React.FC = () => {
                             </div>
                         </div>
                     </motion.div>
-                    
+
                     <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1 }} className="bg-white p-5 rounded-[24px] border border-emerald-100 shadow-sm relative overflow-hidden group">
                         <div className="relative z-10 flex items-center gap-4">
                             <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform flex-shrink-0">
@@ -385,11 +389,10 @@ const ResponseExplorerPage: React.FC = () => {
                                     <button
                                         key={tab.value}
                                         onClick={() => setStatusFilter(tab.value as any)}
-                                        className={`px-4 sm:px-5 py-2 sm:py-2.5 text-[10px] sm:text-xs font-black uppercase tracking-widest rounded-lg sm:rounded-xl transition-all whitespace-nowrap ${
-                                            statusFilter === tab.value 
-                                            ? `${tab.color} ring-1 ring-slate-100` 
-                                            : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100/50'
-                                        }`}
+                                        className={`px-4 sm:px-5 py-2 sm:py-2.5 text-[10px] sm:text-xs font-black uppercase tracking-widest rounded-lg sm:rounded-xl transition-all whitespace-nowrap ${statusFilter === tab.value
+                                                ? `${tab.color} ring-1 ring-slate-100`
+                                                : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100/50'
+                                            }`}
                                     >
                                         {tab.label}
                                     </button>
@@ -428,19 +431,17 @@ const ResponseExplorerPage: React.FC = () => {
                                     paginatedResponses.map((res: any) => (
                                         <tr
                                             key={res._id}
-                                            className={`group transition-all border-l-4 ${
-                                                res.syncStatus === 'SYNCED' ? 'bg-emerald-50/20 hover:bg-emerald-50/40 border-emerald-500' :
-                                                res.syncStatus === 'UPDATED' ? 'bg-brand-50/20 hover:bg-brand-50/40 border-brand-500' :
-                                                'bg-amber-50/20 hover:bg-amber-50/40 border-amber-500'
-                                            }`}
+                                            className={`group transition-all border-l-4 ${res.syncStatus === 'SYNCED' ? 'bg-emerald-50/20 hover:bg-emerald-50/40 border-emerald-500' :
+                                                    res.syncStatus === 'UPDATED' ? 'bg-blue-50/20 hover:bg-blue-50/40 border-blue-500' :
+                                                        'bg-amber-50/20 hover:bg-amber-50/40 border-amber-500'
+                                                }`}
                                         >
                                             <td className="px-8 py-5" onClick={() => setSelectedResponse(res)}>
                                                 <div className="flex items-center gap-4">
-                                                    <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-mono text-[10px] font-bold group-hover:scale-110 transition-all ${
-                                                        res.syncStatus === 'SYNCED' ? 'bg-emerald-100/50 text-emerald-700' :
-                                                        res.syncStatus === 'UPDATED' ? 'bg-brand-100/50 text-brand-700' :
-                                                        'bg-amber-100/50 text-amber-700'
-                                                    }`}>
+                                                    <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-mono text-[10px] font-bold group-hover:scale-110 transition-all ${res.syncStatus === 'SYNCED' ? 'bg-emerald-100/50 text-emerald-700' :
+                                                            res.syncStatus === 'UPDATED' ? 'bg-blue-100/50 text-blue-700' :
+                                                                'bg-amber-100/50 text-amber-700'
+                                                        }`}>
                                                         #{res._id.slice(-4).toUpperCase()}
                                                     </div>
                                                     <span className="text-[12px] font-mono text-slate-500 font-semibold cursor-pointer group-hover:text-brand-600 transition-colors" title="Copy Full ID" onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(res._id); toast.success('ID Copied!'); }}>{res._id}</span>
@@ -460,11 +461,10 @@ const ResponseExplorerPage: React.FC = () => {
                                             </td>
                                             <td className="px-8 py-5" onClick={() => setSelectedResponse(res)}>
                                                 <div className="flex items-center gap-3">
-                                                    <div className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors ${
-                                                        res.syncStatus === 'SYNCED' ? 'bg-emerald-100 text-emerald-600' :
-                                                        res.syncStatus === 'UPDATED' ? 'bg-brand-100 text-brand-600' :
-                                                        'bg-amber-100 text-amber-600'
-                                                    }`}>
+                                                    <div className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors ${res.syncStatus === 'SYNCED' ? 'bg-emerald-100 text-emerald-600' :
+                                                            res.syncStatus === 'UPDATED' ? 'bg-blue-100 text-blue-600' :
+                                                                'bg-amber-100 text-amber-600'
+                                                        }`}>
                                                         <User size={16} />
                                                     </div>
                                                     <div>
@@ -486,11 +486,10 @@ const ResponseExplorerPage: React.FC = () => {
                                             </td>
                                             <td className="px-8 py-5" onClick={() => setSelectedResponse(res)}>
                                                 <div className="flex flex-col gap-1.5">
-                                                    <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-[10px] text-[10px] font-bold tracking-widest uppercase ${
-                                                        res.syncStatus === 'SYNCED' ? 'bg-emerald-100/50 text-emerald-700' :
-                                                        res.syncStatus === 'UPDATED' ? 'bg-brand-100/50 text-brand-700' :
-                                                        'bg-amber-100/50 text-amber-700'
-                                                    }`}>
+                                                    <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-[10px] text-[10px] font-bold tracking-widest uppercase ${res.syncStatus === 'SYNCED' ? 'bg-emerald-100/50 text-emerald-700' :
+                                                            res.syncStatus === 'UPDATED' ? 'bg-blue-100/50 text-blue-700' :
+                                                                'bg-amber-100/50 text-amber-700'
+                                                        }`}>
                                                         <Database size={12} />
                                                         {res.syncStatus}
                                                     </span>
@@ -504,26 +503,25 @@ const ResponseExplorerPage: React.FC = () => {
                                             <td className="px-8 py-5 text-right relative z-10">
                                                 <div className="flex items-center justify-end gap-2" onClick={e => e.stopPropagation()}>
                                                     <Can resource="WoredaProfile" action="sync">
-                                                        <button 
+                                                        <button
                                                             onClick={() => handleSync(res._id)}
                                                             title={
-                                                                res.syncStatus === 'SYNCED' ? 'Already Synced' : 
-                                                                res.syncStatus === 'UPDATED' ? 'Update Required (Data Changed)' : 
-                                                                'Sync to Profile'
+                                                                res.syncStatus === 'SYNCED' ? 'Already Synced' :
+                                                                    res.syncStatus === 'UPDATED' ? 'Update Required (Data Changed)' :
+                                                                        'Sync to Profile'
                                                             }
-                                                            className={`w-10 h-10 rounded-2xl border transition-all shadow-sm group/btn flex items-center justify-center ${
-                                                                res.syncStatus === 'SYNCED' 
+                                                            className={`w-10 h-10 rounded-2xl border transition-all shadow-sm group/btn flex items-center justify-center ${res.syncStatus === 'SYNCED'
                                                                     ? 'bg-emerald-50 border-emerald-200 text-emerald-600' :
-                                                                res.syncStatus === 'UPDATED'
-                                                                    ? 'bg-brand-50 border-brand-200 text-brand-600' :
-                                                                'bg-amber-50 border-amber-200 text-amber-600 animate-pulse-subtle'
-                                                            } hover:scale-110`}
+                                                                    res.syncStatus === 'UPDATED'
+                                                                        ? 'bg-blue-50 border-blue-200 text-blue-600' :
+                                                                        'bg-amber-50 border-amber-200 text-amber-600 animate-pulse-subtle'
+                                                                } hover:scale-110`}
                                                         >
                                                             <RefreshCw size={16} className={`${res.syncStatus === 'UNSYNCED' ? 'animate-spin-slow' : ''} group-hover/btn:rotate-180 transition-transform duration-500`} />
                                                         </button>
                                                     </Can>
                                                     <Can resource="FormResponse" action="update">
-                                                        <button 
+                                                        <button
                                                             onClick={() => navigate(`/responses/${templateId}?edit=${res._id}`)}
                                                             title="Edit Survey"
                                                             className="w-10 h-10 rounded-2xl bg-white border border-slate-200 hover:border-amber-300 hover:bg-amber-50 hover:text-amber-600 text-slate-400 flex items-center justify-center transition-all shadow-sm"
@@ -531,7 +529,7 @@ const ResponseExplorerPage: React.FC = () => {
                                                             <Edit3 size={16} />
                                                         </button>
                                                     </Can>
-                                                    <button 
+                                                    <button
                                                         onClick={() => setSelectedResponse(res)}
                                                         title="View Record"
                                                         className="w-10 h-10 rounded-2xl bg-slate-900 hover:bg-brand-600 text-white flex items-center justify-center transition-all shadow-md shadow-slate-200"
@@ -563,11 +561,10 @@ const ResponseExplorerPage: React.FC = () => {
                                 <button
                                     onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                                     disabled={currentPage === 1}
-                                    className={`p-2 rounded-xl border transition-all ${
-                                        currentPage === 1 
-                                        ? 'bg-slate-50 text-slate-300 border-slate-100' 
-                                        : 'bg-white text-slate-600 border-slate-200 hover:border-brand-300 hover:text-brand-600 shadow-sm'
-                                    }`}
+                                    className={`p-2 rounded-xl border transition-all ${currentPage === 1
+                                            ? 'bg-slate-50 text-slate-300 border-slate-100'
+                                            : 'bg-white text-slate-600 border-slate-200 hover:border-indigo-300 hover:text-indigo-600 shadow-sm'
+                                        }`}
                                 >
                                     <ChevronLeft size={18} />
                                 </button>
@@ -577,16 +574,15 @@ const ResponseExplorerPage: React.FC = () => {
                                         let pageNum = currentPage <= 3 ? i + 1 : currentPage + i - 2;
                                         if (pageNum > totalPages) pageNum = totalPages - (Math.min(5, totalPages) - i - 1);
                                         if (pageNum < 1) pageNum = i + 1;
-                                        
+
                                         return (
                                             <button
                                                 key={pageNum}
                                                 onClick={() => setCurrentPage(pageNum)}
-                                                className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
-                                                    currentPage === pageNum 
-                                                    ? 'bg-brand-600 text-white shadow-lg shadow-brand-200' 
-                                                    : 'text-slate-400 hover:text-slate-600 hover:bg-white'
-                                                }`}
+                                                className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${currentPage === pageNum
+                                                        ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200'
+                                                        : 'text-slate-400 hover:text-slate-600 hover:bg-white'
+                                                    }`}
                                             >
                                                 {pageNum}
                                             </button>
@@ -596,11 +592,10 @@ const ResponseExplorerPage: React.FC = () => {
                                 <button
                                     onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                                     disabled={currentPage === totalPages}
-                                    className={`p-2 rounded-xl border transition-all ${
-                                        currentPage === totalPages 
-                                        ? 'bg-slate-50 text-slate-300 border-slate-100' 
-                                        : 'bg-white text-slate-600 border-slate-200 hover:border-brand-300 hover:text-brand-600 shadow-sm'
-                                    }`}
+                                    className={`p-2 rounded-xl border transition-all ${currentPage === totalPages
+                                            ? 'bg-slate-50 text-slate-300 border-slate-100'
+                                            : 'bg-white text-slate-600 border-slate-200 hover:border-indigo-300 hover:text-indigo-600 shadow-sm'
+                                        }`}
                                 >
                                     <ChevronRight size={18} />
                                 </button>

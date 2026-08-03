@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { Layers, Database, Sparkles, Activity, TrendingUp, Calculator, Info } from 'lucide-react';
 import { type WoredaProfile as WProfile } from '../../../api/woredaProfileService';

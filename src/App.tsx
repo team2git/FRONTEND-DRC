@@ -6,6 +6,7 @@ import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
 import SetupAccount from "./pages/auth/SetupAccount";
 import ProtectedRoute from "./components/ProtectedRoute";
+import PermissionRoute from "./components/auth/PermissionRoute";
 import { AuthProvider } from "./context/AuthContext";
 import { HierarchyProvider } from "./context/HierarchyContext";
 import Roles from "./pages/admin/Roles";
@@ -17,6 +18,7 @@ import PermissionList from "./pages/admin/PermissionList";
 import Teams from "./pages/admin/Teams";
 import StructureGraph from "./pages/admin/StructureGraph";
 import HierarchyManagement from "./pages/admin/HierarchyManagement";
+import LocationManagement from "./pages/admin/LocationManagement";
 import LocationManagement from "./pages/admin/LocationManagement";
 import AuditLogs from "./pages/admin/AuditLogs";
 import AdminLogs from "./pages/admin/AdminLogs";
@@ -31,7 +33,6 @@ import ConcernReports from "./pages/admin/ConcernReports";
 import TemplateLibrary from "./components/TemplateEngine/TemplateLibrary/TemplateLibrary";
 import FormBuilder from "./components/TemplateEngine/FormBuilder/FormBuilder";
 
-import UserProfiles from "./pages/UserProfiles";
 import DisasterRiskAssessment from "./pages/DRM/DisasterRiskAssessment";
 import DisasterRiskDatabase from "./pages/DRM/DisasterRiskDatabase";
 import CommunityManagement from "./pages/DRM/CommunityManagement";
@@ -63,10 +64,8 @@ import Avatars from "./pages/UiElements/Avatars";
 import Buttons from "./pages/UiElements/Buttons";
 import LineChart from "./pages/Charts/LineChart";
 import BarChart from "./pages/Charts/BarChart";
-import Calendar from "./pages/Calendar";
 import BasicTables from "./pages/Tables/BasicTables";
 import FormElements from "./pages/Forms/FormElements";
-import Blank from "./pages/Blank";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
@@ -98,8 +97,8 @@ export default function App() {
                 {/* Dashboard Layout Routes */}
                 <Route element={<AppLayout />}>
                   <Route path="/dashboard" element={<Home />} />
-                  <Route path="/woreda-profile" element={<WoredaProfile />} />
-                  <Route path="/woreda-profile/:section" element={<WoredaProfile />} />
+                  <Route path="/woreda-profile" element={<PermissionRoute resource="woredaprofile" action="view" element={<WoredaProfile />} />} />
+                  <Route path="/woreda-profile/:section" element={<PermissionRoute resource="woredaprofile" action="view" element={<WoredaProfile />} />} />
 
                   {/* DRM Routes */}
                   <Route path="/disaster-risk-assessment" element={<DisasterRiskAssessment />} />
@@ -131,21 +130,6 @@ export default function App() {
                   <Route path="/admin/incident-reports" element={<IncidentReports />} />
                   <Route path="/admin/concern-reports" element={<ConcernReports />} />
                   {/* Backward compatible */}
-                  <Route path="/admin/portal-content" element={<PortalContentPage />} />
-
-                  {/* Template Engine Routes */}
-                  <Route path="/survey-library" element={<TemplateLibrary mode="published_only" />} />
-                  <Route path="/admin/template-library" element={<TemplateLibrary mode="admin" />} />
-                  <Route path="/admin/form-builder" element={<FormBuilder />} />
-                  <Route path="/admin/form-builder/:id" element={<FormBuilder />} />
-                  <Route path="/admin/profile-mapping" element={<MappingConfig />} />
-                  <Route path="/admin/responses/:templateId" element={<ResponseExplorerPage />} />
-
-                  {/* Others Page */}
-                  <Route path="/profile" element={<UserProfiles />} />
-                  <Route path="/calendar" element={<Calendar />} />
-                  <Route path="/blank" element={<Blank />} />
-
                   {/* Forms */}
                   <Route path="/form-elements" element={<FormElements />} />
 

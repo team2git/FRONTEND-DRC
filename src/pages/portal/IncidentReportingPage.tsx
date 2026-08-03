@@ -123,7 +123,7 @@ const SEVERITIES = [
     key: "minor" as const,
     label: "Minor",
     description: "Small fire, one injured, slow leak",
-    color:"text-rose-600",
+    color: "text-rose-600",
     dot: "bg-rose-400",
     card: "border-slate-200",
   },
@@ -597,11 +597,11 @@ const IncidentReportingPage: React.FC = () => {
                   </div>
                   <div className="flex gap-2">
                     <button
-                      // className="px-4 py-2 rounded-lg bg-accent-600 text-white text-sm font-semibold disabled:opacity-70 hover:bg-accent-700"
-                      // onClick={forwardGeocode}
-                      // disabled={geocoding}
+                    // className="px-4 py-2 rounded-lg bg-accent-600 text-white text-sm font-semibold disabled:opacity-70 hover:bg-accent-700"
+                    // onClick={forwardGeocode}
+                    // disabled={geocoding}
                     >
-                     {/* {geocoding ? "Locating..." : "Correct"} */}
+                      {/* {geocoding ? "Locating..." : "Correct"} */}
                     </button>
                     <button
                       className="px-4 py-2 rounded-lg bg-slate-500 text-white text-sm font-semibold"
@@ -685,9 +685,8 @@ const IncidentReportingPage: React.FC = () => {
                               reportType: option.key as "incident" | "concern",
                             }))
                           }
-                          className={`rounded-2xl border px-4 py-3 text-center font-semibold transition-all ${
-                            active ? "border-brand-500 shadow-md text-brand-600" : "border-slate-200 hover:border-slate-300"
-                          }`}
+                          className={`rounded-2xl border px-4 py-3 text-center font-semibold transition-all ${active ? "border-brand-500 shadow-md text-brand-600" : "border-slate-200 hover:border-slate-300"
+                            }`}
                         >
                           {option.label}
                         </button>
@@ -709,9 +708,8 @@ const IncidentReportingPage: React.FC = () => {
                               key={category.key}
                               type="button"
                               onClick={() => setDraft((p) => ({ ...p, category: category.key }))}
-                              className={`rounded-2xl border p-4 text-center transition-all ${
-                                active ? "border-brand-500 shadow-md" : "border-slate-200 hover:border-slate-300"
-                              }`}
+                              className={`rounded-2xl border p-4 text-center transition-all ${active ? "border-brand-500 shadow-md" : "border-slate-200 hover:border-slate-300"
+                                }`}
                             >
                               <Icon className={`mx-auto mb-2 ${category.color}`} />
                               <div className="text-sm font-semibold text-slate-700">{category.label}</div>
@@ -808,7 +806,7 @@ const IncidentReportingPage: React.FC = () => {
                     </div>
                   </div>
                 )}
-{/* 
+                {/* 
                 {draft.category === "fire" ? (
                   <div className="bg-orange-50 border border-orange-100 rounded-2xl p-6 space-y-4">
                     <h3 className="text-lg font-bold text-slate-900">Fire-Specific Information</h3>
@@ -1128,9 +1126,8 @@ const IncidentReportingPage: React.FC = () => {
                       type="button"
                       onClick={toggleMic}
                       aria-pressed={isListening}
-                      className={`absolute right-4 bottom-4 w-10 h-10 rounded-full text-white flex items-center justify-center transition ${
-                        isListening ? "bg-accent-700" : "bg-accent-600"
-                      }`}
+                      className={`absolute right-4 bottom-4 w-10 h-10 rounded-full text-white flex items-center justify-center transition ${isListening ? "bg-accent-700" : "bg-accent-600"
+                        }`}
                     >
                       <Mic size={18} />
                     </button>
@@ -1214,11 +1211,11 @@ const IncidentReportingPage: React.FC = () => {
                       disabled={draft.anonymous}
                     />
                     <input
-                      // className="rounded-xl border border-slate-200 px-4 py-3 text-slate-700"
-                      // placeholder="you@example.com"
-                      // value={draft.contact.email}
-                      // onChange={(e) => setDraft((p) => ({ ...p, contact: { ...p.contact, email: e.target.value } }))}
-                      // disabled={draft.anonymous}
+                    // className="rounded-xl border border-slate-200 px-4 py-3 text-slate-700"
+                    // placeholder="you@example.com"
+                    // value={draft.contact.email}
+                    // onChange={(e) => setDraft((p) => ({ ...p, contact: { ...p.contact, email: e.target.value } }))}
+                    // disabled={draft.anonymous}
                     />
                   </div>
                   <div className="text-xs text-slate-500 mt-2">
@@ -1226,9 +1223,9 @@ const IncidentReportingPage: React.FC = () => {
                   </div>
                   <label className="mt-3 inline-flex items-center gap-2 text-sm text-slate-700">
                     <input
-                      // type="checkbox"
-                      // checked={draft.anonymous}
-                      // onChange={(e) => setDraft((p) => ({ ...p, anonymous: e.target.checked }))}
+                    // type="checkbox"
+                    // checked={draft.anonymous}
+                    // onChange={(e) => setDraft((p) => ({ ...p, anonymous: e.target.checked }))}
                     />
                     {/* Report Anonymously  */}
                   </label>

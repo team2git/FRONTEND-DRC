@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     MapPin, AlertTriangle, ChevronLeft, ChevronRight, Loader2,
@@ -16,9 +16,7 @@ type SubStep = 'cgd_hazards' | 'cgd_voice' | 'kii_capacity' | 'kii_infrastructur
 
 const STEP_LABELS = ['Location', 'CGD & KII Assessment', 'Review'];
 
-// Logo brand colors: primary #143f84 (brand blue), accent #e11d48 (red), dark #101828
-const BRAND_BLUE = '#143f84';
-const BRAND_NAVY = '#1f3a8a';
+// Logo brand colors: primary #465FFF (brand blue), accent #e11d48 (red), dark #101828
 
 const emptyAssessment = (): WoredaAssessmentInput => ({
     location: { subcity: '', woreda: '' },
@@ -40,7 +38,7 @@ const ScoreSlider: React.FC<{ label: string; value: number; onChange: (v: number
         : { bg: 'bg-rose-100', text: 'text-rose-700', bar: 'bg-rose-500', label: 'High' };
 
     return (
-        <div className="space-y-2 bg-white/60 rounded-2xl p-3.5 border border-slate-100 hover:border-[#143f84]/20 hover:bg-white transition-all duration-200">
+        <div className="space-y-2 bg-white/60 rounded-2xl p-3.5 border border-slate-100 hover:border-[#465FFF]/20 hover:bg-white transition-all duration-200">
             <div className="flex justify-between items-center">
                 <label className="text-[10px] font-black text-slate-600 uppercase tracking-widest">{label}</label>
                 <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg ${scoreConfig.bg} ${scoreConfig.text}`}>{value}/5 · {scoreConfig.label}</span>
@@ -51,7 +49,7 @@ const ScoreSlider: React.FC<{ label: string; value: number; onChange: (v: number
                     onChange={e => onChange(Number(e.target.value))}
                     className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
                     style={{
-                        background: `linear-gradient(to right, #143f84 ${((value - 1) / 4) * 100}%, #e2e8f0 ${((value - 1) / 4) * 100}%)`
+                        background: `linear-gradient(to right, #465FFF ${((value - 1) / 4) * 100}%, #e2e8f0 ${((value - 1) / 4) * 100}%)`
                     }}
                 />
             </div>
@@ -186,8 +184,8 @@ export const WoredaAssessmentForm: React.FC<{
 
     const subTabs = [
         { id: 'cgd_hazards', label: 'CGD: Hazards', icon: AlertTriangle, color: 'text-rose-500' },
-        { id: 'cgd_voice', label: 'Community Voice', icon: MessageSquare, color: 'text-accent-500' },
-        { id: 'kii_capacity', label: 'KII: Capacity', icon: Shield, color: 'text-brand-500' },
+        { id: 'cgd_voice', label: 'Community Voice', icon: MessageSquare, color: 'text-violet-500' },
+        { id: 'kii_capacity', label: 'KII: Capacity', icon: Shield, color: 'text-blue-500' },
         { id: 'kii_infrastructure', label: 'KII: Infrastructure', icon: Zap, color: 'text-amber-500' },
         { id: 'kii_environment', label: 'KII: Environment', icon: Leaf, color: 'text-emerald-500' },
     ];
@@ -207,17 +205,17 @@ export const WoredaAssessmentForm: React.FC<{
                 exit={{ y: 60, opacity: 0, scale: 0.97 }}
                 transition={{ type: 'spring', damping: 26, stiffness: 300 }}
                 className="w-full max-w-5xl h-[90vh] bg-white rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden border border-white/20"
-                style={{ boxShadow: '0 32px 80px rgba(20,63,132,0.20), 0 8px 32px rgba(0,0,0,0.12)' }}
+                style={{ boxShadow: '0 32px 80px rgba(70,95,255,0.20), 0 8px 32px rgba(0,0,0,0.12)' }}
             >
                 {/* ─── Premium Header ─────────────────────────────────────── */}
                 <div className="relative overflow-hidden px-8 py-6 flex items-center gap-5 flex-shrink-0"
-                    style={{ background: 'linear-gradient(135deg, #1f3a8a 0%, #143f84 50%, #4b6dc2 100%)' }}
+                    style={{ background: 'linear-gradient(135deg, #1f3a8a 0%, #465FFF 50%, #6B7FF5 100%)' }}
                 >
                     {/* Decorative glows */}
                     <div className="absolute top-0 right-0 w-72 h-72 rounded-full opacity-10 pointer-events-none"
                         style={{ background: 'radial-gradient(circle, #fff 0%, transparent 70%)', transform: 'translate(30%, -40%)' }} />
                     <div className="absolute bottom-0 left-1/3 w-56 h-56 rounded-full opacity-10 pointer-events-none"
-                        style={{ background: 'radial-gradient(circle, #4b6dc2 0%, transparent 70%)', transform: 'translateY(50%)' }} />
+                        style={{ background: 'radial-gradient(circle, #6B7FF5 0%, transparent 70%)', transform: 'translateY(50%)' }} />
 
                     {/* Logo icon + title */}
                     <div className="relative z-10 flex items-center gap-4 flex-1">
@@ -242,7 +240,7 @@ export const WoredaAssessmentForm: React.FC<{
                                 <div
                                     className={`flex items-center gap-1.5 px-3 py-2 rounded-2xl text-[9px] font-black uppercase tracking-widest border transition-all duration-300 ${
                                         step === i + 1
-                                            ? 'bg-white text-[#143f84] border-white shadow-lg'
+                                            ? 'bg-white text-[#465FFF] border-white shadow-lg'
                                             : step > i + 1
                                             ? 'bg-white/20 text-white border-white/20'
                                             : 'bg-white/8 text-white/50 border-white/10'
@@ -250,7 +248,7 @@ export const WoredaAssessmentForm: React.FC<{
                                 >
                                     <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-black flex-shrink-0 ${
                                         step === i + 1
-                                            ? 'bg-[#143f84] text-white'
+                                            ? 'bg-[#465FFF] text-white'
                                             : step > i + 1
                                             ? 'bg-white/40 text-white'
                                             : 'bg-white/15 text-white/40'
@@ -306,7 +304,7 @@ export const WoredaAssessmentForm: React.FC<{
                                     {/* Section Header */}
                                     <div className="flex items-center gap-4 pb-4 border-b border-slate-200/80">
                                         <div className="w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0"
-                                            style={{ background: 'linear-gradient(135deg, #143f84, #4b6dc2)' }}>
+                                            style={{ background: 'linear-gradient(135deg, #465FFF, #6B7FF5)' }}>
                                             <MapPin size={18} className="text-white" />
                                         </div>
                                         <div>
@@ -320,11 +318,11 @@ export const WoredaAssessmentForm: React.FC<{
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
                                                 Sub-city
-                                                <span className="text-[#143f84]">*</span>
+                                                <span className="text-[#465FFF]">*</span>
                                             </label>
                                             {loadingLocations ? (
                                                 <div className="w-full bg-white border border-slate-200 rounded-2xl p-4 flex items-center gap-2 text-slate-400">
-                                                    <Loader2 size={16} className="animate-spin text-[#143f84]" />
+                                                    <Loader2 size={16} className="animate-spin text-[#465FFF]" />
                                                     <span className="text-sm font-medium">Loading locations...</span>
                                                 </div>
                                             ) : (
@@ -333,7 +331,7 @@ export const WoredaAssessmentForm: React.FC<{
                                                     onChange={e => {
                                                         setFormData(prev => ({ ...prev, location: { ...prev.location, subcity: e.target.value, woreda: '' } }));
                                                     }}
-                                                    className="w-full bg-white border-2 border-slate-200 rounded-2xl p-4 text-sm font-bold focus:border-[#143f84] focus:outline-none focus:ring-4 focus:ring-[#143f84]/10 transition-all cursor-pointer"
+                                                    className="w-full bg-white border-2 border-slate-200 rounded-2xl p-4 text-sm font-bold focus:border-[#465FFF] focus:outline-none focus:ring-4 focus:ring-[#465FFF]/10 transition-all cursor-pointer"
                                                 >
                                                     <option value="">— Select Sub-city —</option>
                                                     {locationHierarchy.map(s => (
@@ -347,13 +345,13 @@ export const WoredaAssessmentForm: React.FC<{
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
                                                 Woreda
-                                                <span className="text-[#143f84]">*</span>
+                                                <span className="text-[#465FFF]">*</span>
                                             </label>
                                             <select
                                                 value={formData.location.woreda || ''}
                                                 onChange={e => setFormData(prev => ({ ...prev, location: { ...prev.location, woreda: e.target.value } }))}
                                                 disabled={!formData.location.subcity || availableWoredas.length === 0}
-                                                className="w-full bg-white border-2 border-slate-200 rounded-2xl p-4 text-sm font-bold focus:border-[#143f84] focus:outline-none focus:ring-4 focus:ring-[#143f84]/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                                                className="w-full bg-white border-2 border-slate-200 rounded-2xl p-4 text-sm font-bold focus:border-[#465FFF] focus:outline-none focus:ring-4 focus:ring-[#465FFF]/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                                             >
                                                 <option value="">{!formData.location.subcity ? '— Select sub-city first —' : '— Select Woreda —'}</option>
                                                 {availableWoredas.map((w: any) => (
@@ -369,7 +367,7 @@ export const WoredaAssessmentForm: React.FC<{
                                                 type="date"
                                                 value={formData.assessment_date}
                                                 onChange={e => setFormData(prev => ({ ...prev, assessment_date: e.target.value }))}
-                                                className="w-full bg-white border-2 border-slate-200 rounded-2xl p-4 text-sm font-bold focus:border-[#143f84] focus:outline-none focus:ring-4 focus:ring-[#143f84]/10 transition-all"
+                                                className="w-full bg-white border-2 border-slate-200 rounded-2xl p-4 text-sm font-bold focus:border-[#465FFF] focus:outline-none focus:ring-4 focus:ring-[#465FFF]/10 transition-all"
                                             />
                                         </div>
 
@@ -381,7 +379,7 @@ export const WoredaAssessmentForm: React.FC<{
                                                 rows={3}
                                                 onChange={e => setFormData(prev => ({ ...prev, remarks: e.target.value }))}
                                                 placeholder="Context about this assessment..."
-                                                className="w-full bg-white border-2 border-slate-200 rounded-2xl p-4 text-sm font-medium focus:border-[#143f84] focus:outline-none focus:ring-4 focus:ring-[#143f84]/10 transition-all resize-none"
+                                                className="w-full bg-white border-2 border-slate-200 rounded-2xl p-4 text-sm font-medium focus:border-[#465FFF] focus:outline-none focus:ring-4 focus:ring-[#465FFF]/10 transition-all resize-none"
                                             />
                                         </div>
                                     </div>
@@ -391,11 +389,11 @@ export const WoredaAssessmentForm: React.FC<{
                                         <motion.div
                                             initial={{ opacity: 0, y: 8 }}
                                             animate={{ opacity: 1, y: 0 }}
-                                            className="flex items-center gap-3 p-4 rounded-2xl border-2 border-[#143f84]/20 bg-[#143f84]/5"
+                                            className="flex items-center gap-3 p-4 rounded-2xl border-2 border-[#465FFF]/20 bg-[#465FFF]/5"
                                         >
-                                            <CheckCircle2 size={18} className="text-[#143f84] flex-shrink-0" />
+                                            <CheckCircle2 size={18} className="text-[#465FFF] flex-shrink-0" />
                                             <div>
-                                                <p className="text-sm font-black text-[#143f84]">{formData.location.subcity} · {formData.location.woreda}</p>
+                                                <p className="text-sm font-black text-[#465FFF]">{formData.location.subcity} · {formData.location.woreda}</p>
                                                 <p className="text-xs text-slate-500 font-medium">Location confirmed — existing data will be loaded if available.</p>
                                             </div>
                                         </motion.div>
@@ -416,7 +414,7 @@ export const WoredaAssessmentForm: React.FC<{
                                     {/* Section Header */}
                                     <div className="flex items-center gap-4 pb-4 border-b border-slate-200/80">
                                         <div className="w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0"
-                                            style={{ background: 'linear-gradient(135deg, #143f84, #4b6dc2)' }}>
+                                            style={{ background: 'linear-gradient(135deg, #465FFF, #6B7FF5)' }}>
                                             <BarChart3 size={18} className="text-white" />
                                         </div>
                                         <div>
@@ -435,9 +433,9 @@ export const WoredaAssessmentForm: React.FC<{
                                                 className={`flex items-center gap-2 px-4 py-2.5 text-[9px] font-black uppercase tracking-widest rounded-2xl transition-all duration-200 whitespace-nowrap flex-shrink-0 cursor-pointer border-2 ${
                                                     subStep === sub.id
                                                         ? 'text-white border-transparent shadow-lg'
-                                                        : 'bg-white text-slate-500 border-slate-200 hover:border-[#143f84]/30 hover:text-[#143f84]'
+                                                        : 'bg-white text-slate-500 border-slate-200 hover:border-[#465FFF]/30 hover:text-[#465FFF]'
                                                 }`}
-                                                style={subStep === sub.id ? { background: 'linear-gradient(135deg, #143f84, #4b6dc2)', boxShadow: '0 4px 16px rgba(20,63,132,0.30)' } : {}}
+                                                style={subStep === sub.id ? { background: 'linear-gradient(135deg, #465FFF, #6B7FF5)', boxShadow: '0 4px 16px rgba(70,95,255,0.30)' } : {}}
                                             >
                                                 <sub.icon size={11} />
                                                 {sub.label}
@@ -458,10 +456,10 @@ export const WoredaAssessmentForm: React.FC<{
                                                         <thead>
                                                             <tr style={{ background: 'linear-gradient(135deg, #f7f8fc, #eef2ff)' }}>
                                                                 <th className="px-5 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest w-44 border-b border-slate-200">Hazard</th>
-                                                                <th className="px-3 py-4 text-[9px] font-black uppercase tracking-widest text-center border-b border-slate-200" style={{ color: '#143f84' }}>Frequency<br /><span className="text-slate-400 font-normal normal-case tracking-normal text-[8px]">35%</span></th>
-                                                                <th className="px-3 py-4 text-[9px] font-black uppercase tracking-widest text-center border-b border-slate-200" style={{ color: '#143f84' }}>Severity<br /><span className="text-slate-400 font-normal normal-case tracking-normal text-[8px]">35%</span></th>
-                                                                <th className="px-3 py-4 text-[9px] font-black text-brand-600 uppercase tracking-widest text-center border-b border-slate-200">Duration<br /><span className="text-slate-400 font-normal normal-case tracking-normal text-[8px]">15%</span></th>
-                                                                <th className="px-3 py-4 text-[9px] font-black text-brand-600 uppercase tracking-widest text-center border-b border-slate-200">Spatial Ext.<br /><span className="text-slate-400 font-normal normal-case tracking-normal text-[8px]">15%</span></th>
+                                                                <th className="px-3 py-4 text-[9px] font-black uppercase tracking-widest text-center border-b border-slate-200" style={{ color: '#465FFF' }}>Frequency<br /><span className="text-slate-400 font-normal normal-case tracking-normal text-[8px]">35%</span></th>
+                                                                <th className="px-3 py-4 text-[9px] font-black uppercase tracking-widest text-center border-b border-slate-200" style={{ color: '#465FFF' }}>Severity<br /><span className="text-slate-400 font-normal normal-case tracking-normal text-[8px]">35%</span></th>
+                                                                <th className="px-3 py-4 text-[9px] font-black text-blue-600 uppercase tracking-widest text-center border-b border-slate-200">Duration<br /><span className="text-slate-400 font-normal normal-case tracking-normal text-[8px]">15%</span></th>
+                                                                <th className="px-3 py-4 text-[9px] font-black text-blue-600 uppercase tracking-widest text-center border-b border-slate-200">Spatial Ext.<br /><span className="text-slate-400 font-normal normal-case tracking-normal text-[8px]">15%</span></th>
                                                                 <th className="px-3 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center border-b border-slate-200">H Score</th>
                                                             </tr>
                                                         </thead>
@@ -475,7 +473,7 @@ export const WoredaAssessmentForm: React.FC<{
                                                                 const numH = parseFloat(h);
                                                                 const scoreColor = numH >= 4 ? 'bg-rose-100 text-rose-700' : numH >= 3 ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700';
                                                                 return (
-                                                                    <tr key={idx} className="hover:bg-[#143f84]/3 transition-colors">
+                                                                    <tr key={idx} className="hover:bg-[#465FFF]/3 transition-colors">
                                                                         <td className="px-5 py-3">
                                                                             <span className="text-xs font-bold text-slate-800">{hazard.hazard_name}</span>
                                                                         </td>
@@ -484,7 +482,7 @@ export const WoredaAssessmentForm: React.FC<{
                                                                                 <select
                                                                                     value={(hazard as any)[field] || '3'}
                                                                                     onChange={e => updateHazard(idx, field, e.target.value)}
-                                                                                    className="w-16 bg-[#f7f8fc] border-2 border-slate-200 rounded-xl p-2 text-xs font-bold text-center outline-none focus:border-[#143f84] focus:ring-2 focus:ring-[#143f84]/15 transition-all cursor-pointer"
+                                                                                    className="w-16 bg-[#f7f8fc] border-2 border-slate-200 rounded-xl p-2 text-xs font-bold text-center outline-none focus:border-[#465FFF] focus:ring-2 focus:ring-[#465FFF]/15 transition-all cursor-pointer"
                                                                                 >
                                                                                     {[1, 2, 3, 4, 5].map(v => <option key={v} value={v}>{v}</option>)}
                                                                                 </select>
@@ -506,7 +504,7 @@ export const WoredaAssessmentForm: React.FC<{
                                         {subStep === 'cgd_voice' && (
                                             <motion.div key="cgd_voice" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
                                                 className="space-y-5 rounded-[2rem] p-7 border-2 border-[#1f3a8a]/20"
-                                                style={{ background: 'linear-gradient(135deg, #1f3a8a 0%, #2d4db5 50%, #143f84 100%)' }}
+                                                style={{ background: 'linear-gradient(135deg, #1f3a8a 0%, #2d4db5 50%, #465FFF 100%)' }}
                                             >
                                                 <div className="flex items-center gap-3 mb-2">
                                                     <div className="w-8 h-8 rounded-xl bg-white/15 flex items-center justify-center">
@@ -536,13 +534,13 @@ export const WoredaAssessmentForm: React.FC<{
                                         {/* KII: Capacity */}
                                         {subStep === 'kii_capacity' && (
                                             <motion.div key="kii_capacity" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-4">
-                                                <div className="bg-white rounded-[1.5rem] p-6 border-2 border-[#143f84]/15 shadow-sm space-y-4">
+                                                <div className="bg-white rounded-[1.5rem] p-6 border-2 border-[#465FFF]/15 shadow-sm space-y-4">
                                                     <div className="flex items-center gap-2.5 mb-1">
-                                                        <div className="w-7 h-7 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #143f84, #4b6dc2)' }}>
+                                                        <div className="w-7 h-7 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #465FFF, #6B7FF5)' }}>
                                                             <Shield size={13} className="text-white" />
                                                         </div>
                                                         <div>
-                                                            <h4 className="text-[10px] font-black uppercase tracking-widest" style={{ color: '#143f84' }}>Preparedness (40%)</h4>
+                                                            <h4 className="text-[10px] font-black uppercase tracking-widest" style={{ color: '#465FFF' }}>Preparedness (40%)</h4>
                                                             <p className="text-[9px] text-slate-400 font-medium">EWS, DRM committee, focal persons, training frequency, shelters, community structures</p>
                                                         </div>
                                                     </div>
@@ -683,7 +681,7 @@ export const WoredaAssessmentForm: React.FC<{
                                     {/* Section Header */}
                                     <div className="flex items-center gap-4 pb-4 border-b border-slate-200/80">
                                         <div className="w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0"
-                                            style={{ background: 'linear-gradient(135deg, #143f84, #4b6dc2)' }}>
+                                            style={{ background: 'linear-gradient(135deg, #465FFF, #6B7FF5)' }}>
                                             <CheckCircle2 size={18} className="text-white" />
                                         </div>
                                         <div>
@@ -694,11 +692,11 @@ export const WoredaAssessmentForm: React.FC<{
 
                                     <div className="grid grid-cols-2 gap-5">
                                         {/* Location card */}
-                                        <div className="bg-white border-2 rounded-[1.5rem] p-6 shadow-sm space-y-4" style={{ borderColor: '#143f84' + '30' }}>
-                                            <h4 className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: '#143f84' }}>Location</h4>
+                                        <div className="bg-white border-2 rounded-[1.5rem] p-6 shadow-sm space-y-4" style={{ borderColor: '#465FFF' + '30' }}>
+                                            <h4 className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: '#465FFF' }}>Location</h4>
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(135deg, #143f8420, #143f8415)' }}>
-                                                    <MapPin size={18} style={{ color: '#143f84' }} />
+                                                <div className="w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(135deg, #465FFF20, #465FFF15)' }}>
+                                                    <MapPin size={18} style={{ color: '#465FFF' }} />
                                                 </div>
                                                 <div>
                                                     <p className="text-sm font-black text-slate-900">{formData.location.woreda || 'Woreda not set'}</p>
@@ -740,10 +738,10 @@ export const WoredaAssessmentForm: React.FC<{
                                                     onClick={() => setFormData(prev => ({ ...prev, status: s as any }))}
                                                     className={`flex-1 py-3 px-4 rounded-2xl text-xs font-black uppercase tracking-widest border-2 transition-all cursor-pointer ${
                                                         formData.status === s
-                                                            ? s === 'Submitted' ? 'text-white border-transparent' : 'border-[#143f84] text-[#143f84] bg-[#143f84]/5'
+                                                            ? s === 'Submitted' ? 'text-white border-transparent' : 'border-[#465FFF] text-[#465FFF] bg-[#465FFF]/5'
                                                             : 'border-slate-200 text-slate-400 hover:border-slate-300'
                                                     }`}
-                                                    style={formData.status === s && s === 'Submitted' ? { background: 'linear-gradient(135deg, #143f84, #4b6dc2)' } : {}}
+                                                    style={formData.status === s && s === 'Submitted' ? { background: 'linear-gradient(135deg, #465FFF, #6B7FF5)' } : {}}
                                                 >
                                                     {s === 'Draft' ? '📝 Save as Draft' : '✅ Submit Assessment'}
                                                 </button>
@@ -768,7 +766,7 @@ export const WoredaAssessmentForm: React.FC<{
                         {step > 1 && (
                             <button
                                 onClick={() => setStep(step - 1)}
-                                className="px-6 py-3 rounded-2xl border-2 border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:border-[#143f84]/30 hover:text-[#143f84] transition-all flex items-center gap-2 cursor-pointer"
+                                className="px-6 py-3 rounded-2xl border-2 border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:border-[#465FFF]/30 hover:text-[#465FFF] transition-all flex items-center gap-2 cursor-pointer"
                             >
                                 <ChevronLeft size={14} /> Back
                             </button>
@@ -778,7 +776,7 @@ export const WoredaAssessmentForm: React.FC<{
                             <button
                                 onClick={() => setStep(step + 1)}
                                 className="px-8 py-3.5 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl flex items-center gap-2 cursor-pointer transition-all hover:-translate-y-0.5"
-                                style={{ background: 'linear-gradient(135deg, #143f84, #4b6dc2)', boxShadow: '0 8px 24px rgba(20,63,132,0.35)' }}
+                                style={{ background: 'linear-gradient(135deg, #465FFF, #6B7FF5)', boxShadow: '0 8px 24px rgba(70,95,255,0.35)' }}
                             >
                                 Continue <ChevronRight size={14} />
                             </button>
@@ -787,7 +785,7 @@ export const WoredaAssessmentForm: React.FC<{
                                 <button
                                     onClick={() => handleSave('Draft')}
                                     disabled={saving}
-                                    className="px-6 py-3 rounded-2xl border-2 border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:border-[#143f84]/30 hover:text-[#143f84] transition-all disabled:opacity-50 cursor-pointer"
+                                    className="px-6 py-3 rounded-2xl border-2 border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:border-[#465FFF]/30 hover:text-[#465FFF] transition-all disabled:opacity-50 cursor-pointer"
                                 >
                                     {saving ? <Loader2 size={13} className="animate-spin inline mr-1" /> : null}
                                     Save Draft
@@ -796,7 +794,7 @@ export const WoredaAssessmentForm: React.FC<{
                                     onClick={() => handleSave('Submitted')}
                                     disabled={saving}
                                     className="px-8 py-3.5 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl flex items-center gap-2 cursor-pointer transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    style={{ background: 'linear-gradient(135deg, #143f84, #4b6dc2)', boxShadow: '0 8px 24px rgba(20,63,132,0.35)' }}
+                                    style={{ background: 'linear-gradient(135deg, #465FFF, #6B7FF5)', boxShadow: '0 8px 24px rgba(70,95,255,0.35)' }}
                                 >
                                     {saving ? <Loader2 size={15} className="animate-spin" /> : <ShieldCheck size={15} />}
                                     {saving ? 'Saving...' : 'Submit Assessment'}

@@ -357,7 +357,7 @@ export default function Users() {
             console.error("Failed to save user", error);
             const errorMsg = error.response?.data?.message;
             const validationErrors = error.response?.data?.errors;
-            
+
             if (validationErrors && Array.isArray(validationErrors)) {
                 toast.error(validationErrors.join(', '));
             } else {
@@ -612,7 +612,7 @@ export default function Users() {
                     )}
                 </div>
 
-            {/* Modals */}
+                {/* Modals */}
 
             {/* Create/Edit/View User Modal */}
             <Modal isOpen={isOpen} onClose={closeModal} className="max-w-[850px] m-4">
@@ -650,103 +650,103 @@ export default function Users() {
                                             <h5 className="text-xs font-bold uppercase tracking-widest">Personal Information</h5>
                                         </div>
 
-                                        <div className="space-y-5">
-                                            <div className="flex flex-col items-center mb-6">
-                                                <div className="relative group/avatar cursor-pointer">
-                                                    <div className="h-24 w-24 rounded-3xl bg-slate-200 dark:bg-white/5 border-2 border-dashed border-slate-300 dark:border-white/10 flex items-center justify-center overflow-hidden transition-all group-hover:border-primary">
-                                                        {(formData.profileImage || editUser?.profileImage) ? (
-                                                            <img
-                                                                src={
-                                                                    formData.profileImage instanceof File
-                                                                        ? URL.createObjectURL(formData.profileImage)
-                                                                        : editUser?.profileImage
-                                                                }
-                                                                alt="Profile"
-                                                                className="h-full w-full object-cover"
-                                                                key={formData.profileImage ? 'new' : 'old'}
-                                                            />
-                                                        ) : (
-                                                            <div className="text-slate-400 group-hover:text-primary transition-colors flex flex-col items-center">
-                                                                <Plus size={24} />
-                                                                <span className="text-[10px] mt-1 font-bold">IMAGE</span>
+                                            <div className="space-y-5">
+                                                <div className="flex flex-col items-center mb-6">
+                                                    <div className="relative group/avatar cursor-pointer">
+                                                        <div className="h-24 w-24 rounded-3xl bg-slate-200 dark:bg-white/5 border-2 border-dashed border-slate-300 dark:border-white/10 flex items-center justify-center overflow-hidden transition-all group-hover:border-primary">
+                                                            {(formData.profileImage || editUser?.profileImage) ? (
+                                                                <img
+                                                                    src={
+                                                                        formData.profileImage instanceof File
+                                                                            ? URL.createObjectURL(formData.profileImage)
+                                                                            : editUser?.profileImage
+                                                                    }
+                                                                    alt="Profile"
+                                                                    className="h-full w-full object-cover"
+                                                                    key={formData.profileImage ? 'new' : 'old'}
+                                                                />
+                                                            ) : (
+                                                                <div className="text-slate-400 group-hover:text-primary transition-colors flex flex-col items-center">
+                                                                    <Plus size={24} />
+                                                                    <span className="text-[10px] mt-1 font-bold">IMAGE</span>
+                                                                </div>
+                                                            )}
+                                                            {!isViewMode && (
+                                                                <input
+                                                                    type="file"
+                                                                    accept="image/*"
+                                                                    className="absolute inset-0 opacity-0 cursor-pointer"
+                                                                    onChange={(e) => {
+                                                                        if (e.target.files && e.target.files[0]) {
+                                                                            setFormData({ ...formData, profileImage: e.target.files[0] });
+                                                                        }
+                                                                    }}
+                                                                />
+                                                            )}
+                                                        </div>
+                                                        {!isViewMode && (
+                                                            <div className="absolute -bottom-2 -right-2 h-8 w-8 rounded-xl bg-white dark:bg-slate-800 shadow-lg border border-slate-200 dark:border-white/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                                                                <Edit2 size={12} />
                                                             </div>
                                                         )}
-                                                        {!isViewMode && (
-                                                            <input
-                                                                type="file"
-                                                                accept="image/*"
-                                                                className="absolute inset-0 opacity-0 cursor-pointer"
-                                                                onChange={(e) => {
-                                                                    if (e.target.files && e.target.files[0]) {
-                                                                        setFormData({ ...formData, profileImage: e.target.files[0] });
-                                                                    }
-                                                                }}
-                                                            />
-                                                        )}
                                                     </div>
-                                                    {!isViewMode && (
-                                                        <div className="absolute -bottom-2 -right-2 h-8 w-8 rounded-xl bg-white dark:bg-slate-800 shadow-lg border border-slate-200 dark:border-white/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-                                                            <Edit2 size={12} />
-                                                        </div>
-                                                    )}
+                                                    <p className="text-[10px] text-slate-400 dark:text-white/30 uppercase mt-3 font-bold tracking-tighter">Profile Avatar</p>
                                                 </div>
-                                                <p className="text-[10px] text-slate-400 dark:text-white/30 uppercase mt-3 font-bold tracking-tighter">Profile Avatar</p>
-                                            </div>
 
-                                            <div>
-                                                <Label className="text-xs font-bold uppercase tracking-wider opacity-60">Full Legal Name</Label>
-                                                <Input
-                                                    type="text"
-                                                    value={formData.fullname}
-                                                    onChange={(e) => setFormData({ ...formData, fullname: e.target.value })}
-                                                    placeholder="Enter full name"
-                                                    required
-                                                    disabled={isViewMode}
-                                                    className="rounded-xl"
-                                                />
-                                            </div>
-
-                                            <div>
-                                                <Label className="text-xs font-bold uppercase tracking-wider opacity-60">Email Address</Label>
-                                                <Input
-                                                    type="email"
-                                                    value={formData.email}
-                                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                                    placeholder="user@example.com"
-                                                    required
-                                                    disabled={isViewMode}
-                                                    className="rounded-xl"
-                                                />
-                                            </div>
-
-                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-4">
                                                 <div>
-                                                    <Label className="text-xs font-bold uppercase tracking-wider opacity-60">Phone Number</Label>
+                                                    <Label className="text-xs font-bold uppercase tracking-wider opacity-60">Full Legal Name</Label>
                                                     <Input
                                                         type="text"
-                                                        value={formData.phone}
-                                                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                                        placeholder="+251 ..."
+                                                        value={formData.fullname}
+                                                        onChange={(e) => setFormData({ ...formData, fullname: e.target.value })}
+                                                        placeholder="Enter full name"
+                                                        required
                                                         disabled={isViewMode}
                                                         className="rounded-xl"
                                                     />
                                                 </div>
+
                                                 <div>
-                                                    <Label className="text-xs font-bold uppercase tracking-wider opacity-60">Account Status</Label>
-                                                    <select
-                                                        value={formData.status}
-                                                        onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                                                        className="w-full rounded-xl border border-slate-200 bg-white py-2.5 px-4 text-sm outline-none transition focus:border-primary active:border-primary dark:border-white/10 dark:bg-white/5 dark:text-white disabled:opacity-50"
+                                                    <Label className="text-xs font-bold uppercase tracking-wider opacity-60">Email Address</Label>
+                                                    <Input
+                                                        type="email"
+                                                        value={formData.email}
+                                                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                                        placeholder="user@example.com"
+                                                        required
                                                         disabled={isViewMode}
-                                                    >
-                                                        <option value="pending">Pending Verification</option>
-                                                        <option value="active">Active Access</option>
-                                                        <option value="suspended">Account Suspended</option>
-                                                    </select>
+                                                        className="rounded-xl"
+                                                    />
+                                                </div>
+
+                                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-4">
+                                                    <div>
+                                                        <Label className="text-xs font-bold uppercase tracking-wider opacity-60">Phone Number</Label>
+                                                        <Input
+                                                            type="text"
+                                                            value={formData.phone}
+                                                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                                            placeholder="+251 ..."
+                                                            disabled={isViewMode}
+                                                            className="rounded-xl"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <Label className="text-xs font-bold uppercase tracking-wider opacity-60">Account Status</Label>
+                                                        <select
+                                                            value={formData.status}
+                                                            onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                                                            className="w-full rounded-xl border border-slate-200 bg-white py-2.5 px-4 text-sm outline-none transition focus:border-primary active:border-primary dark:border-white/10 dark:bg-white/5 dark:text-white disabled:opacity-50"
+                                                            disabled={isViewMode}
+                                                        >
+                                                            <option value="pending">Pending Verification</option>
+                                                            <option value="active">Active Access</option>
+                                                            <option value="suspended">Account Suspended</option>
+                                                        </select>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
 
                                     <div className="rounded-3xl border border-slate-200 bg-slate-50/50 p-6 dark:border-white/10 dark:bg-white/[0.02]">
                                         <div className="flex items-center gap-2 mb-6 text-slate-900 dark:text-white pb-3 border-b border-slate-200 dark:border-white/10">
@@ -754,29 +754,29 @@ export default function Users() {
                                             <h5 className="text-xs font-bold uppercase tracking-widest">Access Control</h5>
                                         </div>
 
-                                        <div className="space-y-4">
-                                            <div>
-                                                <Label className="text-xs font-bold uppercase tracking-wider opacity-60">System Security Level</Label>
-                                                <select
-                                                    value={formData.accessLevel}
-                                                    onChange={(e) => setFormData({ ...formData, accessLevel: e.target.value })}
-                                                    className="w-full rounded-xl border border-slate-200 bg-white py-2.5 px-4 text-sm outline-none transition focus:border-primary active:border-primary dark:border-white/10 dark:bg-white/5 dark:text-white disabled:opacity-50 font-bold"
-                                                    disabled={isViewMode}
-                                                >
-                                                    <option value="public">🌍 Public User</option>
-                                                    <option value="expert">🎓 Expert</option>
-                                                    <option value="team_leader">👥 Team Leader</option>
-                                                    <option value="directorate">🏢 Directorate Lead</option>
-                                                    <option value="sector_lead">📐 Sector Lead</option>
-                                                    <option value="branch_admin">🛡️ Branch Admin</option>
-                                                    <option value="deputy">🏛️ Deputy</option>
-                                                    <option value="manager">⚙️ Manager</option>
-                                                    <option value="super_admin">👑 Super Admin</option>
-                                                </select>
-                                                <p className="mt-2 text-[10px] text-slate-500 italic opacity-80">
-                                                    * This level dictates visible fields and data scope
-                                                </p>
-                                            </div>
+                                            <div className="space-y-4">
+                                                <div>
+                                                    <Label className="text-xs font-bold uppercase tracking-wider opacity-60">System Security Level</Label>
+                                                    <select
+                                                        value={formData.accessLevel}
+                                                        onChange={(e) => setFormData({ ...formData, accessLevel: e.target.value })}
+                                                        className="w-full rounded-xl border border-slate-200 bg-white py-2.5 px-4 text-sm outline-none transition focus:border-primary active:border-primary dark:border-white/10 dark:bg-white/5 dark:text-white disabled:opacity-50 font-bold"
+                                                        disabled={isViewMode}
+                                                    >
+                                                        <option value="public">🌍 Public User</option>
+                                                        <option value="expert">🎓 Expert</option>
+                                                        <option value="team_leader">👥 Team Leader</option>
+                                                        <option value="directorate">🏢 Directorate Lead</option>
+                                                        <option value="sector_lead">📐 Sector Lead</option>
+                                                        <option value="branch_admin">🛡️ Branch Admin</option>
+                                                        <option value="deputy">🏛️ Deputy</option>
+                                                        <option value="manager">⚙️ Manager</option>
+                                                        <option value="super_admin">👑 Super Admin</option>
+                                                    </select>
+                                                    <p className="mt-2 text-[10px] text-slate-500 italic opacity-80">
+                                                        * This level dictates visible fields and data scope
+                                                    </p>
+                                                </div>
 
                                             <div>
                                                 <Label className="text-xs font-bold uppercase tracking-wider opacity-60 mb-3 block">User Roles</Label>
@@ -832,113 +832,113 @@ export default function Users() {
                                                 </div>
                                             </div>
 
-                                            <div className="space-y-6">
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                    <div className="group/field">
-                                                        <Label className="text-xs font-bold uppercase tracking-wider opacity-60 mb-2 block group-focus-within/field:text-primary transition-colors">Organization Level</Label>
-                                                        <select
-                                                            value={formData.organizationType}
-                                                            onChange={(e) => setFormData({ ...formData, organizationType: e.target.value })}
-                                                            className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3.5 px-5 text-sm outline-none transition-all focus:border-primary focus:ring-4 focus:ring-primary/10 dark:border-white/10 dark:bg-white/5 dark:text-white disabled:opacity-50"
-                                                            disabled={isViewMode}
-                                                        >
-                                                            <option value="head_office">🏛️ Head Office</option>
-                                                            <option value="branch">🏢 Branch Office</option>
-                                                        </select>
-                                                    </div>
-
-                                                    {shouldShowField('organization') && (
+                                                <div className="space-y-6">
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                         <div className="group/field">
-                                                            <Label className="text-xs font-bold uppercase tracking-wider opacity-60 mb-2 block group-focus-within/field:text-primary transition-colors">Primary Organization</Label>
+                                                            <Label className="text-xs font-bold uppercase tracking-wider opacity-60 mb-2 block group-focus-within/field:text-primary transition-colors">Organization Level</Label>
                                                             <select
-                                                                value={formData.organization}
-                                                                onChange={(e) => setFormData({
-                                                                    ...formData,
-                                                                    organization: e.target.value,
-                                                                    sector: '',
-                                                                    department: '',
-                                                                    team: ''
-                                                                })}
+                                                                value={formData.organizationType}
+                                                                onChange={(e) => setFormData({ ...formData, organizationType: e.target.value })}
                                                                 className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3.5 px-5 text-sm outline-none transition-all focus:border-primary focus:ring-4 focus:ring-primary/10 dark:border-white/10 dark:bg-white/5 dark:text-white disabled:opacity-50"
-                                                                disabled={isViewMode || (user?.accessLevel === 'branch_admin' && !user?.roles?.some(r => ['Super Admin', 'super_admin'].includes(r.name)) && !!formData.organization)}
+                                                                disabled={isViewMode}
                                                             >
-                                                                <option value="">-- Select Root Organization --</option>
-                                                                {allOrganizations.map(o => <option key={o._id || o.id} value={o._id || o.id}>{o.name}</option>)}
+                                                                <option value="head_office">🏛️ Head Office</option>
+                                                                <option value="branch">🏢 Branch Office</option>
                                                             </select>
                                                         </div>
-                                                    )}
-                                                </div>
 
-                                                <div className={`space-y-6 transition-all ${!formData.organization ? 'opacity-30 pointer-events-none blur-[1px]' : 'opacity-100'}`}>
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                        {shouldShowField('sector') && (
+                                                        {shouldShowField('organization') && (
                                                             <div className="group/field">
-                                                                <Label className="text-xs font-bold uppercase tracking-wider opacity-60 mb-2 block group-focus-within/field:text-primary transition-colors">Sector</Label>
+                                                                <Label className="text-xs font-bold uppercase tracking-wider opacity-60 mb-2 block group-focus-within/field:text-primary transition-colors">Primary Organization</Label>
                                                                 <select
-                                                                    value={formData.sector}
+                                                                    value={formData.organization}
                                                                     onChange={(e) => setFormData({
                                                                         ...formData,
-                                                                        sector: e.target.value,
+                                                                        organization: e.target.value,
+                                                                        sector: '',
                                                                         department: '',
                                                                         team: ''
                                                                     })}
-                                                                    disabled={isViewMode || !formData.organization}
                                                                     className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3.5 px-5 text-sm outline-none transition-all focus:border-primary focus:ring-4 focus:ring-primary/10 dark:border-white/10 dark:bg-white/5 dark:text-white disabled:opacity-50"
+                                                                    disabled={isViewMode || (user?.accessLevel === 'branch_admin' && !user?.roles?.some(r => ['Super Admin', 'super_admin'].includes(r.name)) && !!formData.organization)}
                                                                 >
-                                                                    <option value="">-- No Sector Assigned --</option>
-                                                                    {sectors.map(s => <option key={s._id || s.id} value={s._id || s.id}>{s.name}</option>)}
-                                                                </select>
-                                                            </div>
-                                                        )}
-
-                                                        {shouldShowField('department') && (
-                                                            <div className="group/field">
-                                                                <Label className="text-xs font-bold uppercase tracking-wider opacity-60 mb-2 block group-focus-within/field:text-primary transition-colors">Department / Directorate</Label>
-                                                                <select
-                                                                    value={formData.department}
-                                                                    onChange={(e) => setFormData({
-                                                                        ...formData,
-                                                                        department: e.target.value,
-                                                                        team: ''
-                                                                    })}
-                                                                    disabled={isViewMode || !formData.organization}
-                                                                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3.5 px-5 text-sm outline-none transition-all focus:border-primary focus:ring-4 focus:ring-primary/10 dark:border-white/10 dark:bg-white/5 dark:text-white disabled:opacity-50"
-                                                                >
-                                                                    <option value="">-- No Department Assigned --</option>
-                                                                    {departments.map(d => <option key={d._id || d.id} value={d._id || d.id}>{d.name}</option>)}
+                                                                    <option value="">-- Select Root Organization --</option>
+                                                                    {allOrganizations.map(o => <option key={o._id || o.id} value={o._id || o.id}>{o.name}</option>)}
                                                                 </select>
                                                             </div>
                                                         )}
                                                     </div>
 
-                                                    {shouldShowField('team') && (
-                                                        <div className="group/field">
-                                                            <Label className="text-xs font-bold uppercase tracking-wider opacity-60 mb-2 block group-focus-within/field:text-primary transition-colors">Specific Team</Label>
-                                                            <select
-                                                                value={formData.team}
-                                                                onChange={(e) => setFormData({ ...formData, team: e.target.value })}
-                                                                disabled={isViewMode || !formData.department}
-                                                                className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3.5 px-5 text-sm outline-none transition-all focus:border-primary focus:ring-4 focus:ring-primary/10 dark:border-white/10 dark:bg-white/5 dark:text-white disabled:opacity-50"
-                                                            >
-                                                                <option value="">-- No Specific Team --</option>
-                                                                {teams.map(t => <option key={t._id || t.id} value={t._id || t.id}>{t.name}</option>)}
-                                                            </select>
+                                                    <div className={`space-y-6 transition-all ${!formData.organization ? 'opacity-30 pointer-events-none blur-[1px]' : 'opacity-100'}`}>
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                            {shouldShowField('sector') && (
+                                                                <div className="group/field">
+                                                                    <Label className="text-xs font-bold uppercase tracking-wider opacity-60 mb-2 block group-focus-within/field:text-primary transition-colors">Sector</Label>
+                                                                    <select
+                                                                        value={formData.sector}
+                                                                        onChange={(e) => setFormData({
+                                                                            ...formData,
+                                                                            sector: e.target.value,
+                                                                            department: '',
+                                                                            team: ''
+                                                                        })}
+                                                                        disabled={isViewMode || !formData.organization}
+                                                                        className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3.5 px-5 text-sm outline-none transition-all focus:border-primary focus:ring-4 focus:ring-primary/10 dark:border-white/10 dark:bg-white/5 dark:text-white disabled:opacity-50"
+                                                                    >
+                                                                        <option value="">-- No Sector Assigned --</option>
+                                                                        {sectors.map(s => <option key={s._id || s.id} value={s._id || s.id}>{s.name}</option>)}
+                                                                    </select>
+                                                                </div>
+                                                            )}
+
+                                                            {shouldShowField('department') && (
+                                                                <div className="group/field">
+                                                                    <Label className="text-xs font-bold uppercase tracking-wider opacity-60 mb-2 block group-focus-within/field:text-primary transition-colors">Department / Directorate</Label>
+                                                                    <select
+                                                                        value={formData.department}
+                                                                        onChange={(e) => setFormData({
+                                                                            ...formData,
+                                                                            department: e.target.value,
+                                                                            team: ''
+                                                                        })}
+                                                                        disabled={isViewMode || !formData.organization}
+                                                                        className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3.5 px-5 text-sm outline-none transition-all focus:border-primary focus:ring-4 focus:ring-primary/10 dark:border-white/10 dark:bg-white/5 dark:text-white disabled:opacity-50"
+                                                                    >
+                                                                        <option value="">-- No Department Assigned --</option>
+                                                                        {departments.map(d => <option key={d._id || d.id} value={d._id || d.id}>{d.name}</option>)}
+                                                                    </select>
+                                                                </div>
+                                                            )}
+                                                        </div>
+
+                                                        {shouldShowField('team') && (
+                                                            <div className="group/field">
+                                                                <Label className="text-xs font-bold uppercase tracking-wider opacity-60 mb-2 block group-focus-within/field:text-primary transition-colors">Specific Team</Label>
+                                                                <select
+                                                                    value={formData.team}
+                                                                    onChange={(e) => setFormData({ ...formData, team: e.target.value })}
+                                                                    disabled={isViewMode || !formData.department}
+                                                                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3.5 px-5 text-sm outline-none transition-all focus:border-primary focus:ring-4 focus:ring-primary/10 dark:border-white/10 dark:bg-white/5 dark:text-white disabled:opacity-50"
+                                                                >
+                                                                    <option value="">-- No Specific Team --</option>
+                                                                    {teams.map(t => <option key={t._id || t.id} value={t._id || t.id}>{t.name}</option>)}
+                                                                </select>
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    {!formData.organization && !isViewMode && (
+                                                        <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50 p-4 rounded-2xl flex items-start gap-3">
+                                                            <div className="h-2 w-2 rounded-full bg-amber-500 mt-1.5 shadow-[0_0_8px_rgba(245,158,11,0.5)]" />
+                                                            <p className="text-xs text-amber-700 dark:text-amber-400 font-medium">Please select an organization first to reveal sub-hierarchy options like Sectors and Departments.</p>
                                                         </div>
                                                     )}
                                                 </div>
-
-                                                {!formData.organization && !isViewMode && (
-                                                    <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50 p-4 rounded-2xl flex items-start gap-3">
-                                                        <div className="h-2 w-2 rounded-full bg-amber-500 mt-1.5 shadow-[0_0_8px_rgba(245,158,11,0.5)]" />
-                                                        <p className="text-xs text-amber-700 dark:text-amber-400 font-medium">Please select an organization first to reveal sub-hierarchy options like Sectors and Departments.</p>
-                                                    </div>
-                                                )}
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
                         {/* Footer Actions */}
                         <div className="flex items-center justify-between px-8 py-6 bg-slate-50/50 dark:bg-white/[0.02] border-t border-slate-200 dark:border-white/10">

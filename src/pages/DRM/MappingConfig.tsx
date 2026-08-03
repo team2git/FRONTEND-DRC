@@ -114,7 +114,7 @@ const SOURCE_TYPES = [
 const TARGET_MODEL_OPTIONS = [
     { value: 'WoredaProfile', label: 'Woreda Profile (Legacy)', color: 'text-slate-600', bg: 'bg-slate-100', border: 'border-slate-200', desc: 'Maps to aggregated woreda-level profile (backward-compatible).' },
     { value: 'HouseholdProfile', label: 'Household Profile', color: 'text-emerald-700', bg: 'bg-emerald-50', border: 'border-emerald-200', desc: 'Maps to a household-level assessment record (HH demographics, housing, livelihoods).' },
-    { value: 'WoredaAssessment', label: 'Woreda Assessment', color: 'text-brand-700', bg: 'bg-brand-50', border: 'border-brand-200', desc: 'Maps to a woreda-level KII/CGD assessment record (hazards, capacity, environment).' },
+    { value: 'WoredaAssessment', label: 'Woreda Assessment', color: 'text-blue-700', bg: 'bg-blue-50', border: 'border-blue-200', desc: 'Maps to a woreda-level KII/CGD assessment record (hazards, capacity, environment).' },
 ];
 
 // ─── Target Field Lists ───────────────────────────────────────────────────────
@@ -225,7 +225,7 @@ const MappingRow: React.FC<{
                 <div className="relative">
                     <Hash className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={14} />
                     <select
-                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-100 text-[11px] font-bold text-slate-700 focus:outline-none focus:border-brand-200 focus:bg-white transition-all appearance-none"
+                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-100 text-[11px] font-bold text-slate-700 focus:outline-none focus:border-indigo-200 focus:bg-white transition-all appearance-none"
                         value={item.sourceKey} onChange={e => updateRow({ sourceKey: e.target.value })}
                     >
                         <option value="">Choose Input...</option>
@@ -260,7 +260,7 @@ const MappingRow: React.FC<{
                 <div className="relative">
                     <Database className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={14} />
                     <select
-                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-100 text-[11px] font-bold text-slate-700 focus:outline-none focus:border-brand-200 focus:bg-white transition-all appearance-none"
+                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-100 text-[11px] font-bold text-slate-700 focus:outline-none focus:border-indigo-200 focus:bg-white transition-all appearance-none"
                         value={item.targetFieldPath} onChange={e => updateRow({ targetFieldPath: e.target.value })}
                     >
                         <option value="">Choose Database Field...</option>
@@ -328,7 +328,7 @@ const MappingRow: React.FC<{
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Source Factors</label>
                                 <select
-                                    className="w-full px-6 py-3 rounded-2xl bg-white border border-slate-100 text-[11px] font-bold text-slate-700 shadow-sm transition-all focus:border-brand-200 outline-none"
+                                    className="w-full px-6 py-3 rounded-2xl bg-white border border-slate-100 text-[11px] font-bold text-slate-700 shadow-sm transition-all focus:border-indigo-200 outline-none"
                                     onChange={e => {
                                         if (!e.target.value) return;
                                         const keys = [...(item.sourceKeys || [])];
@@ -349,7 +349,7 @@ const MappingRow: React.FC<{
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Formula (Use {"{{Q_CODE}}"})</label>
                                 <input
-                                    className="w-full px-6 py-3 rounded-2xl bg-white border border-slate-200 text-[11px] font-bold text-slate-700 shadow-sm focus:border-brand-400 outline-none transition-all"
+                                    className="w-full px-6 py-3 rounded-2xl bg-white border border-slate-200 text-[11px] font-bold text-slate-700 shadow-sm focus:border-indigo-400 outline-none transition-all"
                                     placeholder="e.g. {{Q1}} + {{Q2}}"
                                     value={item.formula || ''}
                                     onChange={e => updateRow({ formula: e.target.value })}
@@ -359,7 +359,7 @@ const MappingRow: React.FC<{
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Separator</label>
                                 <input
-                                    className="w-full px-6 py-3 rounded-2xl bg-white border border-slate-200 text-[11px] font-bold text-slate-700 shadow-sm focus:border-brand-400 outline-none transition-all"
+                                    className="w-full px-6 py-3 rounded-2xl bg-white border border-slate-200 text-[11px] font-bold text-slate-700 shadow-sm focus:border-indigo-400 outline-none transition-all"
                                     placeholder="Fixed string separator (e.g. , or /)"
                                     value={item.separator || ' '}
                                     onChange={e => updateRow({ separator: e.target.value })}
@@ -448,7 +448,7 @@ const MappingCard: React.FC<{
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         whileHover={{ y: -5 }}
-        className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:border-brand-200 transition-all duration-300 group flex flex-col overflow-hidden"
+        className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:border-indigo-200 transition-all duration-300 group flex flex-col overflow-hidden"
     >
         {/* Top color strip */}
         <div className={`h-1.5 w-full ${mapping.status === 'Published' ? 'bg-gradient-to-r from-emerald-400 to-teal-500' : mapping.status === 'Draft' ? 'bg-gradient-to-r from-amber-400 to-orange-500' : 'bg-slate-200'}`} />
@@ -531,7 +531,7 @@ const MappingCard: React.FC<{
                         )}
                         <button
                             onClick={onEdit}
-                            className="p-2 rounded-lg text-slate-400 hover:text-brand-600 hover:bg-white border border-transparent hover:border-brand-100 transition-all"
+                            className="p-2 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-white border border-transparent hover:border-indigo-100 transition-all"
                             title="Edit Connector"
                         >
                             <Edit3 size={16} />
@@ -925,7 +925,7 @@ const MappingConfig: React.FC = () => {
                     <div className="flex items-center gap-3">
                         <button
                             onClick={() => { setEditingMapping(null); setShowForm(true); }}
-                            className="flex items-center gap-2 bg-gradient-to-r from-brand-600 to-brand-700 text-white px-8 py-3.5 rounded-xl font-bold hover:shadow-xl hover:shadow-brand-100 transition-all"
+                            className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-blue-700 text-white px-8 py-3.5 rounded-xl font-bold hover:shadow-xl hover:shadow-indigo-100 transition-all"
                         >
                             <Plus size={20} />
                             Create New Link

@@ -344,19 +344,20 @@ export const addisAbabaGeoData: AddisAbabaGeoJSON = {
  * Maps risk score ranges to colors for the choropleth map
  */
 export const RISK_LEVELS = [
-    { min: 0, max: 2, label: 'Very Low', color: '#10b981', bgClass: 'bg-emerald-500', textClass: 'text-emerald-600' },
-    { min: 2, max: 4, label: 'Low', color: '#34d399', bgClass: 'bg-emerald-400', textClass: 'text-emerald-500' },
-    { min: 4, max: 5.5, label: 'Moderate', color: '#fbbf24', bgClass: 'bg-amber-400', textClass: 'text-amber-500' },
-    { min: 5.5, max: 7, label: 'High', color: '#f97316', bgClass: 'bg-orange-500', textClass: 'text-orange-600' },
-    { min: 7, max: 8.5, label: 'Very High', color: '#ef4444', bgClass: 'bg-rose-500', textClass: 'text-rose-600' },
-    { min: 8.5, max: 10, label: 'Critical', color: '#991b1b', bgClass: 'bg-rose-900', textClass: 'text-rose-900' }
+    { min: 0, max: 2, label: 'Very Low', color: '#059669', bgClass: 'bg-emerald-600', textClass: 'text-emerald-600' },
+    { min: 2, max: 4, label: 'Low', color: '#10b981', bgClass: 'bg-emerald-500', textClass: 'text-emerald-500' },
+    { min: 4, max: 5.5, label: 'Moderate', color: '#f59e0b', bgClass: 'bg-amber-500', textClass: 'text-amber-500' },
+    { min: 5.5, max: 7, label: 'High', color: '#ea580c', bgClass: 'bg-orange-600', textClass: 'text-orange-600' },
+    { min: 7, max: 8.5, label: 'Very High', color: '#dc2626', bgClass: 'bg-red-600', textClass: 'text-red-600' },
+    { min: 8.5, max: 10, label: 'Critical', color: '#881337', bgClass: 'bg-rose-900', textClass: 'text-rose-900' }
 ] as const;
 
 export type RiskLevel = typeof RISK_LEVELS[number];
 
 export const getRiskLevel = (score: number): RiskLevel => {
+    const s = Math.max(0, Math.min(10, score || 0));
     for (const level of RISK_LEVELS) {
-        if (score >= level.min && score < level.max) return level;
+        if (s >= level.min && s <= level.max) return level;
     }
     return RISK_LEVELS[RISK_LEVELS.length - 1];
 };
@@ -364,3 +365,4 @@ export const getRiskLevel = (score: number): RiskLevel => {
 export const getRiskColor = (score: number): string => {
     return getRiskLevel(score).color;
 };
+

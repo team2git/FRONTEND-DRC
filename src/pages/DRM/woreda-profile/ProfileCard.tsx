@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import {
     Database, Layers, Filter, Box, ShieldCheck, Sparkles, Users,
@@ -24,8 +24,8 @@ export const ProfileCard: React.FC<{
         profile.hierarchy_summary?.dr_risk_score || 0;
 
     const levelConfig: Record<string, { gradient: string; lightBg: string; border: string; accent: string; icon: React.ElementType }> = {
-        city: { gradient: 'from-brand-500 to-brand-600', lightBg: 'bg-brand-50/50', border: 'border-brand-100', accent: 'text-brand-600', icon: Database },
-        subcity: { gradient: 'from-accent-500 to-accent-600', lightBg: 'bg-accent-50/50', border: 'border-accent-100', accent: 'text-accent-600', icon: Layers },
+        city: { gradient: 'from-indigo-500 to-blue-600', lightBg: 'bg-indigo-50/50', border: 'border-indigo-100', accent: 'text-indigo-600', icon: Database },
+        subcity: { gradient: 'from-violet-500 to-purple-600', lightBg: 'bg-violet-50/50', border: 'border-violet-100', accent: 'text-violet-600', icon: Layers },
         woreda: { gradient: 'from-amber-500 to-orange-600', lightBg: 'bg-amber-50/50', border: 'border-amber-100', accent: 'text-amber-600', icon: Filter },
         block: { gradient: 'from-emerald-500 to-teal-600', lightBg: 'bg-emerald-50/50', border: 'border-emerald-100', accent: 'text-emerald-600', icon: Box },
         household: { gradient: 'from-rose-500 to-pink-600', lightBg: 'bg-rose-50/50', border: 'border-rose-100', accent: 'text-rose-600', icon: ShieldCheck },
@@ -60,14 +60,14 @@ export const ProfileCard: React.FC<{
             whileHover={{ y: -6, scale: 1.01 }}
             transition={{ type: 'spring', stiffness: 300, damping: 20 }}
             onClick={onView}
-            className="bg-white rounded-3xl border border-slate-100/80 shadow-md hover:shadow-2xl hover:border-brand-100/80 transition-all duration-300 relative overflow-hidden group flex flex-col min-h-[380px]"
+            className="bg-white rounded-3xl border border-slate-100/80 shadow-md hover:shadow-2xl hover:border-indigo-100/80 transition-all duration-300 relative overflow-hidden group flex flex-col min-h-[380px]"
         >
             {/* Top Color Accent Strip */}
             <div className={`h-1.5 w-full bg-gradient-to-r ${cfg.gradient}`} />
 
             {profile.hierarchy_summary?.rank_in_parent ? (
                 <div className="absolute top-4 right-4 bg-slate-900/90 backdrop-blur-md text-white px-2.5 py-1 rounded-xl text-[9px] font-black uppercase tracking-widest shadow-md flex items-center gap-1.5 z-10">
-                    <Sparkles size={10} className="text-brand-400 animate-pulse" />
+                    <Sparkles size={10} className="text-indigo-400 animate-pulse" />
                     Rank #{profile.hierarchy_summary.rank_in_parent}
                 </div>
             ) : null}
@@ -89,7 +89,7 @@ export const ProfileCard: React.FC<{
                                 </span>
                             ) : null}
                         </div>
-                        <h3 className="text-lg font-black text-slate-900 truncate tracking-tight leading-tight group-hover:text-brand-600 transition-colors">
+                        <h3 className="text-lg font-black text-slate-900 truncate tracking-tight leading-tight group-hover:text-indigo-600 transition-colors">
                             {getProfileTitle(profile)}
                         </h3>
                         <p className="text-[10px] font-semibold text-slate-400 truncate mt-0.5">
@@ -100,7 +100,7 @@ export const ProfileCard: React.FC<{
 
                 {/* Key Metrics Grid */}
                 <div className="grid grid-cols-2 gap-2.5 mb-4">
-                    <div className="bg-slate-50/50 rounded-2xl p-3.5 border border-slate-100/60 hover:bg-white hover:border-brand-50 hover:shadow-sm transition-all duration-200">
+                    <div className="bg-slate-50/50 rounded-2xl p-3.5 border border-slate-100/60 hover:bg-white hover:border-indigo-50 hover:shadow-sm transition-all duration-200">
                         <div className="flex items-center gap-1.5 mb-1.5">
                             <Users size={10} className="text-slate-400" />
                             <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Population</p>
@@ -165,7 +165,7 @@ export const ProfileCard: React.FC<{
                 <div className="flex items-center gap-2 pt-3 border-t border-slate-50">
                     <button
                         onClick={(e) => { e.stopPropagation(); onView(); }}
-                        className="flex-1 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-brand-600 hover:bg-brand-50/60 transition-all border border-transparent hover:border-brand-100 flex items-center justify-center gap-1.5"
+                        className="flex-1 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-indigo-600 hover:bg-indigo-50/60 transition-all border border-transparent hover:border-indigo-100 flex items-center justify-center gap-1.5"
                     >
                         <Eye size={11} />
                         Details
@@ -173,7 +173,7 @@ export const ProfileCard: React.FC<{
                     {onDrillDown ? (
                         <button
                             onClick={(e) => { e.stopPropagation(); onDrillDown(); }}
-                            className={`flex-1 py-2.5 bg-gradient-to-r ${cfg.gradient} text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-black/10 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-brand-500/10 flex items-center justify-center gap-1.5`}
+                            className={`flex-1 py-2.5 bg-gradient-to-r ${cfg.gradient} text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-black/10 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-indigo-500/10 flex items-center justify-center gap-1.5`}
                         >
                             {fallbackDrillDownLabel}
                             <ArrowRight size={11} />
@@ -192,7 +192,7 @@ export const ProfileCard: React.FC<{
                     {level === 'household' && (
                         <div className="flex gap-1" onClick={e => e.stopPropagation()}>
                             {onEdit ? (
-                                <button onClick={onEdit} className="p-2.5 rounded-xl text-slate-400 hover:text-brand-600 hover:bg-brand-50 transition-all border border-transparent hover:border-brand-100 flex items-center justify-center">
+                                <button onClick={onEdit} className="p-2.5 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all border border-transparent hover:border-indigo-100 flex items-center justify-center">
                                     <Edit3 size={13} />
                                 </button>
                             ) : null}

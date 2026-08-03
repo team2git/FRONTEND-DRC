@@ -1,8 +1,9 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { getDashboardStats, DashboardStats } from "../../api/dashboardService";
 import { Map, ClipboardList, Layers, FileText } from "lucide-react";
 
 export default function EcommerceMetrics() {
+  const { user } = useAuth();
   const [stats, setStats] = useState<DashboardStats>({
     permissions: {
       canViewOrganizations: false,
@@ -60,6 +61,11 @@ export default function EcommerceMetrics() {
       </div>
     );
   }
+
+  const isSuperAdmin = user?.roles?.some(r => ['superadmin', 'super admin', 'super_admin'].includes(r.name.toLowerCase()));
+  const isHeadOfficeSuperAdmin = (user?.accessLevel === 'super_admin' || isSuperAdmin) && user?.organizationType === 'head_office';
+  const isBranchAdmin = user?.accessLevel === 'branch_admin';
+  const isAdmin = isHeadOfficeSuperAdmin || isBranchAdmin;
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 md:gap-6">
