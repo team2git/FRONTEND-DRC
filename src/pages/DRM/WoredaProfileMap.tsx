@@ -710,15 +710,75 @@ export default function WoredaProfileMap() {
                 <AnimatePresence>
                     {selectedRegion && (
                         <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}
-                            className="absolute top-20 right-4 z-[1000] w-72 bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden">
-                            <div className="bg-[#172358] px-5 py-4 flex items-center justify-between">
+                            className="absolute top-20 right-4 z-[1000] w-80 bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden max-h-[85vh] overflow-y-auto">
+                            <div className="bg-[#172358] px-5 py-4 flex items-center justify-between sticky top-0 z-10">
                                 <div>
-                                    <p className="text-[9px] font-black text-blue-200 uppercase tracking-widest">Selected Region</p>
+                                    <p className="text-[9px] font-black text-blue-200 uppercase tracking-widest">
+                                        Selected {viewLevel === 'woreda' || selectedRegion.feature.properties.level === 'woreda' ? 'Woreda Polygon' : 'Sub-City Zone'}
+                                    </p>
                                     <p className="text-sm font-black text-white mt-0.5 leading-tight">{selectedRegion.feature.properties.fullName}</p>
                                 </div>
-                                <button onClick={() => setSelectedRegion(null)} className="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-all"><X size={14} /></button>
+                                <button onClick={() => setSelectedRegion(null)} className="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-all cursor-pointer"><X size={14} /></button>
                             </div>
                             <div className="p-5 space-y-4">
+                                {/* Woreda Polygon Risk Alert Card */}
+                                {(() => {
+                                    const riskVal = selectedRegion.profile.risk_index?.overall_woreda_risk_score || selectedRegion.profile.hierarchy_summary?.dr_risk_score || 0;
+                                    const hazardVal = selectedRegion.profile.risk_index?.hazard_index || selectedRegion.profile.hierarchy_summary?.hazard_score || 0;
+                                    const vulVal = selectedRegion.profile.risk_index?.vulnerability_index || selectedRegion.profile.hierarchy_summary?.vulnerability_score || 0;
+                                    const capVal = selectedRegion.profile.risk_index?.capacity_index || selectedRegion.profile.hierarchy_summary?.capacity_score || 0;
+                                    
+                                    const isCritical = riskVal >= 7.0 || hazardVal >= 7.0;
+                                    const isModerate = riskVal >= 4.5 || hazardVal >= 5.0;
+
+                                    return (
+                                        <div className={`p-4 rounded-2xl border ${isCritical ? 'bg-rose-500/10 border-rose-500/40 text-rose-950' : isModerate ? 'bg-amber-500/10 border-amber-500/40 text-amber-950' : 'bg-emerald-500/10 border-emerald-500/40 text-emerald-950'}`}>
+                                            <div className="flex items-center justify-between gap-2 mb-2">
+                                                <div className="flex items-center gap-2">
+                                                    {isCritical ? (
+                                                        <AlertTriangle size={18} className="text-rose-600 animate-bounce flex-shrink-0" />
+                                                    ) : isModerate ? (
+                                                        <ShieldAlert size={18} className="text-amber-600 flex-shrink-0" />
+                                                    ) : (
+                                                        <ShieldCheck size={18} className="text-emerald-600 flex-shrink-0" />
+                                                    )}
+                                                    <span className="text-xs font-black uppercase tracking-wider">
+                                                        Polygon Level Risk Alert
+                                                    </span>
+                                                </div>
+                                                <span className={`text-[9px] font-black px-2 py-0.5 rounded-full uppercase text-white ${isCritical ? 'bg-rose-600' : isModerate ? 'bg-amber-600' : 'bg-emerald-600'}`}>
+                                                    {isCritical ? 'High Risk' : isModerate ? 'Moderate' : 'Low Risk'}
+                                                </span>
+                                            </div>
+                                            
+                                            <p className="text-[11px] font-semibold text-slate-700 leading-snug">
+                                                {isCritical ? `Woreda polygon ${selectedRegion.feature.properties.fullName} requires immediate DRM monitoring & response intervention.` : isModerate ? `Woreda polygon ${selectedRegion.feature.properties.fullName} exhibits moderate hazard exposure.` : `Woreda polygon ${selectedRegion.feature.properties.fullName} maintains stable risk status.`}
+                                            </p>
+
+                                            <div className="mt-3 pt-2.5 border-t border-slate-200/60 space-y-1.5 text-[10px]">
+                                                {hazardVal >= 5.5 && (
+                                                    <div className="flex items-center gap-1.5 text-rose-700 font-bold">
+                                                        <Flame size={12} className="text-rose-500 flex-shrink-0" />
+                                                        <span>Hazard Exposure Index: {hazardVal.toFixed(1)}/10</span>
+                                                    </div>
+                                                )}
+                                                {vulVal >= 5.5 && (
+                                                    <div className="flex items-center gap-1.5 text-amber-700 font-bold">
+                                                        <AlertCircle size={12} className="text-amber-500 flex-shrink-0" />
+                                                        <span>Vulnerability Score: {vulVal.toFixed(1)}/10</span>
+                                                    </div>
+                                                )}
+                                                {capVal < 4.0 && (
+                                                    <div className="flex items-center gap-1.5 text-rose-800 font-bold">
+                                                        <ShieldAlert size={12} className="text-rose-600 flex-shrink-0" />
+                                                        <span>Low Coping Capacity: {capVal.toFixed(1)}/10</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
+
                                 <div className="bg-[#172358]/5 border border-[#172358]/10 rounded-2xl p-4 text-center">
                                     <p className="text-[9px] font-black text-[#172358]/70 uppercase tracking-widest mb-1">{activeLayerConfig.label}</p>
                                     <p className="text-2xl font-black text-[#172358]">{activeLayerConfig.format(selectedRegion.value)}</p>

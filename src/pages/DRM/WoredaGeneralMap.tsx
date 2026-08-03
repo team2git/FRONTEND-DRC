@@ -21,7 +21,7 @@ export default function WoredaGeneralMap() {
         const fetchProfiles = async () => {
             try {
                 setLoading(true);
-                const res = await getWoredaProfiles();
+                const res = await getWoredaProfiles({ level: 'woreda' });
                 setProfiles(res);
             } catch (err) {
                 console.error('Failed to load profiles for General Risk Map', err);

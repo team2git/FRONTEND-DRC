@@ -4,12 +4,12 @@ import {
     Upload, FileSpreadsheet, Loader2, ArrowRightLeft, RefreshCw, AlertCircle, CheckCircle
 } from 'lucide-react';
 import { type ProfileMapping } from '../../../api/profileMappingService';
-import { 
-    downloadCSVTemplate, 
-    parseCSVText, 
-    validateTemplateFilename, 
-    validateColumnMatching, 
-    analyzeSpreadsheetData 
+import {
+    downloadCSVTemplate,
+    parseCSVText,
+    validateTemplateFilename,
+    validateColumnMatching,
+    analyzeSpreadsheetData
 } from '../../../utils/excelTemplates';
 
 // ——— Import Modal ——————————————————————————————————————————————————————————
@@ -51,7 +51,7 @@ export const ImportModal: React.FC<{
                     const text = e.target?.result as string;
                     if (text) {
                         const { headers, rows } = parseCSVText(text);
-                        
+
                         if (rows.length === 0) {
                             setParseError('File is empty or headers are unreadable. Please download the sample template.');
                             return;
@@ -84,7 +84,7 @@ export const ImportModal: React.FC<{
     return (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[3000] bg-slate-950/60 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-full max-w-3xl bg-white rounded-[2.5rem] p-8 shadow-2xl space-y-6 max-h-[90vh] flex flex-col">
-                
+
                 {/* Modal Header */}
                 <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                     <div className="flex items-center gap-4">
@@ -103,18 +103,16 @@ export const ImportModal: React.FC<{
                     <button
                         type="button"
                         onClick={() => { setActiveTab('woreda'); setFile(null); setParsedRows([]); setShowPreview(false); setParseError(null); }}
-                        className={`flex-1 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
-                            activeTab === 'woreda' ? 'bg-[#172358] text-white shadow-md' : 'text-slate-500 hover:text-slate-800'
-                        }`}
+                        className={`flex-1 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${activeTab === 'woreda' ? 'bg-[#172358] text-white shadow-md' : 'text-slate-500 hover:text-slate-800'
+                            }`}
                     >
                         Woreda Assessment (CGD/KII)
                     </button>
                     <button
                         type="button"
                         onClick={() => { setActiveTab('household'); setFile(null); setParsedRows([]); setShowPreview(false); setParseError(null); }}
-                        className={`flex-1 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
-                            activeTab === 'household' ? 'bg-[#172358] text-white shadow-md' : 'text-slate-500 hover:text-slate-800'
-                        }`}
+                        className={`flex-1 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${activeTab === 'household' ? 'bg-[#172358] text-white shadow-md' : 'text-slate-500 hover:text-slate-800'
+                            }`}
                     >
                         Household Assessment
                     </button>
@@ -161,7 +159,7 @@ export const ImportModal: React.FC<{
                 ) : (
                     /* Step 2: Data Analysis & Arranged Excel Preview Page */
                     <div className="space-y-5 overflow-y-auto pr-1 flex-1">
-                        
+
                         {/* Column Matching Badge */}
                         <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-2xl p-4">
                             <div className="flex items-center gap-3">
@@ -223,7 +221,7 @@ export const ImportModal: React.FC<{
                                                 <td className="px-4 py-2 font-black text-slate-900">{row.Subcity || row.subcity || '—'}</td>
                                                 <td className="px-4 py-2">{row.Woreda || row.woreda || '—'}</td>
                                                 <td className="px-4 py-2">
-                                                    {activeTab === 'woreda' 
+                                                    {activeTab === 'woreda'
                                                         ? (Number(row['Total Population'] || row.total_population || 0)).toLocaleString()
                                                         : `${row.Block || 'Block 01'} - ${row['House No'] || 'H-01'}`
                                                     }
@@ -250,8 +248,8 @@ export const ImportModal: React.FC<{
 
                 {/* Footer Buttons */}
                 <div className="flex gap-3 pt-2 border-t border-slate-100">
-                    <button 
-                        onClick={onClose} 
+                    <button
+                        onClick={onClose}
                         className="flex-1 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-wider text-slate-400 hover:bg-slate-100 transition-all cursor-pointer"
                     >
                         Cancel

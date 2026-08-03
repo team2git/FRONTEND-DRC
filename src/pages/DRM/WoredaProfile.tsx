@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import PageMeta from '../../components/common/PageMeta';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -6,7 +6,9 @@ import { toast } from 'react-toastify';
 import {
     MapPin, Users, Plus, Search, RefreshCw, ChevronRight, ChevronLeft,
     BarChart3, FileText, Clock, Edit3, Eye, Upload,
-    AlertTriangle, ArrowRightLeft, Map as MapIcon, Activity
+    AlertTriangle, ArrowRightLeft, Map as MapIcon, Activity,
+    Filter, ArrowUpDown, X, ShieldAlert, Sparkles, Download,
+    SlidersHorizontal, PieChart, Building2, ShieldCheck
 } from 'lucide-react';
 import {
     getWoredaProfiles, getWoredaProfileStats,
@@ -44,26 +46,35 @@ const WoredaProfile: React.FC = () => {
     const [stats, setStats] = useState<WoredaProfileStats | null>(null);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
-    const [level, setLevel] = useState<'city' | 'subcity' | 'woreda' | 'block' | 'household'>('city');
+    const [level, setLevel] = useState<'city' | 'subcity' | 'woreda' | 'block' | 'household'>('subcity');
     const [path, setPath] = useState<{ subcity: string | null; woreda: string | null; block: string | null }>({ subcity: null, woreda: null, block: null });
-    const [showCityOverview, setShowCityOverview] = useState(true);
+    const [showCityOverview, setShowCityOverview] = useState(false);
     const [showForm, setShowForm] = useState(false);
     const [showWoredaForm, setShowWoredaForm] = useState(false);
     const [showImport, setShowImport] = useState(false);
     const [showSync, setShowSync] = useState(false);
     const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
-    const [statusFilter, setStatusFilter] = useState<'ALL' | 'Draft' | 'Submitted' | 'Reviewed'>('ALL');
+    const [statusFilter, setStatusFilter] = useState<'ALL' | 'Draft' | 'Submitted' | 'Reviewed' | 'Approved' | 'Pending Review' | 'Rejected'>('ALL');
+    const [riskFilter, setRiskFilter] = useState<'ALL' | 'HIGH' | 'MODERATE' | 'LOW'>('ALL');
+    const [subcityFilter, setSubcityFilter] = useState<string>('ALL');
+    const [sortBy, setSortBy] = useState<'risk_desc' | 'risk_asc' | 'pop_desc' | 'name_asc' | 'date_desc'>('risk_desc');
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
 
     const searchParams = new URLSearchParams(location.search);
     const initialSyncId = searchParams.get('syncResponseId');
+    const initialStatus = searchParams.get('status');
 
     useEffect(() => {
         if (initialSyncId) {
             setShowSync(true);
         }
-    }, [initialSyncId]);
+        if (initialStatus) {
+            setStatusFilter(initialStatus as any);
+            setShowCityOverview(false);
+            setLevel('household');
+        }
+    }, [initialSyncId, initialStatus]);
 
     const [mappings, setMappings] = useState<ProfileMapping[]>([]);
     const [editProfile, setEditProfile] = useState<WProfile | null>(null);
@@ -97,12 +108,74 @@ const WoredaProfile: React.FC = () => {
 
     useEffect(() => { fetchData(); }, [fetchData]);
 
-    const filtered = profiles.filter(p => {
-        const matchesSearch = getProfileTitle(p).toLowerCase().includes(search.toLowerCase()) ||
-            getProfileSubtitle(p).toLowerCase().includes(search.toLowerCase());
-        const matchesStatus = statusFilter === 'ALL' || p.status === statusFilter;
-        return matchesSearch && matchesStatus;
-    });
+    const subcityOptions = useMemo(() => {
+        return Array.from(new Set(profiles.map(p => p.location?.subcity).filter(Boolean))).sort() as string[];
+    }, [profiles]);
+
+    const getRiskScore = (p: WProfile) => parseFloat((p.risk_index?.overall_woreda_risk_score || p.hierarchy_summary?.dr_risk_score || 0).toString());
+    const getRiskCategory = (score: number) => score >= 7.0 ? 'HIGH' : score >= 4.0 ? 'MODERATE' : 'LOW';
+
+    const highRiskCount = useMemo(() => profiles.filter(p => getRiskCategory(getRiskScore(p)) === 'HIGH').length, [profiles]);
+    const moderateRiskCount = useMemo(() => profiles.filter(p => getRiskCategory(getRiskScore(p)) === 'MODERATE').length, [profiles]);
+    const lowRiskCount = useMemo(() => profiles.filter(p => getRiskCategory(getRiskScore(p)) === 'LOW').length, [profiles]);
+    const topRiskZone = useMemo(() => profiles.length > 0 ? [...profiles].sort((a, b) => getRiskScore(b) - getRiskScore(a))[0] : null, [profiles]);
+
+    const filtered = useMemo(() => {
+        return profiles.filter(p => {
+            const title = getProfileTitle(p).toLowerCase();
+            const subtitle = getProfileSubtitle(p).toLowerCase();
+            const subcityStr = (p.location?.subcity || '').toLowerCase();
+            const houseNoStr = (p.location?.house_no || '').toLowerCase();
+            const query = search.trim().toLowerCase();
+
+            const matchesSearch = !query || title.includes(query) || subtitle.includes(query) || subcityStr.includes(query) || houseNoStr.includes(query);
+            const matchesStatus = statusFilter === 'ALL' || p.status === statusFilter;
+            const matchesSubcity = subcityFilter === 'ALL' || p.location?.subcity === subcityFilter;
+            const score = getRiskScore(p);
+            const category = getRiskCategory(score);
+            const matchesRisk = riskFilter === 'ALL' || category === riskFilter;
+
+            return matchesSearch && matchesStatus && matchesSubcity && matchesRisk;
+        }).sort((a, b) => {
+            if (sortBy === 'risk_desc') return getRiskScore(b) - getRiskScore(a);
+            if (sortBy === 'risk_asc') return getRiskScore(a) - getRiskScore(b);
+            if (sortBy === 'pop_desc') {
+                const popA = a.demographics?.total_population || a.household_profile?.demographics?.total_household_members || 0;
+                const popB = b.demographics?.total_population || b.household_profile?.demographics?.total_household_members || 0;
+                return popB - popA;
+            }
+            if (sortBy === 'name_asc') return getProfileTitle(a).localeCompare(getProfileTitle(b));
+            if (sortBy === 'date_desc') return new Date(b.assessment_date || 0).getTime() - new Date(a.assessment_date || 0).getTime();
+            return 0;
+        });
+    }, [profiles, search, statusFilter, subcityFilter, riskFilter, sortBy]);
+
+    const handleResetFilters = () => {
+        setSearch('');
+        setStatusFilter('ALL');
+        setRiskFilter('ALL');
+        setSubcityFilter('ALL');
+        setSortBy('risk_desc');
+    };
+
+    const handleExportReportCSV = () => {
+        const rows = filtered.map(p => {
+            const score = getRiskScore(p).toFixed(1);
+            const category = getRiskCategory(getRiskScore(p));
+            const pop = p.demographics?.total_population || p.household_profile?.demographics?.total_household_members || 0;
+            return `"${getProfileTitle(p)}","${p.location?.subcity || ''}","${p.location?.woreda || ''}","${score}","${category}","${pop}","${p.status || 'Draft'}"`;
+        });
+        const csvContent = 'Location,Subcity,Woreda,Risk Score,Risk Category,Population,Status\n' + rows.join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `DRM_Executive_Risk_Report_${level}_${new Date().toISOString().slice(0, 10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast.success('Executive report CSV generated successfully');
+    };
 
     const totalPages = Math.ceil(filtered.length / itemsPerPage);
     const paginated = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
@@ -212,26 +285,14 @@ const WoredaProfile: React.FC = () => {
                 {/* Compact Navigation & Action Header */}
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-slate-200">
                     <div className="flex flex-wrap items-center gap-2 p-2 bg-slate-100/50 rounded-2xl border border-slate-200/60 inline-flex">
-                        {/* City crumb — always resets to top */}
+                        {/* Sub-Cities crumb — top root level */}
                         <button
-                            onClick={() => { setLevel('city'); setPath({ subcity: null, woreda: null, block: null }); setShowCityOverview(true); }}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${level === 'city' ? 'bg-white shadow-sm text-indigo-600 font-bold' : 'text-slate-500 hover:bg-slate-200/50 hover:text-slate-900 font-medium'}`}
+                            onClick={() => { setLevel('subcity'); setPath({ subcity: null, woreda: null, block: null }); setShowCityOverview(false); }}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${level === 'subcity' && !path.subcity ? 'bg-white shadow-sm text-indigo-600 font-bold' : 'text-slate-500 hover:bg-slate-200/50 hover:text-slate-900 font-medium'}`}
                         >
                             <Activity size={14} />
-                            <span className="text-[10px] font-black uppercase tracking-widest leading-none">City</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest leading-none">Sub-Cities</span>
                         </button>
-                        {/* Sub-Cities crumb */}
-                        {(level === 'subcity' || level === 'woreda' || level === 'block' || level === 'household') && (
-                            <>
-                                <ChevronRight size={14} className="text-slate-300" />
-                                <button
-                                    onClick={() => { setLevel('subcity'); setPath({ subcity: null, woreda: null, block: null }); setShowCityOverview(false); }}
-                                    className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${level === 'subcity' && !path.subcity ? 'bg-white shadow-sm text-indigo-600 font-bold' : 'text-slate-500 hover:bg-slate-200/50 hover:text-slate-900 font-medium'}`}
-                                >
-                                    <span className="text-[10px] font-black uppercase tracking-widest leading-none">Sub-Cities</span>
-                                </button>
-                            </>
-                        )}
                         {/* Selected sub-city crumb */}
                         {path.subcity && (
                             <>
@@ -332,50 +393,148 @@ const WoredaProfile: React.FC = () => {
                     ))}
                 </div>
 
-                {/* Filters & View Switches */}
-                <div className="bg-white rounded-[2.5rem] border border-slate-200 p-3 shadow-sm flex items-center gap-3 overflow-x-auto no-scrollbar scroll-smooth">
-                    <div className="relative flex-1 min-w-[300px]">
-                        <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                        <input
-                            type="text"
-                            placeholder={`Search ${level}...`}
-                            value={search}
-                            onChange={e => setSearch(e.target.value)}
-                            className="w-full bg-slate-50 border-none rounded-[2.5rem] pl-16 pr-8 py-4 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-indigo-500/20 transition-all outline-none"
-                        />
-                    </div>
-
-                    <div className="h-10 w-px bg-slate-100 mx-2" />
-
-                    <div className="flex bg-slate-50 p-1.5 rounded-2xl border border-slate-100">
-                        <button onClick={() => setViewMode('grid')} className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'grid' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>Grid</button>
-                        <button onClick={() => setViewMode('table')} className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'table' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>Table</button>
-                    </div>
-
-                    {level === 'household' && (
-                        <div className="flex bg-slate-50 p-1.5 rounded-2xl border border-slate-100 ml-2">
-                            {[
-                                { label: 'All', value: 'ALL', color: 'bg-white text-slate-900 border-slate-200' },
-                                { label: 'Draft', value: 'Draft', color: 'bg-amber-500 text-white border-transparent' },
-                                { label: 'Submitted', value: 'Submitted', color: 'bg-emerald-500 text-white border-transparent' }
-                            ].map(tab => (
+                {/* Filter, Search & Sorting Controls Bar */}
+                <div className="bg-white rounded-[2.5rem] border border-slate-200 p-4 shadow-sm space-y-4">
+                    <div className="flex flex-col lg:flex-row items-center gap-3">
+                        {/* Search Bar */}
+                        <div className="relative flex-1 w-full min-w-[280px]">
+                            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                            <input
+                                type="text"
+                                placeholder={`Search ${level} by name, subcity, house #...`}
+                                value={search}
+                                onChange={e => setSearch(e.target.value)}
+                                className="w-full bg-slate-50 border border-slate-100 rounded-2xl pl-14 pr-10 py-3.5 text-xs font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 transition-all outline-none"
+                            />
+                            {search && (
                                 <button
-                                    key={tab.value}
-                                    onClick={() => setStatusFilter(tab.value as any)}
-                                    className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all whitespace-nowrap ${statusFilter === tab.value
-                                        ? `${tab.color} shadow-sm border ring-1 ring-slate-100`
-                                        : 'text-slate-400 hover:text-slate-600 hover:bg-slate-200/50'
-                                        }`}
+                                    onClick={() => setSearch('')}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
                                 >
-                                    {tab.label}
+                                    <X size={16} />
                                 </button>
-                            ))}
+                            )}
                         </div>
-                    )}
 
-                    <span className="text-xs font-bold text-slate-400 px-2 whitespace-nowrap md:ml-auto">
-                        {showCityOverview ? '1 city overview' : `${filtered.length} ${level !== 'household' ? 'aggregated zones' : 'profiles'}`}
-                    </span>
+                        {/* Filter Dropdowns Container */}
+                        <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+                            {/* Subcity Filter Dropdown */}
+                            {subcityOptions.length > 0 && (
+                                <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200/80 rounded-2xl px-3 py-2 text-xs font-bold text-slate-700">
+                                    <Building2 size={14} className="text-slate-400" />
+                                    <select
+                                        value={subcityFilter}
+                                        onChange={e => setSubcityFilter(e.target.value)}
+                                        className="bg-transparent border-none outline-none font-bold cursor-pointer text-xs pr-2"
+                                    >
+                                        <option value="ALL">All Subcities</option>
+                                        {subcityOptions.map(sc => (
+                                            <option key={sc} value={sc}>{sc}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
+
+                            {/* Risk Category Dropdown */}
+                            <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200/80 rounded-2xl px-3 py-2 text-xs font-bold text-slate-700">
+                                <Filter size={14} className="text-slate-400" />
+                                <select
+                                    value={riskFilter}
+                                    onChange={e => setRiskFilter(e.target.value as any)}
+                                    className="bg-transparent border-none outline-none font-bold cursor-pointer text-xs pr-2"
+                                >
+                                    <option value="ALL">All Risk Levels</option>
+                                    <option value="HIGH">High Risk (≥ 7.0)</option>
+                                    <option value="MODERATE">Moderate Risk (4 - 6.9)</option>
+                                    <option value="LOW">Low Risk (&lt; 4.0)</option>
+                                </select>
+                            </div>
+
+                            {/* Protocol Status Dropdown */}
+                            <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200/80 rounded-2xl px-3 py-2 text-xs font-bold text-slate-700">
+                                <SlidersHorizontal size={14} className="text-slate-400" />
+                                <select
+                                    value={statusFilter}
+                                    onChange={e => setStatusFilter(e.target.value as any)}
+                                    className="bg-transparent border-none outline-none font-bold cursor-pointer text-xs pr-2"
+                                >
+                                    <option value="ALL">All Statuses</option>
+                                    <option value="Approved">Approved</option>
+                                    <option value="Pending Review">Pending Review</option>
+                                    <option value="Submitted">Submitted</option>
+                                    <option value="Draft">Draft</option>
+                                    <option value="Rejected">Rejected</option>
+                                </select>
+                            </div>
+
+                            {/* Sorting Dropdown */}
+                            <div className="flex items-center gap-1.5 bg-indigo-50/60 border border-indigo-100 rounded-2xl px-3 py-2 text-xs font-bold text-indigo-700">
+                                <ArrowUpDown size={14} className="text-indigo-500" />
+                                <select
+                                    value={sortBy}
+                                    onChange={e => setSortBy(e.target.value as any)}
+                                    className="bg-transparent border-none outline-none font-bold cursor-pointer text-xs pr-2 text-indigo-900"
+                                >
+                                    <option value="risk_desc">Risk: High to Low</option>
+                                    <option value="risk_asc">Risk: Low to High</option>
+                                    <option value="pop_desc">Population: Highest</option>
+                                    <option value="name_asc">Name: A - Z</option>
+                                    <option value="date_desc">Latest Assessment</option>
+                                </select>
+                            </div>
+
+                            {/* View Switch Buttons */}
+                            <div className="flex bg-slate-100 p-1 rounded-2xl border border-slate-200/60">
+                                <button onClick={() => setViewMode('grid')} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${viewMode === 'grid' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>Grid</button>
+                                <button onClick={() => setViewMode('table')} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${viewMode === 'table' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>Table</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Active Filter Chips & Counter Strip */}
+                    <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100 text-xs">
+                        <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Active Filters:</span>
+                            {search && (
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-50 text-indigo-700 rounded-xl text-[11px] font-bold border border-indigo-100">
+                                    Search: "{search}"
+                                    <X size={12} className="cursor-pointer hover:text-indigo-900" onClick={() => setSearch('')} />
+                                </span>
+                            )}
+                            {subcityFilter !== 'ALL' && (
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-50 text-indigo-700 rounded-xl text-[11px] font-bold border border-indigo-100">
+                                    Subcity: {subcityFilter}
+                                    <X size={12} className="cursor-pointer hover:text-indigo-900" onClick={() => setSubcityFilter('ALL')} />
+                                </span>
+                            )}
+                            {riskFilter !== 'ALL' && (
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-50 text-rose-700 rounded-xl text-[11px] font-bold border border-rose-100">
+                                    Risk: {riskFilter}
+                                    <X size={12} className="cursor-pointer hover:text-rose-900" onClick={() => setRiskFilter('ALL')} />
+                                </span>
+                            )}
+                            {statusFilter !== 'ALL' && (
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-800 rounded-xl text-[11px] font-bold border border-amber-200">
+                                    Status: {statusFilter}
+                                    <X size={12} className="cursor-pointer hover:text-amber-950" onClick={() => setStatusFilter('ALL')} />
+                                </span>
+                            )}
+                            {(search || subcityFilter !== 'ALL' || riskFilter !== 'ALL' || statusFilter !== 'ALL') ? (
+                                <button
+                                    onClick={handleResetFilters}
+                                    className="text-[10px] font-black uppercase tracking-wider text-rose-600 hover:underline px-2 py-1"
+                                >
+                                    Clear All Filters
+                                </button>
+                            ) : (
+                                <span className="text-slate-400 font-semibold text-xs italic">None (showing all data)</span>
+                            )}
+                        </div>
+
+                        <div className="font-bold text-slate-500 text-xs">
+                            Showing <span className="font-black text-slate-900">{filtered.length}</span> of {profiles.length} items
+                        </div>
+                    </div>
                 </div>
 
                 {/* Profile Grid */}
@@ -523,8 +682,8 @@ const WoredaProfile: React.FC = () => {
                                 sortable: true,
                                 render: (p) => (
                                     <div className="text-center">
-                                        <StatusBadge 
-                                            status={p.status || 'Draft'} 
+                                        <StatusBadge
+                                            status={p.status || 'Draft'}
                                             pulse={p.status === 'Submitted'}
                                         />
                                     </div>
@@ -629,6 +788,92 @@ const WoredaProfile: React.FC = () => {
                         searchPlaceholder="Search profiles by subcity, woreda, ID, status..."
                     />
                 )}
+
+                {/* Executive Report Analysis & Risk Distribution Widget (Placed Below Everything) */}
+                <div className="bg-gradient-to-r from-[#172358] via-indigo-900 to-[#1e2e6f] rounded-[2.5rem] p-6 lg:p-8 text-white shadow-xl relative overflow-hidden mt-6">
+                    <div className="absolute right-0 top-0 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+                    
+                    <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
+                        <div className="space-y-2">
+                            <div className="flex items-center gap-2 text-indigo-200 text-[11px] font-black uppercase tracking-widest">
+                                <PieChart size={16} className="text-amber-400" />
+                                Executive DRM Analysis Report Summary • {(level).toUpperCase()} LEVEL
+                            </div>
+                            <h3 className="text-xl lg:text-2xl font-black tracking-tight text-white">
+                                Risk Vulnerability Summary & Zone Classification
+                            </h3>
+                            <p className="text-xs font-medium text-slate-300 max-w-2xl">
+                                Real-time disaster risk profiling across {profiles.length} aggregated location records. Click category pills below to filter high, moderate, or low risk zones.
+                            </p>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+                            <button
+                                onClick={handleExportReportCSV}
+                                className="flex-1 lg:flex-initial px-5 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all border border-white/15 flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+                            >
+                                <Download size={15} /> Export Analysis (CSV)
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Risk Classification Pills & Hotspot Banner */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6 pt-6 border-t border-white/10 relative z-10">
+                        <button
+                            onClick={() => setRiskFilter('ALL')}
+                            className={`p-4 rounded-2xl text-left transition-all border ${riskFilter === 'ALL' ? 'bg-white text-slate-900 border-white shadow-lg' : 'bg-white/5 text-white border-white/10 hover:bg-white/10'}`}
+                        >
+                            <span className="text-[10px] font-black uppercase tracking-wider block opacity-75">All Categories</span>
+                            <span className="text-2xl font-black mt-1 block">{profiles.length} <span className="text-xs font-bold opacity-60">zones</span></span>
+                        </button>
+
+                        <button
+                            onClick={() => setRiskFilter('HIGH')}
+                            className={`p-4 rounded-2xl text-left transition-all border ${riskFilter === 'HIGH' ? 'bg-rose-600 text-white border-rose-400 shadow-lg' : 'bg-rose-500/15 text-rose-200 border-rose-500/30 hover:bg-rose-500/25'}`}
+                        >
+                            <div className="flex items-center justify-between">
+                                <span className="text-[10px] font-black uppercase tracking-wider block">High Risk (≥ 7.0)</span>
+                                <AlertTriangle size={14} className="text-rose-300" />
+                            </div>
+                            <span className="text-2xl font-black mt-1 block">{highRiskCount} <span className="text-xs font-bold opacity-75">zones</span></span>
+                        </button>
+
+                        <button
+                            onClick={() => setRiskFilter('MODERATE')}
+                            className={`p-4 rounded-2xl text-left transition-all border ${riskFilter === 'MODERATE' ? 'bg-amber-500 text-white border-amber-300 shadow-lg' : 'bg-amber-500/15 text-amber-200 border-amber-500/30 hover:bg-amber-500/25'}`}
+                        >
+                            <div className="flex items-center justify-between">
+                                <span className="text-[10px] font-black uppercase tracking-wider block">Moderate Risk (4 - 6.9)</span>
+                                <ShieldAlert size={14} className="text-amber-300" />
+                            </div>
+                            <span className="text-2xl font-black mt-1 block">{moderateRiskCount} <span className="text-xs font-bold opacity-75">zones</span></span>
+                        </button>
+
+                        <button
+                            onClick={() => setRiskFilter('LOW')}
+                            className={`p-4 rounded-2xl text-left transition-all border ${riskFilter === 'LOW' ? 'bg-emerald-600 text-white border-emerald-400 shadow-lg' : 'bg-emerald-500/15 text-emerald-200 border-emerald-500/30 hover:bg-emerald-500/25'}`}
+                        >
+                            <div className="flex items-center justify-between">
+                                <span className="text-[10px] font-black uppercase tracking-wider block">Low Risk (&lt; 4.0)</span>
+                                <ShieldCheck size={14} className="text-emerald-300" />
+                            </div>
+                            <span className="text-2xl font-black mt-1 block">{lowRiskCount} <span className="text-xs font-bold opacity-75">zones</span></span>
+                        </button>
+                    </div>
+
+                    {topRiskZone && (
+                        <div className="mt-4 p-3.5 bg-rose-500/20 border border-rose-400/30 rounded-2xl flex items-center justify-between gap-4 text-xs font-medium text-rose-100">
+                            <div className="flex items-center gap-2 truncate">
+                                <Sparkles size={16} className="text-amber-400 flex-shrink-0 animate-pulse" />
+                                <span className="font-bold text-white">Top High Vulnerability Zone:</span>
+                                <span className="truncate underline font-bold">{getProfileTitle(topRiskZone)} ({getProfileSubtitle(topRiskZone)})</span>
+                            </div>
+                            <div className="flex items-center gap-2 font-mono font-black text-rose-300 flex-shrink-0">
+                                Risk Score: {getRiskScore(topRiskZone).toFixed(1)} / 10
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* Detail Overlay */}

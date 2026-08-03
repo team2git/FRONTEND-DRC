@@ -41,7 +41,7 @@ export default function Home() {
       setLoading(true);
       const [statsData, profilesData] = await Promise.all([
         getDashboardStats(),
-        getWoredaProfiles()
+        getWoredaProfiles({ level: 'woreda' })
       ]);
       setStats(statsData);
       setProfiles(profilesData);
@@ -265,17 +265,6 @@ export default function Home() {
   };
   const usersOrgSeries = (stats?.usersByOrganization || []).map(u => u.count);
 
-  // Severity badge helper
-  const getSeverityBadge = (severity?: string) => {
-    switch (severity?.toLowerCase()) {
-      case 'critical': return 'bg-red-100 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20';
-      case 'high': return 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-500/10 dark:text-orange-400 dark:border-orange-500/20';
-      case 'medium': return 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-500/10 dark:text-yellow-400 dark:border-yellow-500/20';
-      default: return 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20';
-    }
-  };
-
-  const formatAction = (a: string) => a.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
 
   // Stat card component
   const StatCard = ({ label, value, icon: Icon, color }: { label: string; value: number; icon: any; color: string }) => (
@@ -464,10 +453,9 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* GIS Map + Database Change Report side by side */}
+                {/* GIS Map */}
                 <div className="grid grid-cols-12 gap-6">
-                  {/* GIS Map */}
-                  <div className="col-span-12 lg:col-span-8 rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] p-5 shadow-sm">
+                  <div className="col-span-12 rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] p-5 shadow-sm">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-4">
                       <div>
                         <h3 className="text-base font-bold text-gray-800 dark:text-white/90 flex items-center gap-2">
@@ -491,43 +479,12 @@ export default function Home() {
                         ))}
                       </div>
                     </div>
-                    <div className="relative w-full h-[400px] rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-inner bg-slate-50">
+                    <div className="relative w-full h-[450px] rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-inner bg-slate-50">
                       <div ref={mapContainerRef} className="w-full h-full" />
                       {profiles.length === 0 && (
                         <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 bg-slate-50/90 dark:bg-slate-900/80 gap-2 z-10">
                           <MapIcon className="w-10 h-10 opacity-20 animate-pulse" />
                           <span className="text-sm">No profile data available for map</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Database Change Report */}
-                  <div className="col-span-12 lg:col-span-4 rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] p-5 shadow-sm flex flex-col">
-                    <h3 className="text-base font-bold text-gray-800 dark:text-white/90 flex items-center gap-2 mb-1">
-                      <Database className="size-5 text-[#C8102E]" /> Database Changes
-                    </h3>
-                    <p className="text-xs text-gray-400 mb-4">Last 10 system operations</p>
-                    <div className="space-y-3 flex-1 overflow-y-auto max-h-[400px] pr-1">
-                      {stats?.recentDatabaseChanges?.length ? stats.recentDatabaseChanges.map(log => (
-                        <div key={log._id} className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-100 dark:border-slate-800 hover:border-slate-200 dark:hover:border-slate-700 transition">
-                          <div className="flex justify-between items-start gap-2 mb-1.5">
-                            <span className="font-bold text-xs text-slate-800 dark:text-slate-200 leading-tight">{formatAction(log.action)}</span>
-                            <span className={`px-1.5 py-0.5 text-[9px] font-black rounded border capitalize flex-shrink-0 ${getSeverityBadge(log.severity)}`}>{log.severity || 'low'}</span>
-                          </div>
-                          <div className="flex justify-between items-center text-[11px] text-slate-500">
-                            <span className="flex items-center gap-1"><UserIcon className="size-3" />{log.userId?.fullname || 'System'}</span>
-                            <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-semibold px-1.5 py-0.5 rounded text-[10px]">{log.resource}</span>
-                          </div>
-                          <div className="flex justify-between items-center text-[10px] text-slate-400 border-t border-slate-100 dark:border-slate-800/60 pt-2 mt-2">
-                            <span className="flex items-center gap-1"><Clock className="size-3" />{new Date(log.timestamp).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
-                            <span className={log.status === 'success' ? 'text-emerald-500 font-bold' : 'text-red-500 font-bold'}>{log.status === 'success' ? '✓ OK' : '✗ Failed'}</span>
-                          </div>
-                        </div>
-                      )) : (
-                        <div className="flex flex-col items-center justify-center h-full text-slate-300 gap-2 py-10">
-                          <Database className="w-8 h-8" />
-                          <span className="text-xs">No audit logs yet</span>
                         </div>
                       )}
                     </div>
