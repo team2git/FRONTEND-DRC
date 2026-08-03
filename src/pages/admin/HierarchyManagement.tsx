@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import PageMeta from '../../components/common/PageMeta';
 import PageBreadcrumb from '../../components/common/PageBreadCrumb';
 import { useHierarchy } from '../../context/HierarchyContext';
@@ -186,19 +186,19 @@ export default function HierarchyManagement() {
                 </div>
 
                 {delegatedBy && (
-                    <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                        <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                    <div className="mt-4 p-4 bg-brand-50 dark:bg-brand-900/20 rounded-lg">
+                        <p className="text-sm font-medium text-brand-800 dark:text-brand-200">
                             You have delegated authority from {delegatedBy.fullname}
                         </p>
                         <div className="mt-2 flex gap-2">
                             {delegatedAuthority.canManageTeams && (
-                                <span className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-800 rounded">Can Manage Teams</span>
+                                <span className="text-xs px-2 py-1 bg-brand-100 dark:bg-brand-800 rounded">Can Manage Teams</span>
                             )}
                             {delegatedAuthority.canManageDepartments && (
-                                <span className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-800 rounded">Can Manage Departments</span>
+                                <span className="text-xs px-2 py-1 bg-brand-100 dark:bg-brand-800 rounded">Can Manage Departments</span>
                             )}
                             {delegatedAuthority.canApproveReports && (
-                                <span className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-800 rounded">Can Approve Reports</span>
+                                <span className="text-xs px-2 py-1 bg-brand-100 dark:bg-brand-800 rounded">Can Approve Reports</span>
                             )}
                         </div>
                     </div>

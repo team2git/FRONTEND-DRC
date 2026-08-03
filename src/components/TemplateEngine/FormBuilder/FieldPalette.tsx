@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import {
     Type, Hash, Calendar, CheckSquare, Circle,
     ChevronDown, MessageSquare, Grid, Table,
@@ -40,12 +40,12 @@ const FieldPalette: React.FC<FieldPaletteProps> = ({ onAddField }) => {
                     <button
                         key={field.type}
                         onClick={() => onAddField(field.type)}
-                        className="flex items-center gap-3 p-3 text-left rounded-lg border border-gray-100 hover:border-blue-500 hover:bg-blue-50 transition-all group"
+                        className="flex items-center gap-3 p-3 text-left rounded-lg border border-gray-100 hover:border-brand-500 hover:bg-brand-50 transition-all group"
                     >
-                        <div className="p-2 bg-gray-50 rounded text-gray-600 group-hover:bg-blue-100 group-hover:text-blue-600">
+                        <div className="p-2 bg-gray-50 rounded text-gray-600 group-hover:bg-brand-100 group-hover:text-brand-600">
                             <field.icon size={18} />
                         </div>
-                        <span className="text-sm font-medium text-gray-700 group-hover:text-blue-700">
+                        <span className="text-sm font-medium text-gray-700 group-hover:text-brand-700">
                             {field.label}
                         </span>
                     </button>

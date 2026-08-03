@@ -1,4 +1,4 @@
-import Chart from "react-apexcharts";
+﻿import Chart from "react-apexcharts";
 import { ApexOptions } from "apexcharts";
 import ChartTab from "../common/ChartTab";
 
@@ -9,7 +9,7 @@ export default function StatisticsChart() {
       position: "top",
       horizontalAlign: "left",
     },
-    colors: ["#465FFF", "#9CB9FF"], // Define line colors
+    colors: ["#143f84", "#c7d2fe"], // Define line colors
     chart: {
       fontFamily: "Outfit, sans-serif",
       height: 310,

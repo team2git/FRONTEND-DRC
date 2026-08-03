@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useToast } from '../../hooks/useToast';
 import PageMeta from "../../components/common/PageMeta";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
@@ -306,7 +306,7 @@ export default function Roles() {
 
                             <button
                                 onClick={() => handleOpenModal()}
-                                className="flex h-11 items-center gap-2 rounded-2xl bg-blue-600 px-6 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition-all hover:bg-blue-700 hover:scale-[1.02] active:scale-[0.98] dark:bg-primary dark:shadow-primary/20"
+                                className="flex h-11 items-center gap-2 rounded-2xl bg-brand-600 px-6 text-sm font-semibold text-white shadow-lg shadow-brand-600/20 transition-all hover:bg-brand-700 hover:scale-[1.02] active:scale-[0.98] dark:bg-primary dark:shadow-primary/20"
                             >
                                 <Plus size={18} />
                                 Add Role
@@ -610,7 +610,7 @@ export default function Roles() {
                                                             <span className="font-bold text-slate-900 dark:text-white text-xs">{perm.name}</span>
                                                         </div>
                                                         <div className="flex items-center gap-2">
-                                                            <span className="bg-blue-50/50 px-1.5 py-0.5 rounded text-[8px] font-bold text-blue-500 uppercase tracking-tighter dark:bg-blue-500/10">
+                                                            <span className="bg-brand-50/50 px-1.5 py-0.5 rounded text-[8px] font-bold text-brand-500 uppercase tracking-tighter dark:bg-brand-500/10">
                                                                 {perm.action}
                                                             </span>
                                                         </div>

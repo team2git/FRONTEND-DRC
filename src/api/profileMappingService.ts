@@ -21,6 +21,7 @@ export interface ProfileMapping {
     description?: string;
     sourceType: 'InterviewTemplate' | 'SiteSurveyTemplate';
     sourceId?: any;
+    targetModel?: 'WoredaProfile' | 'WoredaAssessment' | 'HouseholdProfile';
     version: number;
     mappings: ProfileMappingItem[];
     status: 'Draft' | 'Published' | 'Archived';
@@ -35,6 +36,7 @@ export interface ProfileMappingInput {
     description?: string;
     sourceType: 'InterviewTemplate' | 'SiteSurveyTemplate';
     sourceId?: any;
+    targetModel?: 'WoredaProfile' | 'WoredaAssessment' | 'HouseholdProfile';
     mappings: ProfileMappingItem[];
     status?: 'Draft' | 'Published' | 'Archived';
 }

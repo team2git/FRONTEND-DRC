@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import api from '@/api/axios';
 import {
@@ -73,11 +73,11 @@ const ResponseDetailsModal: React.FC<{
                 {/* Header */}
                 <div className="px-6 sm:px-10 py-6 sm:py-8 border-b border-slate-50 flex items-center justify-between bg-white/80 backdrop-blur-md sticky top-0 z-10">
                     <div className="flex items-center gap-3 sm:gap-5">
-                        <div className="w-10 h-10 sm:w-14 sm:h-14 bg-indigo-50 rounded-xl sm:rounded-2xl flex items-center justify-center text-indigo-600 shadow-inner flex-shrink-0">
+                        <div className="w-10 h-10 sm:w-14 sm:h-14 bg-brand-50 rounded-xl sm:rounded-2xl flex items-center justify-center text-brand-600 shadow-inner flex-shrink-0">
                             <FileText className="h-5 w-5 sm:h-7 sm:w-7" />
                         </div>
                         <div className="min-w-0">
-                            <p className="text-[9px] sm:text-[11px] font-bold text-indigo-600 uppercase tracking-widest mb-0.5 truncate">Assessment Record</p>
+                            <p className="text-[9px] sm:text-[11px] font-bold text-brand-600 uppercase tracking-widest mb-0.5 truncate">Assessment Record</p>
                             <h2 className="text-lg sm:text-2xl font-bold text-slate-900 tracking-tight truncate">{template.name}</h2>
                         </div>
                     </div>
@@ -98,14 +98,14 @@ const ResponseDetailsModal: React.FC<{
                             <div className="space-y-1">
                                 <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-widest">Enumerator</p>
                                 <div className="flex items-center gap-2 text-slate-900">
-                                    <User size={14} className="text-indigo-400" />
+                                    <User size={14} className="text-brand-400" />
                                     <span className="text-sm sm:text-base font-semibold truncate">{response.respondentMetadata?.fullName || 'Anonymous'}</span>
                                 </div>
                             </div>
                             <div className="space-y-1">
                                 <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-widest">Submission Time</p>
                                 <div className="flex items-center gap-2 text-slate-900">
-                                    <Calendar size={14} className="text-indigo-400" />
+                                    <Calendar size={14} className="text-brand-400" />
                                     <span className="text-sm sm:text-base font-semibold">{new Date(response.submittedAt).toLocaleDateString()}</span>
                                 </div>
                             </div>
@@ -135,11 +135,11 @@ const ResponseDetailsModal: React.FC<{
                                     <div className="space-y-8 pl-4 sm:pl-14">
                                         {module.sections?.map((section: any) => (
                                             <div key={section.sectionId} className="space-y-4">
-                                                <h4 className="text-xs sm:text-sm font-bold text-indigo-500">{section.title}</h4>
+                                                <h4 className="text-xs sm:text-sm font-bold text-brand-500">{section.title}</h4>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
                                                     {section.fields?.map((field: any) => (
-                                                        <div key={field.fieldId} className="group border-b border-slate-100 pb-3 transition-colors hover:border-indigo-100">
-                                                            <p className="text-[10px] sm:text-[11px] text-slate-400 font-medium mb-1.5 transition-colors group-hover:text-indigo-400">{field.label}</p>
+                                                        <div key={field.fieldId} className="group border-b border-slate-100 pb-3 transition-colors hover:border-brand-100">
+                                                            <p className="text-[10px] sm:text-[11px] text-slate-400 font-medium mb-1.5 transition-colors group-hover:text-brand-400">{field.label}</p>
                                                             <div className="min-h-[1.5rem]">
                                                                 {renderAnswerValue(field)}
                                                             </div>
@@ -165,7 +165,7 @@ const ResponseDetailsModal: React.FC<{
                     </button>
                     <button
                         onClick={() => window.print()}
-                        className="px-6 sm:px-10 py-3.5 sm:py-4 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-200 text-sm"
+                        className="px-6 sm:px-10 py-3.5 sm:py-4 bg-brand-600 text-white rounded-2xl font-bold hover:bg-brand-700 transition-all shadow-xl shadow-brand-200 text-sm"
                     >
                         Export PDF
                     </button>
@@ -263,7 +263,7 @@ const ResponseExplorerPage: React.FC = () => {
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[70vh] gap-6">
-                <div className="w-16 h-16 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin" />
+                <div className="w-16 h-16 border-4 border-brand-100 border-t-brand-600 rounded-full animate-spin" />
                 <p className="text-slate-400 font-medium font-sans animate-pulse">Synchronizing database...</p>
             </div>
         );
@@ -274,20 +274,20 @@ const ResponseExplorerPage: React.FC = () => {
             <PageMeta title={`Database | ${template?.name}`} description="Response management" />
 
             {/* Gradient Header Decorator */}
-            <div className="absolute top-0 left-0 w-full h-[60vh] bg-gradient-to-b from-indigo-50/80 to-transparent pointer-events-none z-0" />
+            <div className="absolute top-0 left-0 w-full h-[60vh] bg-gradient-to-b from-brand-50/80 to-transparent pointer-events-none z-0" />
 
             {/* Top Navigation & Title */}
             <header className="relative z-10 max-w-[1400px] mx-auto px-4 sm:px-6 pt-6 sm:pt-10 pb-8 sm:pb-12 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                 <div className="flex items-center gap-4 sm:gap-6">
                     <button
                         onClick={() => navigate(-1)}
-                        className="w-10 h-10 sm:w-12 sm:h-12 bg-white rounded-xl sm:rounded-2xl text-slate-400 hover:text-indigo-600 hover:shadow-xl shadow-sm transition-all flex-shrink-0 flex items-center justify-center border border-slate-100"
+                        className="w-10 h-10 sm:w-12 sm:h-12 bg-white rounded-xl sm:rounded-2xl text-slate-400 hover:text-brand-600 hover:shadow-xl shadow-sm transition-all flex-shrink-0 flex items-center justify-center border border-slate-100"
                     >
                         <ArrowLeft size={20} />
                     </button>
                     <div>
                         <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-1.5 sm:mb-2 text-[8px] sm:text-[10px]">
-                            <span className="font-bold text-indigo-600 uppercase tracking-widest bg-indigo-100/50 backdrop-blur-sm px-2.5 py-1 rounded-lg">Response Explorer</span>
+                            <span className="font-bold text-brand-600 uppercase tracking-widest bg-brand-100/50 backdrop-blur-sm px-2.5 py-1 rounded-lg">Response Explorer</span>
                             <span className="w-1 h-1 rounded-full bg-slate-300" />
                             <span className="text-slate-500 font-bold uppercase tracking-widest">Version {template?.version}</span>
                         </div>
@@ -299,7 +299,7 @@ const ResponseExplorerPage: React.FC = () => {
                     <Can resource="FormResponse" action="create">
                         <button
                             onClick={() => window.open(`/responses/${templateId}`, '_blank')}
-                            className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 sm:py-4 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-2xl font-bold hover:shadow-xl hover:shadow-blue-200 transition-all group"
+                            className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 sm:py-4 bg-gradient-to-r from-brand-600 to-brand-700 text-white rounded-2xl font-bold hover:shadow-xl hover:shadow-brand-200 transition-all group"
                         >
                             <PlusCircle size={18} className="group-hover:rotate-90 transition-transform" />
                             Give Response
@@ -313,7 +313,7 @@ const ResponseExplorerPage: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                     <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="bg-white p-5 rounded-[24px] border border-slate-100 shadow-sm relative overflow-hidden group">
                         <div className="relative z-10 flex items-center gap-4">
-                            <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 group-hover:scale-110 transition-transform flex-shrink-0">
+                            <div className="w-10 h-10 bg-brand-50 rounded-xl flex items-center justify-center text-brand-600 group-hover:scale-110 transition-transform flex-shrink-0">
                                 <Database size={18} />
                             </div>
                             <div className="min-w-0">
@@ -347,14 +347,14 @@ const ResponseExplorerPage: React.FC = () => {
                         </div>
                     </motion.div>
 
-                    <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }} className="bg-white p-5 rounded-[24px] border border-blue-100 shadow-sm relative overflow-hidden group">
+                    <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }} className="bg-white p-5 rounded-[24px] border border-brand-100 shadow-sm relative overflow-hidden group">
                         <div className="relative z-10 flex items-center gap-4">
-                            <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform flex-shrink-0">
+                            <div className="w-10 h-10 bg-brand-50 rounded-xl flex items-center justify-center text-brand-600 group-hover:scale-110 transition-transform flex-shrink-0">
                                 <Edit3 size={18} />
                             </div>
                             <div className="min-w-0">
                                 <h2 className="text-xl sm:text-2xl font-black text-slate-900 leading-tight">{stats.updated}</h2>
-                                <p className="text-blue-500 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest mt-0.5 truncate">Updated Review</p>
+                                <p className="text-brand-500 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest mt-0.5 truncate">Updated Review</p>
                             </div>
                         </div>
                     </motion.div>
@@ -371,7 +371,7 @@ const ResponseExplorerPage: React.FC = () => {
                                 placeholder="Search by ID, Enumerator, or House No..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="w-full pl-14 pr-6 py-3.5 sm:py-4 bg-slate-50/50 border border-slate-100 rounded-xl sm:rounded-2xl outline-none focus:bg-white focus:border-indigo-300 focus:ring-4 focus:ring-indigo-50 transition-all font-semibold text-sm sm:text-base text-slate-700 placeholder:text-slate-400"
+                                className="w-full pl-14 pr-6 py-3.5 sm:py-4 bg-slate-50/50 border border-slate-100 rounded-xl sm:rounded-2xl outline-none focus:bg-white focus:border-brand-300 focus:ring-4 focus:ring-brand-50 transition-all font-semibold text-sm sm:text-base text-slate-700 placeholder:text-slate-400"
                             />
                         </div>
                         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
@@ -380,7 +380,7 @@ const ResponseExplorerPage: React.FC = () => {
                                     { label: 'All', value: 'ALL', color: 'bg-white text-slate-900 shadow-sm' },
                                     { label: 'Synced', value: 'SYNCED', color: 'bg-emerald-50 text-emerald-700' },
                                     { label: 'Unsynced', value: 'UNSYNCED', color: 'bg-amber-50 text-amber-700' },
-                                    { label: 'Updated', value: 'UPDATED', color: 'bg-blue-50 text-blue-700' },
+                                    { label: 'Updated', value: 'UPDATED', color: 'bg-brand-50 text-brand-700' },
                                 ].map((tab) => (
                                     <button
                                         key={tab.value}
@@ -430,7 +430,7 @@ const ResponseExplorerPage: React.FC = () => {
                                             key={res._id}
                                             className={`group transition-all border-l-4 ${
                                                 res.syncStatus === 'SYNCED' ? 'bg-emerald-50/20 hover:bg-emerald-50/40 border-emerald-500' :
-                                                res.syncStatus === 'UPDATED' ? 'bg-blue-50/20 hover:bg-blue-50/40 border-blue-500' :
+                                                res.syncStatus === 'UPDATED' ? 'bg-brand-50/20 hover:bg-brand-50/40 border-brand-500' :
                                                 'bg-amber-50/20 hover:bg-amber-50/40 border-amber-500'
                                             }`}
                                         >
@@ -438,12 +438,12 @@ const ResponseExplorerPage: React.FC = () => {
                                                 <div className="flex items-center gap-4">
                                                     <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-mono text-[10px] font-bold group-hover:scale-110 transition-all ${
                                                         res.syncStatus === 'SYNCED' ? 'bg-emerald-100/50 text-emerald-700' :
-                                                        res.syncStatus === 'UPDATED' ? 'bg-blue-100/50 text-blue-700' :
+                                                        res.syncStatus === 'UPDATED' ? 'bg-brand-100/50 text-brand-700' :
                                                         'bg-amber-100/50 text-amber-700'
                                                     }`}>
                                                         #{res._id.slice(-4).toUpperCase()}
                                                     </div>
-                                                    <span className="text-[12px] font-mono text-slate-500 font-semibold cursor-pointer group-hover:text-indigo-600 transition-colors" title="Copy Full ID" onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(res._id); toast.success('ID Copied!'); }}>{res._id}</span>
+                                                    <span className="text-[12px] font-mono text-slate-500 font-semibold cursor-pointer group-hover:text-brand-600 transition-colors" title="Copy Full ID" onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(res._id); toast.success('ID Copied!'); }}>{res._id}</span>
                                                 </div>
                                             </td>
                                             <td className="px-8 py-5" onClick={() => setSelectedResponse(res)}>
@@ -462,7 +462,7 @@ const ResponseExplorerPage: React.FC = () => {
                                                 <div className="flex items-center gap-3">
                                                     <div className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors ${
                                                         res.syncStatus === 'SYNCED' ? 'bg-emerald-100 text-emerald-600' :
-                                                        res.syncStatus === 'UPDATED' ? 'bg-blue-100 text-blue-600' :
+                                                        res.syncStatus === 'UPDATED' ? 'bg-brand-100 text-brand-600' :
                                                         'bg-amber-100 text-amber-600'
                                                     }`}>
                                                         <User size={16} />
@@ -488,7 +488,7 @@ const ResponseExplorerPage: React.FC = () => {
                                                 <div className="flex flex-col gap-1.5">
                                                     <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-[10px] text-[10px] font-bold tracking-widest uppercase ${
                                                         res.syncStatus === 'SYNCED' ? 'bg-emerald-100/50 text-emerald-700' :
-                                                        res.syncStatus === 'UPDATED' ? 'bg-blue-100/50 text-blue-700' :
+                                                        res.syncStatus === 'UPDATED' ? 'bg-brand-100/50 text-brand-700' :
                                                         'bg-amber-100/50 text-amber-700'
                                                     }`}>
                                                         <Database size={12} />
@@ -515,7 +515,7 @@ const ResponseExplorerPage: React.FC = () => {
                                                                 res.syncStatus === 'SYNCED' 
                                                                     ? 'bg-emerald-50 border-emerald-200 text-emerald-600' :
                                                                 res.syncStatus === 'UPDATED'
-                                                                    ? 'bg-blue-50 border-blue-200 text-blue-600' :
+                                                                    ? 'bg-brand-50 border-brand-200 text-brand-600' :
                                                                 'bg-amber-50 border-amber-200 text-amber-600 animate-pulse-subtle'
                                                             } hover:scale-110`}
                                                         >
@@ -534,7 +534,7 @@ const ResponseExplorerPage: React.FC = () => {
                                                     <button 
                                                         onClick={() => setSelectedResponse(res)}
                                                         title="View Record"
-                                                        className="w-10 h-10 rounded-2xl bg-slate-900 hover:bg-indigo-600 text-white flex items-center justify-center transition-all shadow-md shadow-slate-200"
+                                                        className="w-10 h-10 rounded-2xl bg-slate-900 hover:bg-brand-600 text-white flex items-center justify-center transition-all shadow-md shadow-slate-200"
                                                     >
                                                         <Eye size={16} />
                                                     </button>
@@ -566,7 +566,7 @@ const ResponseExplorerPage: React.FC = () => {
                                     className={`p-2 rounded-xl border transition-all ${
                                         currentPage === 1 
                                         ? 'bg-slate-50 text-slate-300 border-slate-100' 
-                                        : 'bg-white text-slate-600 border-slate-200 hover:border-indigo-300 hover:text-indigo-600 shadow-sm'
+                                        : 'bg-white text-slate-600 border-slate-200 hover:border-brand-300 hover:text-brand-600 shadow-sm'
                                     }`}
                                 >
                                     <ChevronLeft size={18} />
@@ -584,7 +584,7 @@ const ResponseExplorerPage: React.FC = () => {
                                                 onClick={() => setCurrentPage(pageNum)}
                                                 className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
                                                     currentPage === pageNum 
-                                                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' 
+                                                    ? 'bg-brand-600 text-white shadow-lg shadow-brand-200' 
                                                     : 'text-slate-400 hover:text-slate-600 hover:bg-white'
                                                 }`}
                                             >
@@ -599,7 +599,7 @@ const ResponseExplorerPage: React.FC = () => {
                                     className={`p-2 rounded-xl border transition-all ${
                                         currentPage === totalPages 
                                         ? 'bg-slate-50 text-slate-300 border-slate-100' 
-                                        : 'bg-white text-slate-600 border-slate-200 hover:border-indigo-300 hover:text-indigo-600 shadow-sm'
+                                        : 'bg-white text-slate-600 border-slate-200 hover:border-brand-300 hover:text-brand-600 shadow-sm'
                                     }`}
                                 >
                                     <ChevronRight size={18} />

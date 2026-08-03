@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+﻿import React, { useEffect, useMemo, useState } from "react";
 import api from "@/api/axios";
 import PageMeta from "@/components/common/PageMeta";
 import { toast } from "react-toastify";
@@ -317,7 +317,7 @@ const DEFAULT_CONTENT: PortalContent = {
 };
 
 const inputClass =
-  "w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500";
+  "w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500";
 
 const toggleDisabledAtIndex = <T extends Disableable>(items: T[], index: number) =>
   items.map((item, currentIndex) =>
@@ -439,7 +439,7 @@ const PortalContentPage: React.FC = () => {
             type="button"
             onClick={save}
             disabled={saving}
-            className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold disabled:opacity-60"
+            className="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold disabled:opacity-60"
           >
             {saving ? "Saving..." : "Save changes"}
           </button>

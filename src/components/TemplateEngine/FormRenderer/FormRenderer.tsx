@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import {
     TextField, TextareaField, RadioField, CheckboxField, SelectField, MatrixField, TableField, GeoField, FileField
@@ -112,7 +112,7 @@ const FormRenderer: React.FC<FormRendererProps> = ({
             <div className="mb-10 text-left">
                 <div className="flex justify-between items-end mb-2">
                     <div>
-                        <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">
+                        <span className="text-xs font-bold text-brand-600 uppercase tracking-widest">
                             Module {currentModuleIdx + 1} of {template.modules.length}
                         </span>
                         <h1 className="text-2xl font-bold text-gray-900">{currentModule?.title || 'Section'}</h1>
@@ -123,7 +123,7 @@ const FormRenderer: React.FC<FormRendererProps> = ({
                     <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${progress}%` }}
-                        className="h-full bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.4)]"
+                        className="h-full bg-brand-600 shadow-[0_0_8px_rgba(37,99,235,0.4)]"
                     />
                 </div>
             </div>
@@ -244,7 +244,7 @@ const FormRenderer: React.FC<FormRendererProps> = ({
                         <button
                             type="button"
                             onClick={nextStep}
-                            className="flex items-center gap-3 px-10 py-3 rounded-2xl font-bold bg-blue-600 text-white hover:bg-blue-700 shadow-[0_10px_20px_rgba(37,99,235,0.2)] hover:shadow-[0_12px_24px_rgba(37,99,235,0.3)] transition-all"
+                            className="flex items-center gap-3 px-10 py-3 rounded-2xl font-bold bg-brand-600 text-white hover:bg-brand-700 shadow-[0_10px_20px_rgba(37,99,235,0.2)] hover:shadow-[0_12px_24px_rgba(37,99,235,0.3)] transition-all"
                         >
                             {currentModuleIdx === template.modules.length - 1 ? (
                                 <>Finish & Submit <CheckCircle2 size={20} /></>

@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 
 interface MatrixEditorProps {
@@ -34,7 +34,7 @@ const MatrixEditor: React.FC<MatrixEditorProps> = ({ config, onChange }) => {
                 <div className="space-y-3">
                     <div className="flex justify-between items-center">
                         <label className="text-[10px] font-black text-gray-400 uppercase">Rows</label>
-                        <button onClick={addRow} className="text-blue-600 p-1 hover:bg-blue-50 rounded"><Plus size={14} /></button>
+                        <button onClick={addRow} className="text-brand-600 p-1 hover:bg-brand-50 rounded"><Plus size={14} /></button>
                     </div>
                     {config.rows.map((row, idx) => (
                         <div key={idx} className="flex gap-2 group">
@@ -46,7 +46,7 @@ const MatrixEditor: React.FC<MatrixEditorProps> = ({ config, onChange }) => {
                                     nr[idx] = { label: e.target.value, value: e.target.value.toLowerCase().replace(/\s/g, '_') };
                                     onChange({ ...config, rows: nr });
                                 }}
-                                className="flex-1 bg-white border rounded-lg p-2 text-xs outline-none focus:ring-1 focus:ring-blue-500"
+                                className="flex-1 bg-white border rounded-lg p-2 text-xs outline-none focus:ring-1 focus:ring-brand-500"
                             />
                             <button onClick={() => onChange({ ...config, rows: config.rows.filter((_, i) => i !== idx) })} className="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100"><Trash2 size={14} /></button>
                         </div>
@@ -56,7 +56,7 @@ const MatrixEditor: React.FC<MatrixEditorProps> = ({ config, onChange }) => {
                 <div className="space-y-3">
                     <div className="flex justify-between items-center">
                         <label className="text-[10px] font-black text-gray-400 uppercase">Columns</label>
-                        <button onClick={addCol} className="text-blue-600 p-1 hover:bg-blue-50 rounded"><Plus size={14} /></button>
+                        <button onClick={addCol} className="text-brand-600 p-1 hover:bg-brand-50 rounded"><Plus size={14} /></button>
                     </div>
                     {config.columns.map((col, idx) => (
                         <div key={idx} className="flex gap-2 group">
@@ -68,7 +68,7 @@ const MatrixEditor: React.FC<MatrixEditorProps> = ({ config, onChange }) => {
                                     nc[idx] = { label: e.target.value, value: e.target.value.toLowerCase().replace(/\s/g, '_') };
                                     onChange({ ...config, columns: nc });
                                 }}
-                                className="flex-1 bg-white border rounded-lg p-2 text-xs outline-none focus:ring-1 focus:ring-blue-500"
+                                className="flex-1 bg-white border rounded-lg p-2 text-xs outline-none focus:ring-1 focus:ring-brand-500"
                             />
                         </div>
                     ))}

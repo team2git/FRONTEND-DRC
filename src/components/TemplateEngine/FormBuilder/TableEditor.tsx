@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Trash2 } from 'lucide-react';
 
 interface TableEditorProps {
@@ -22,7 +22,7 @@ const TableEditor: React.FC<TableEditorProps> = ({ config, onChange }) => {
                         type="checkbox"
                         checked={config.allowAddRow}
                         onChange={(e) => onChange({ ...config, allowAddRow: e.target.checked })}
-                        className="rounded text-blue-600"
+                        className="rounded text-brand-600"
                     />
                 </div>
             </div>
@@ -30,7 +30,7 @@ const TableEditor: React.FC<TableEditorProps> = ({ config, onChange }) => {
             <div className="space-y-3">
                 <div className="flex justify-between items-center">
                     <label className="text-[10px] font-black text-gray-400 uppercase">Columns Configuration</label>
-                    <button onClick={addCol} className="text-blue-600 font-bold text-[10px] bg-blue-50 px-2 py-1 rounded uppercase hover:bg-blue-100 transition-colors">
+                    <button onClick={addCol} className="text-brand-600 font-bold text-[10px] bg-brand-50 px-2 py-1 rounded uppercase hover:bg-brand-100 transition-colors">
                         Add Column
                     </button>
                 </div>
@@ -46,7 +46,7 @@ const TableEditor: React.FC<TableEditorProps> = ({ config, onChange }) => {
                                     nc[idx].label = e.target.value;
                                     onChange({ ...config, columns: nc });
                                 }}
-                                className="w-full bg-transparent border-b border-gray-200 text-xs py-1 outline-none focus:border-blue-500"
+                                className="w-full bg-transparent border-b border-gray-200 text-xs py-1 outline-none focus:border-brand-500"
                             />
                         </div>
                         <div className="w-32">

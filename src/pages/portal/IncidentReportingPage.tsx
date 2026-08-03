@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+﻿import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router";
 import {
@@ -502,7 +502,7 @@ const IncidentReportingPage: React.FC = () => {
           <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/80 to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-60" />
         </div>
-        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.1),transparent)] pointer-events-none" />
+        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_top_right,rgba(20,63,132,0.1),transparent)] pointer-events-none" />
 
         <div className="container mx-auto px-6 relative z-10 transition-all duration-700">
           <div className="flex flex-col lg:flex-row items-center gap-16">
@@ -527,7 +527,7 @@ const IncidentReportingPage: React.FC = () => {
         <div className="max-w-4xl mx-auto">
           <div className="bg-white rounded-[40px] border border-white/80 shadow-[0_60px_120px_-30px_rgba(15,23,42,0.2)] overflow-hidden">
             <div className="relative px-6 py-5 bg-gradient-to-r from-slate-900 via-slate-900 to-slate-800 text-white flex items-center justify-between">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.2),transparent)]" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(20,63,132,0.2),transparent)]" />
               <h1 className="relative text-xl font-black tracking-tight">Report Incident or Concern</h1>
               <ServiceExitButton
                 onClick={() => navigate("/portal/services")}

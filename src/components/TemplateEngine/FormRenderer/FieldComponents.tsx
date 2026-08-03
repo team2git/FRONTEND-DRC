@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { UseFormRegister, FieldErrors } from 'react-hook-form';
 import { MapPin, Upload, Cloud, Plus, Trash2 } from 'lucide-react';
 
@@ -17,8 +17,8 @@ export const TextField: React.FC<FieldProps> = ({ field, register, errors }) => 
                 {field.label} {field.required && <span className="text-red-500">*</span>}
             </label>
             {field.systemAutoFill && field.systemAutoFill !== 'none' && (
-                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100">
-                    <Cloud size={10} className="fill-blue-500/20" />
+                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-brand-50 text-brand-600 border border-brand-100">
+                    <Cloud size={10} className="fill-brand-500/20" />
                     <span className="text-[10px] font-black uppercase tracking-tighter">System Auto-filled</span>
                 </div>
             )}
@@ -29,10 +29,10 @@ export const TextField: React.FC<FieldProps> = ({ field, register, errors }) => 
             placeholder={field.helpText}
             readOnly={field.systemAutoFill && field.systemAutoFill !== 'none'}
             className={`w-full p-2.5 border rounded-lg outline-none transition-all ${field.systemAutoFill && field.systemAutoFill !== 'none'
-                ? 'bg-blue-50/30 border-blue-100 text-gray-800'
+                ? 'bg-brand-50/30 border-brand-100 text-gray-800'
                 : errors[field.questionCode]
                     ? 'border-red-500 bg-red-50'
-                    : 'border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-50 focus:bg-white'
+                    : 'border-gray-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-50 focus:bg-white'
                 }`}
         />
         {errors[field.questionCode] && (
@@ -53,7 +53,7 @@ export const RadioField: React.FC<FieldProps> = ({ field, register, errors }) =>
                         type="radio"
                         value={opt.value}
                         {...register(field.questionCode, { required: field.required })}
-                        className="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                        className="w-4 h-4 text-brand-600 focus:ring-brand-500 border-gray-300"
                     />
                     <span className="text-sm text-gray-700">{opt.label}</span>
                 </label>
@@ -72,7 +72,7 @@ export const SelectField: React.FC<FieldProps> = ({ field, register, errors }) =
         </label>
         <select
             {...register(field.questionCode, { required: field.required })}
-            className={`w-full p-2.5 border rounded-lg outline-none transition-all ${errors[field.questionCode] ? 'border-red-500 bg-red-50' : 'border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-50 focus:bg-white'
+            className={`w-full p-2.5 border rounded-lg outline-none transition-all ${errors[field.questionCode] ? 'border-red-500 bg-red-50' : 'border-gray-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-50 focus:bg-white'
                 }`}
         >
             <option value="">Select an option</option>
@@ -95,7 +95,7 @@ export const TextareaField: React.FC<FieldProps> = ({ field, register, errors })
             className={`w-full p-3 border rounded-lg outline-none transition-all resize-y min-h-[120px] ${
                 errors[field.questionCode]
                     ? 'border-red-500 bg-red-50'
-                    : 'border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-50 focus:bg-white'
+                    : 'border-gray-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-50 focus:bg-white'
             }`}
         />
         {errors[field.questionCode] && (
@@ -119,7 +119,7 @@ export const CheckboxField: React.FC<FieldProps> = ({ field, register, errors })
                         type="checkbox"
                         value={opt.value}
                         {...register(field.questionCode, { required: field.required })}
-                        className="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        className="w-4 h-4 text-brand-600 focus:ring-brand-500 border-gray-300 rounded"
                     />
                     <span className="text-sm text-gray-700">{opt.label}</span>
                 </label>
@@ -166,7 +166,7 @@ export const MatrixField: React.FC<FieldProps> = ({ field, register }) => {
                                         type="radio"
                                         value={col.value}
                                         {...register(`${field.questionCode}.${row.value}`, { required: field.required })}
-                                        className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                                        className="w-4 h-4 text-brand-600 focus:ring-brand-500"
                                     />
                                 </td>
                             ))}
@@ -216,7 +216,7 @@ export const TableField: React.FC<FieldProps> = ({ field, register }) => {
                                         <input
                                             type={col.type || 'text'}
                                             {...register(`${field.questionCode}.${rowId}.${col.value}`)}
-                                            className="w-full p-2 border border-transparent focus:border-blue-300 rounded outline-none transition-all placeholder:text-gray-300"
+                                            className="w-full p-2 border border-transparent focus:border-brand-300 rounded outline-none transition-all placeholder:text-gray-300"
                                             placeholder={`Row ${visualIndex + 1}`}
                                         />
                                     </td>
@@ -243,7 +243,7 @@ export const TableField: React.FC<FieldProps> = ({ field, register }) => {
                 <button
                     type="button"
                     onClick={addRow}
-                    className="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-800"
+                    className="inline-flex items-center gap-2 text-sm font-semibold text-brand-600 hover:text-brand-800"
                 >
                     <Plus size={16} /> Add Row
                 </button>
@@ -275,13 +275,13 @@ export const GeoField: React.FC<FieldProps> = ({ field, register, setValue, watc
             </label>
             <div className="flex gap-2">
                 <div className="flex-1 bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm text-gray-500 flex items-center gap-3">
-                    <MapPin size={18} className="text-blue-500" />
+                    <MapPin size={18} className="text-brand-500" />
                     {value ? `${value.lat.toFixed(6)}, ${value.lng.toFixed(6)}` : 'No location captured'}
                 </div>
                 <button
                     type="button"
                     onClick={handleGetLocation}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center gap-2"
+                    className="bg-brand-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-brand-700 transition-colors flex items-center gap-2"
                 >
                     Capture
                 </button>
@@ -296,8 +296,8 @@ export const FileField: React.FC<FieldProps> = ({ field, register }) => (
         <label className="block text-sm font-semibold text-gray-700">
             {field.label} {field.required && <span className="text-red-500">*</span>}
         </label>
-        <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-xl p-8 hover:bg-gray-50 hover:border-blue-400 cursor-pointer transition-all group">
-            <Upload className="text-gray-400 group-hover:text-blue-500 mb-2" size={32} />
+        <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-xl p-8 hover:bg-gray-50 hover:border-brand-400 cursor-pointer transition-all group">
+            <Upload className="text-gray-400 group-hover:text-brand-500 mb-2" size={32} />
             <span className="text-sm text-gray-500 font-medium">Click or drag and drop to upload</span>
             <span className="text-xs text-gray-400 mt-1">Maximum file size: 5MB</span>
             <input type="file" className="hidden" {...register(field.questionCode, { required: field.required })} />

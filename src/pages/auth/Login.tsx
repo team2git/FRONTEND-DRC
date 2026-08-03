@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api/axios';
@@ -140,7 +140,7 @@ const Login: React.FC = () => {
 
     const strength = getPasswordStrength();
     const strengthLabels = ['Weak', 'Fair', 'Good', 'Strong'];
-    const strengthColors = ['bg-red-500', 'bg-yellow-500', 'bg-blue-500', 'bg-green-500'];
+    const strengthColors = ['bg-red-500', 'bg-yellow-500', 'bg-brand-500', 'bg-green-500'];
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -198,7 +198,7 @@ const Login: React.FC = () => {
                 <motion.div 
                     animate={{ y: [0, -20, 0], rotate: [0, 5, 0] }} 
                     transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute top-1/4 left-1/4 w-64 h-64 bg-[#C8102E] rounded-full mix-blend-multiply filter blur-[80px] opacity-40"
+                    className="absolute top-1/4 left-1/4 w-64 h-64 bg-[#e11d2d] rounded-full mix-blend-multiply filter blur-[80px] opacity-40"
                 />
                 {/* Floating Navy/Blue Accents */}
                 <motion.div 
@@ -224,8 +224,8 @@ const Login: React.FC = () => {
                             Access your {portalName} dashboard securely. We employ the highest standards of data protection and privacy to keep your information safe.
                         </p>
                         <div className="flex items-center justify-center space-x-6 text-sm font-medium text-slate-300">
-                            <span className="flex items-center"><CheckCircle2 className="w-5 h-5 mr-2 text-[#C8102E]" /> End-to-end Encryption</span>
-                            <span className="flex items-center"><CheckCircle2 className="w-5 h-5 mr-2 text-[#C8102E]" /> WCAG Compliant</span>
+                            <span className="flex items-center"><CheckCircle2 className="w-5 h-5 mr-2 text-[#e11d2d]" /> End-to-end Encryption</span>
+                            <span className="flex items-center"><CheckCircle2 className="w-5 h-5 mr-2 text-[#e11d2d]" /> WCAG Compliant</span>
                         </div>
                     </motion.div>
                 </div>
@@ -235,7 +235,7 @@ const Login: React.FC = () => {
             <div className="w-full lg:w-1/2 flex flex-col justify-between p-8 sm:p-12 md:p-16 relative overflow-y-auto">
                 {/* Mobile Background Elements */}
                 <div className="absolute inset-0 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 -z-10" />
-                <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-[#C8102E]/10 dark:bg-[#C8102E]/20 rounded-full mix-blend-multiply dark:mix-blend-lighten filter blur-3xl opacity-50 -z-10" />
+                <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-[#e11d2d]/10 dark:bg-[#e11d2d]/20 rounded-full mix-blend-multiply dark:mix-blend-lighten filter blur-3xl opacity-50 -z-10" />
 
                 {/* Header Logo (Mobile mostly, visible on desktop too as requested) */}
                 <div className="flex items-center space-x-3 mb-8">
@@ -251,7 +251,7 @@ const Login: React.FC = () => {
                     className="w-full max-w-md mx-auto"
                 >
                     <div className="mb-6">
-                        <Link to="/" className="inline-flex items-center text-sm font-medium text-[#C8102E] hover:text-[#a00d24] dark:text-[#E31837] hover:underline mb-4 transition-colors">
+                        <Link to="/" className="inline-flex items-center text-sm font-medium text-[#e11d2d] hover:text-[#bf1124] dark:text-[#e11d2d] hover:underline mb-4 transition-colors">
                             <ArrowLeft className="w-4 h-4 mr-2" />
                             Back to Home
                         </Link>
@@ -262,7 +262,7 @@ const Login: React.FC = () => {
                     {error && (
                         <motion.div 
                             initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
-                            className="mb-6 flex items-start p-4 text-sm text-[#C8102E] bg-red-50 dark:bg-red-500/10 dark:text-red-400 rounded-xl border border-red-100 dark:border-red-500/20"
+                            className="mb-6 flex items-start p-4 text-sm text-[#e11d2d] bg-red-50 dark:bg-red-500/10 dark:text-red-400 rounded-xl border border-red-100 dark:border-red-500/20"
                         >
                             <AlertCircle className="w-5 h-5 mr-3 flex-shrink-0 mt-0.5" />
                             <span>{error}</span>
@@ -281,7 +281,7 @@ const Login: React.FC = () => {
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     required
-                                    className="block w-full pl-10 pr-3 py-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm focus:ring-2 focus:ring-[#C8102E] focus:border-transparent dark:text-white transition-all shadow-sm"
+                                    className="block w-full pl-10 pr-3 py-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm focus:ring-2 focus:ring-[#e11d2d] focus:border-transparent dark:text-white transition-all shadow-sm"
                                     placeholder="you@example.com"
                                 />
                             </div>
@@ -290,7 +290,7 @@ const Login: React.FC = () => {
                         <div className="space-y-1.5">
                             <div className="flex justify-between items-center">
                                 <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Password</label>
-                                <Link to="/forgot-password" className="text-sm font-medium text-[#C8102E] hover:text-[#a00d24] dark:text-[#E31837] hover:underline">
+                                <Link to="/forgot-password" className="text-sm font-medium text-[#e11d2d] hover:text-[#bf1124] dark:text-[#e11d2d] hover:underline">
                                     Forgot Password?
                                 </Link>
                             </div>
@@ -303,7 +303,7 @@ const Login: React.FC = () => {
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
-                                    className="block w-full pl-10 pr-10 py-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm focus:ring-2 focus:ring-[#C8102E] focus:border-transparent dark:text-white transition-all shadow-sm"
+                                    className="block w-full pl-10 pr-10 py-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm focus:ring-2 focus:ring-[#e11d2d] focus:border-transparent dark:text-white transition-all shadow-sm"
                                     placeholder="••••••••"
                                 />
                                 <button
@@ -345,6 +345,7 @@ const Login: React.FC = () => {
                                         className="w-full h-full block cursor-pointer" 
                                         title="Click to refresh captcha"
                                         onClick={generateCaptcha}
+                                        data-captcha={captchaCode}
                                     />
                                 </div>
                                 {/* Refresh button */}
@@ -366,7 +367,7 @@ const Login: React.FC = () => {
                                         value={captchaInput}
                                         onChange={(e) => setCaptchaInput(e.target.value)}
                                         required
-                                        className="block w-full pl-10 pr-3 py-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm focus:ring-2 focus:ring-[#C8102E] focus:border-transparent dark:text-white transition-all shadow-sm text-center uppercase tracking-widest font-mono text-lg"
+                                        className="block w-full pl-10 pr-3 py-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm focus:ring-2 focus:ring-[#e11d2d] focus:border-transparent dark:text-white transition-all shadow-sm text-center uppercase tracking-widest font-mono text-lg"
                                         placeholder="Code"
                                         maxLength={6}
                                     />
@@ -380,7 +381,7 @@ const Login: React.FC = () => {
                                 type="checkbox"
                                 checked={rememberMe}
                                 onChange={(e) => setRememberMe(e.target.checked)}
-                                className="h-4 w-4 text-[#C8102E] focus:ring-[#C8102E] border-slate-300 rounded cursor-pointer"
+                                className="h-4 w-4 text-[#e11d2d] focus:ring-[#e11d2d] border-slate-300 rounded cursor-pointer"
                             />
                             <label htmlFor="remember-me" className="ml-2 block text-sm text-slate-700 dark:text-slate-300 cursor-pointer">
                                 Remember me
@@ -390,7 +391,7 @@ const Login: React.FC = () => {
                         <button
                             type="submit"
                             disabled={loading}
-                            className={`relative w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-[#C8102E]/20 text-sm font-semibold text-white bg-[#C8102E] hover:bg-[#a00d24] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#C8102E] transition-all duration-200 overflow-hidden ${loading ? 'opacity-90 cursor-not-allowed' : 'hover:-translate-y-0.5'}`}
+                            className={`relative w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-[#e11d2d]/20 text-sm font-semibold text-white bg-[#e11d2d] hover:bg-[#bf1124] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#e11d2d] transition-all duration-200 overflow-hidden ${loading ? 'opacity-90 cursor-not-allowed' : 'hover:-translate-y-0.5'}`}
                         >
                             {loading ? (
                                 <div className="flex items-center">
@@ -433,7 +434,7 @@ const Login: React.FC = () => {
                     <div className="mt-6 text-center text-sm">
                         <p className="text-slate-600 dark:text-slate-400">
                             Don't have an account?{' '}
-                            <Link to="/register" className="font-semibold text-[#C8102E] hover:text-[#a00d24] dark:text-[#E31837] hover:underline transition-colors">
+                            <Link to="/register" className="font-semibold text-[#e11d2d] hover:text-[#bf1124] dark:text-[#e11d2d] hover:underline transition-colors">
                                 Sign Up
                             </Link>
                         </p>

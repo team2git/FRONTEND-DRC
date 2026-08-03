@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { useTemplateStore } from '../../../context/TemplateStore';
 import { Trash2, Plus, Settings2 } from 'lucide-react';
 
@@ -47,7 +47,7 @@ const PropertiesPanel: React.FC = () => {
                         <select
                             value={field.type}
                             onChange={(e) => handleUpdate({ type: e.target.value })}
-                            className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                            className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-brand-500 outline-none bg-white"
                         >
                             <option value="text">Short Text</option>
                             <option value="textarea">Long Answer</option>
@@ -69,7 +69,7 @@ const PropertiesPanel: React.FC = () => {
                             value={field.questionCode}
                             placeholder="e.g. q101"
                             onChange={(e) => handleUpdate({ questionCode: e.target.value })}
-                            className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                            className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-brand-500 outline-none"
                         />
                     </div>
                 )}
@@ -82,7 +82,7 @@ const PropertiesPanel: React.FC = () => {
                         value={field.label}
                         onChange={(e) => handleUpdate({ label: e.target.value })}
                         rows={3}
-                        className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                        className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-brand-500 outline-none"
                     />
                 </div>
 
@@ -92,7 +92,7 @@ const PropertiesPanel: React.FC = () => {
                         value={field.helpText}
                         onChange={(e) => handleUpdate({ helpText: e.target.value })}
                         rows={3}
-                        className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                        className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-brand-500 outline-none"
                         placeholder="Instructions for the user..."
                     />
                 </div>
@@ -105,7 +105,7 @@ const PropertiesPanel: React.FC = () => {
                                 id="chk-required"
                                 checked={field.required}
                                 onChange={(e) => handleUpdate({ required: e.target.checked })}
-                                className="rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
+                                className="rounded text-brand-600 focus:ring-brand-500 cursor-pointer"
                             />
                             <label htmlFor="chk-required" className="text-sm font-medium text-gray-700 cursor-pointer">Required Question</label>
                         </div>
@@ -117,7 +117,7 @@ const PropertiesPanel: React.FC = () => {
                                     <label className="block text-xs font-bold text-gray-500 uppercase">Answer Options</label>
                                     <button
                                         onClick={() => handleUpdate({ options: [...field.options, { label: 'New Option', value: String(field.options.length + 1) }] })}
-                                        className="text-blue-600 text-xs font-bold flex items-center gap-1 hover:bg-blue-50 px-2 py-1 rounded"
+                                        className="text-brand-600 text-xs font-bold flex items-center gap-1 hover:bg-brand-50 px-2 py-1 rounded"
                                     >
                                         <Plus size={12} /> Add Option
                                     </button>
@@ -162,7 +162,7 @@ const PropertiesPanel: React.FC = () => {
                                             onClick={() => handleUpdate({
                                                 matrixConfig: { ...field.matrixConfig, columns: [...(field.matrixConfig?.columns || []), { label: 'Col', value: 'col' }] }
                                             })}
-                                            className="text-blue-600 text-xs font-bold p-1 hover:bg-blue-50 rounded"
+                                            className="text-brand-600 text-xs font-bold p-1 hover:bg-brand-50 rounded"
                                         >
                                             <Plus size={12} />
                                         </button>
@@ -191,7 +191,7 @@ const PropertiesPanel: React.FC = () => {
                                             onClick={() => handleUpdate({
                                                 matrixConfig: { ...field.matrixConfig, rows: [...(field.matrixConfig?.rows || []), { label: 'Row', value: 'row' }] }
                                             })}
-                                            className="text-blue-600 text-xs font-bold p-1 hover:bg-blue-50 rounded"
+                                            className="text-brand-600 text-xs font-bold p-1 hover:bg-brand-50 rounded"
                                         >
                                             <Plus size={12} />
                                         </button>

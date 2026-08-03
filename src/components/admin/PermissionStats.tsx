@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { motion } from 'framer-motion';
 import { Key, ShieldCheck, Database, Layout } from 'lucide-react';
 
@@ -57,7 +57,7 @@ export const PermissionStats: React.FC<{ permissions: Permission[] }> = ({ permi
             title: 'Total Permissions',
             value: totalPermissions,
             icon: <Key size={24} />,
-            color: 'from-blue-600 to-indigo-600 shadow-blue-500/20',
+            color: 'from-brand-600 to-brand-600 shadow-brand-500/20',
             description: 'Defined actions'
         },
         {
@@ -71,7 +71,7 @@ export const PermissionStats: React.FC<{ permissions: Permission[] }> = ({ permi
             title: 'Data Access',
             value: readActions,
             icon: <Layout size={24} />,
-            color: 'from-purple-500 to-indigo-600 shadow-purple-500/20',
+            color: 'from-accent-500 to-brand-600 shadow-accent-500/20',
             description: 'Read/View'
         },
         {

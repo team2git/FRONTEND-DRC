@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { motion } from 'framer-motion';
 import { Shield, Key, Lock, Fingerprint } from 'lucide-react';
 
@@ -47,7 +47,7 @@ export const RoleStats: React.FC<{ roles: any[], permissions: any[] }> = ({ role
             title: 'Total Roles',
             value: roles.length,
             icon: <Shield size={24} />,
-            color: 'from-blue-600 to-indigo-600 shadow-blue-500/20',
+            color: 'from-brand-600 to-brand-600 shadow-brand-500/20',
             description: 'Defined roles'
         },
         {
@@ -61,7 +61,7 @@ export const RoleStats: React.FC<{ roles: any[], permissions: any[] }> = ({ role
             title: 'Security Level',
             value: 98,
             icon: <Lock size={24} />,
-            color: 'from-purple-500 to-indigo-600 shadow-purple-500/20',
+            color: 'from-accent-500 to-brand-600 shadow-accent-500/20',
             description: 'Compliance'
         },
         {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useTemplateStore } from '../../../context/TemplateStore';
 import { Plus, Trash2, ChevronRight, ChevronDown, GripVertical, Type } from 'lucide-react';
 import { clsx } from 'clsx';
@@ -32,7 +32,7 @@ const BuilderCanvas: React.FC = () => {
                     </div>
                     <button
                         onClick={() => addModule('New Module')}
-                        className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                        className="flex items-center gap-2 bg-brand-600 text-white px-4 py-2 rounded-lg hover:bg-brand-700 transition-colors"
                     >
                         <Plus size={18} /> Add Module
                     </button>
@@ -52,7 +52,7 @@ const BuilderCanvas: React.FC = () => {
                             <div className="flex items-center gap-2">
                                 <button
                                     onClick={(e) => { e.stopPropagation(); addSection(module.moduleId, 'New Section'); }}
-                                    className="text-blue-600 hover:bg-blue-50 p-2 rounded-lg text-sm flex items-center gap-1"
+                                    className="text-brand-600 hover:bg-brand-50 p-2 rounded-lg text-sm flex items-center gap-1"
                                 >
                                     <Plus size={16} /> Section
                                 </button>
@@ -68,7 +68,7 @@ const BuilderCanvas: React.FC = () => {
                         {expandedModules.includes(module.moduleId) && (
                             <div className="p-4 space-y-6">
                                 {module.sections.map((section) => (
-                                    <div key={section.sectionId} className="border-l-4 border-blue-100 pl-6 py-2">
+                                    <div key={section.sectionId} className="border-l-4 border-brand-100 pl-6 py-2">
                                         <h3 className="text-lg font-medium text-gray-700 mb-4">{section.title}</h3>
 
                                         <div className="space-y-3">
@@ -79,14 +79,14 @@ const BuilderCanvas: React.FC = () => {
                                                     className={clsx(
                                                         "group p-4 rounded-lg border transition-all cursor-pointer",
                                                         selectedFieldId === field.fieldId
-                                                            ? "border-blue-500 bg-blue-50 ring-2 ring-blue-100"
+                                                            ? "border-brand-500 bg-brand-50 ring-2 ring-brand-100"
                                                             : "border-gray-100 bg-white hover:border-gray-300"
                                                     )}
                                                 >
                                                     <div className="flex justify-between items-start gap-4">
                                                         <div className="flex-1 min-w-0">
                                                             {field.type === 'header' ? (
-                                                                <div className="border-b-2 border-blue-500 pb-2 mb-4">
+                                                                <div className="border-b-2 border-brand-500 pb-2 mb-4">
                                                                     <h4 className="text-lg font-extrabold text-gray-900 uppercase tracking-tight">{field.label}</h4>
                                                                 </div>
                                                             ) : ['note', 'tip'].includes(field.type) ? (
@@ -97,7 +97,7 @@ const BuilderCanvas: React.FC = () => {
                                                                 <div className="space-y-3">
                                                                     <div className="flex items-start gap-3">
                                                                         <div className="flex flex-col items-center">
-                                                                            <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded-md uppercase tracking-wider shadow-sm border border-blue-100">
+                                                                            <span className="text-[10px] font-black text-brand-600 bg-brand-50 px-2 py-1 rounded-md uppercase tracking-wider shadow-sm border border-brand-100">
                                                                                 {field.questionCode}
                                                                             </span>
                                                                         </div>
@@ -124,12 +124,12 @@ const BuilderCanvas: React.FC = () => {
                                                                             <div className="flex flex-wrap gap-2">
                                                                                 {field.options.slice(0, 4).map((opt: any, i: number) => (
                                                                                     <div key={i} className="flex items-center gap-2 bg-white border border-gray-200 px-3 py-1 rounded-full shadow-sm">
-                                                                                        <div className="w-2 h-2 rounded-full border-2 border-blue-400 bg-white" />
+                                                                                        <div className="w-2 h-2 rounded-full border-2 border-brand-400 bg-white" />
                                                                                         <span className="text-xs font-medium text-gray-700">{opt.label}</span>
                                                                                     </div>
                                                                                 ))}
                                                                                 {field.options.length > 4 && (
-                                                                                    <div className="text-[10px] font-bold text-blue-500 bg-blue-50 px-2 py-1 rounded-full">
+                                                                                    <div className="text-[10px] font-bold text-brand-500 bg-brand-50 px-2 py-1 rounded-full">
                                                                                         +{field.options.length - 4} More
                                                                                     </div>
                                                                                 )}
@@ -182,7 +182,7 @@ const BuilderCanvas: React.FC = () => {
                                             ))}
 
                                             <div
-                                                className="border-2 border-dashed border-gray-200 rounded-lg p-4 flex justify-center items-center text-gray-400 hover:border-blue-300 hover:text-blue-500 transition-colors cursor-pointer"
+                                                className="border-2 border-dashed border-gray-200 rounded-lg p-4 flex justify-center items-center text-gray-400 hover:border-brand-300 hover:text-brand-500 transition-colors cursor-pointer"
                                                 onClick={() => addField(section.sectionId, 'text')}
                                             >
                                                 <Plus size={16} className="mr-2" /> Add Question here

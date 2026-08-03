@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Settings2, Trash2, Info, Layout } from 'lucide-react';
 import { useFormBuilder } from '../../../context/FormBuilderContext';
 import OptionsEditor from './OptionsEditor';
@@ -39,7 +39,7 @@ const QuestionEditor: React.FC = () => {
         <div className="w-96 border-l bg-white h-full overflow-y-auto shadow-2xl z-10 flex flex-col">
             <header className="p-6 border-b flex justify-between items-center bg-gray-50/30">
                 <div className="flex items-center gap-3">
-                    <div className="p-2 bg-blue-600 text-white rounded-lg">
+                    <div className="p-2 bg-brand-600 text-white rounded-lg">
                         <Settings2 size={18} />
                     </div>
                     <div>
@@ -65,7 +65,7 @@ const QuestionEditor: React.FC = () => {
                                 type="text"
                                 value={activeQuestion.questionCode}
                                 onChange={(e) => update({ questionCode: e.target.value })}
-                                className="w-full bg-gray-50 border-none rounded-xl p-3 text-sm font-bold focus:ring-2 focus:ring-blue-500 transition-all outline-none"
+                                className="w-full bg-gray-50 border-none rounded-xl p-3 text-sm font-bold focus:ring-2 focus:ring-brand-500 transition-all outline-none"
                                 placeholder="q101"
                             />
                         </div>
@@ -75,7 +75,7 @@ const QuestionEditor: React.FC = () => {
                                     type="checkbox"
                                     checked={activeQuestion.required}
                                     onChange={(e) => update({ required: e.target.checked })}
-                                    className="rounded text-blue-600 focus:ring-blue-500"
+                                    className="rounded text-brand-600 focus:ring-brand-500"
                                 />
                                 <span className="text-xs font-bold text-gray-600 group-hover:text-gray-900">Required?</span>
                             </label>
@@ -87,7 +87,7 @@ const QuestionEditor: React.FC = () => {
                         <textarea
                             value={activeQuestion.label}
                             onChange={(e) => update({ label: e.target.value })}
-                            className="w-full bg-gray-50 border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none min-h-[80px]"
+                            className="w-full bg-gray-50 border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-brand-500 transition-all outline-none min-h-[80px]"
                             placeholder="Type your question text here..."
                         />
                     </div>
@@ -97,7 +97,7 @@ const QuestionEditor: React.FC = () => {
                         <textarea
                             value={activeQuestion.helperText}
                             onChange={(e) => update({ helperText: e.target.value })}
-                            className="w-full bg-gray-50 border-none rounded-xl p-3 text-[11px] italic text-gray-500 focus:ring-2 focus:ring-blue-500 transition-all outline-none min-h-[60px]"
+                            className="w-full bg-gray-50 border-none rounded-xl p-3 text-[11px] italic text-gray-500 focus:ring-2 focus:ring-brand-500 transition-all outline-none min-h-[60px]"
                             placeholder="Add instructions for data collectors..."
                         />
                     </div>
@@ -116,7 +116,7 @@ const QuestionEditor: React.FC = () => {
                                     type="text"
                                     value={activeQuestion.validation?.placeholder || ''}
                                     onChange={(e) => update({ validation: { ...activeQuestion.validation, placeholder: e.target.value } })}
-                                    className="w-full bg-gray-50 rounded-xl p-2.5 text-xs outline-none focus:ring-1 focus:ring-blue-400"
+                                    className="w-full bg-gray-50 rounded-xl p-2.5 text-xs outline-none focus:ring-1 focus:ring-brand-400"
                                 />
                             </div>
                             <div className="grid grid-cols-2 gap-4">
@@ -126,7 +126,7 @@ const QuestionEditor: React.FC = () => {
                                         type="text"
                                         value={activeQuestion.validation?.min || ''}
                                         onChange={(e) => update({ validation: { ...activeQuestion.validation, min: e.target.value } })}
-                                        className="w-full bg-gray-50 rounded-xl p-2.5 text-xs outline-none focus:ring-1 focus:ring-blue-400"
+                                        className="w-full bg-gray-50 rounded-xl p-2.5 text-xs outline-none focus:ring-1 focus:ring-brand-400"
                                     />
                                 </div>
                                 <div>
@@ -135,7 +135,7 @@ const QuestionEditor: React.FC = () => {
                                         type="text"
                                         value={activeQuestion.validation?.max || ''}
                                         onChange={(e) => update({ validation: { ...activeQuestion.validation, max: e.target.value } })}
-                                        className="w-full bg-gray-50 rounded-xl p-2.5 text-xs outline-none focus:ring-1 focus:ring-blue-400"
+                                        className="w-full bg-gray-50 rounded-xl p-2.5 text-xs outline-none focus:ring-1 focus:ring-brand-400"
                                     />
                                 </div>
                             </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import PageMeta from "../../components/common/PageMeta";
 import api from '@/api/axios';
@@ -47,8 +47,8 @@ export default function DisasterRiskAssessment() {
         {
             title: "Demographics",
             icon: Users,
-            color: "from-blue-400 to-indigo-500",
-            bg: "bg-blue-50/40 border-blue-100/50",
+            color: "from-brand-400 to-brand-500",
+            bg: "bg-brand-50/40 border-brand-100/50",
             fields: [
                 { name: "Total household members", type: "headcount" },
                 { name: "Male / female members", type: "gender counts" },
@@ -74,8 +74,8 @@ export default function DisasterRiskAssessment() {
         {
             title: "Housing & physical conditions",
             icon: ShieldCheck,
-            color: "from-purple-400 to-pink-500",
-            bg: "bg-purple-50/40 border-purple-100/50",
+            color: "from-accent-400 to-pink-500",
+            bg: "bg-accent-50/40 border-accent-100/50",
             fields: [
                 { name: "Wall & roof material type", type: "structural durability" },
                 { name: "Building age (years) & compliance", type: "code safety check" },
@@ -87,7 +87,7 @@ export default function DisasterRiskAssessment() {
         {
             title: "Preparedness",
             icon: HelpCircle,
-            color: "from-cyan-400 to-blue-500",
+            color: "from-cyan-400 to-brand-500",
             bg: "bg-cyan-50/40 border-cyan-100/50",
             fields: [
                 { name: "Emergency shelter & evacuation route knowledge", type: "yes/no check" },
@@ -121,9 +121,9 @@ export default function DisasterRiskAssessment() {
             
             <div className="max-w-7xl mx-auto space-y-10 py-6 animate-in fade-in duration-500">
                 {/* Hero Section */}
-                <div className="relative rounded-[3rem] bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 p-8 md:p-12 text-white shadow-2xl overflow-hidden border border-white/5">
+                <div className="relative rounded-[3rem] bg-gradient-to-br from-slate-900 via-slate-800 to-brand-950 p-8 md:p-12 text-white shadow-2xl overflow-hidden border border-white/5">
                     <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
-                    <div className="absolute bottom-0 left-0 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl -ml-24 -mb-24 pointer-events-none" />
+                    <div className="absolute bottom-0 left-0 w-80 h-80 bg-brand-500/10 rounded-full blur-3xl -ml-24 -mb-24 pointer-events-none" />
                     
                     <div className="relative max-w-3xl space-y-6">
                         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-black uppercase tracking-wider border border-emerald-500/20">
@@ -234,7 +234,7 @@ export default function DisasterRiskAssessment() {
                 {/* Workflow Summary / Tutorial */}
                 <div className="bg-slate-50 dark:bg-slate-900/40 rounded-[2.5rem] p-8 border border-slate-200/50 dark:border-slate-800/80 grid grid-cols-1 md:grid-cols-3 gap-8">
                     <div className="space-y-3">
-                        <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-black">
+                        <div className="w-10 h-10 rounded-xl bg-brand-50 dark:bg-brand-950 flex items-center justify-center text-brand-600 dark:text-brand-400 font-black">
                             1
                         </div>
                         <h4 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">Deploy Survey</h4>

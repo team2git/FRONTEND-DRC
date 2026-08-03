@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { Option } from '../../../context/FormBuilderContext';
 
@@ -29,7 +29,7 @@ const OptionsEditor: React.FC<OptionsEditorProps> = ({ options, onChange }) => {
                 <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Answer Options</label>
                 <button
                     onClick={addOption}
-                    className="flex items-center gap-1 text-[10px] font-black bg-blue-50 text-blue-600 px-3 py-1 rounded-full uppercase hover:bg-blue-100 transition-colors"
+                    className="flex items-center gap-1 text-[10px] font-black bg-brand-50 text-brand-600 px-3 py-1 rounded-full uppercase hover:bg-brand-100 transition-colors"
                 >
                     <Plus size={12} /> Add Option
                 </button>
@@ -52,7 +52,7 @@ const OptionsEditor: React.FC<OptionsEditorProps> = ({ options, onChange }) => {
                                     type="text"
                                     value={opt.label}
                                     onChange={(e) => updateOption(idx, { label: e.target.value, value: e.target.value.toLowerCase().replace(/\s+/g, '_') })}
-                                    className="w-full bg-transparent border-b border-gray-200 text-sm py-1 focus:border-blue-500 outline-none"
+                                    className="w-full bg-transparent border-b border-gray-200 text-sm py-1 focus:border-brand-500 outline-none"
                                 />
                             </div>
                         </div>
@@ -62,15 +62,15 @@ const OptionsEditor: React.FC<OptionsEditorProps> = ({ options, onChange }) => {
                                 type="checkbox"
                                 checked={opt.hasAdditionalInput}
                                 onChange={(e) => updateOption(idx, { hasAdditionalInput: e.target.checked, additionalInput: e.target.checked ? { type: 'text', label: 'Please specify' } : undefined })}
-                                className="rounded text-blue-600"
+                                className="rounded text-brand-600"
                             />
                             <span className="text-xs font-medium text-gray-600 italic">Has additional input? (e.g. "Other")</span>
                         </div>
 
                         {opt.hasAdditionalInput && opt.additionalInput && (
-                            <div className="mt-2 p-3 bg-white rounded-xl border border-blue-100 grid grid-cols-2 gap-3">
+                            <div className="mt-2 p-3 bg-white rounded-xl border border-brand-100 grid grid-cols-2 gap-3">
                                 <div>
-                                    <label className="text-[9px] font-bold text-blue-400 uppercase">Input Type</label>
+                                    <label className="text-[9px] font-bold text-brand-400 uppercase">Input Type</label>
                                     <select
                                         value={opt.additionalInput.type}
                                         onChange={(e) => updateOption(idx, { additionalInput: { ...opt.additionalInput!, type: e.target.value as any } })}
@@ -82,7 +82,7 @@ const OptionsEditor: React.FC<OptionsEditorProps> = ({ options, onChange }) => {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="text-[9px] font-bold text-blue-400 uppercase">Input Label</label>
+                                    <label className="text-[9px] font-bold text-brand-400 uppercase">Input Label</label>
                                     <input
                                         type="text"
                                         value={opt.additionalInput.label}

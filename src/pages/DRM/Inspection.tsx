@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { CalendarDays, FileSearch, ShieldCheck, UploadCloud } from "lucide-react";
 import { toast } from "react-toastify";
 
@@ -105,9 +105,9 @@ const Inspection = () => {
 
         <div className="grid gap-4 md:grid-cols-4">
           {[
-            { label: "Total Requests", value: stats.total, icon: FileSearch, tone: "text-blue-600 bg-blue-50" },
+            { label: "Total Requests", value: stats.total, icon: FileSearch, tone: "text-brand-600 bg-brand-50" },
             { label: "Open Requests", value: stats.open, icon: CalendarDays, tone: "text-amber-600 bg-amber-50" },
-            { label: "Assigned", value: stats.assigned, icon: ShieldCheck, tone: "text-indigo-600 bg-indigo-50" },
+            { label: "Assigned", value: stats.assigned, icon: ShieldCheck, tone: "text-brand-600 bg-brand-50" },
             { label: "Completed", value: stats.completed, icon: UploadCloud, tone: "text-emerald-600 bg-emerald-50" },
           ].map((card) => {
             const Icon = card.icon;

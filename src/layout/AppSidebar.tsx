@@ -64,6 +64,7 @@ type NavItem = {
   subItems?: SubItem[];
   permission?: string;
   superAdminOnly?: boolean;
+  target?: string;
 };
 
 // ─── Navigation Items ─────────────────────────────────────────────────────────
@@ -106,22 +107,6 @@ const navItems: NavItem[] = [
       },
     ],
   },
-];
-
-// ─── Admin Items ──────────────────────────────────────────────────────────────
-const adminItems: NavItem[] = [
-  {
-    icon: <FolderIcon />,
-    name: "Portal Site Management",
-    subItems: [
-      {
-        name: "Site Settings",
-        path: "/admin/site-settings",
-        icon: <DocsIcon />,
-        permission: "portalcontent_view",
-      },
-    ],
-  },
   {
     icon: <ListIcon />,
     name: "Portal Menu",
@@ -157,6 +142,22 @@ const adminItems: NavItem[] = [
       },
     ],
   },
+];
+
+// ─── Admin Items ──────────────────────────────────────────────────────────────
+const adminItems: NavItem[] = [
+  {
+    icon: <FolderIcon />,
+    name: "Portal Site Management",
+    subItems: [
+      {
+        name: "Site Settings",
+        path: "/admin/site-settings",
+        icon: <DocsIcon />,
+        permission: "portalcontent_view",
+      },
+    ],
+  },
   {
     icon: <BoxCubeIcon />,
     name: "Structure",
@@ -189,6 +190,12 @@ const adminItems: NavItem[] = [
         name: "Graph",
         path: "/admin/structure-graph",
         icon: <GridIcon />,
+        permission: "organization_view",
+      },
+      {
+        name: "Locations",
+        path: "/admin/locations",
+        icon: <GISIcon />,
         permission: "organization_view",
       },
     ],
@@ -391,7 +398,7 @@ const AppSidebar: React.FC = () => {
                 <ChevronDownIcon
                   className={`ml-auto w-5 h-5 transition-transform duration-200 ${
                     openSubmenu?.type === menuType && openSubmenu?.index === index
-                      ? "rotate-180 text-brand-500"
+                      ? "menu-item-arrow-active"
                       : ""
                   }`}
                 />
@@ -401,6 +408,7 @@ const AppSidebar: React.FC = () => {
             nav.path && (
               <Link
                 to={nav.path}
+                target={nav.target}
                 className={`menu-item group ${
                   isActive(nav.path) ? "menu-item-active" : "menu-item-inactive"
                 }`}
@@ -483,7 +491,7 @@ const AppSidebar: React.FC = () => {
 
   return (
     <aside
-      className={`fixed mt-16 flex flex-col lg:mt-0 top-0 px-5 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-50 border-r border-gray-200 
+      className={`fixed mt-16 flex flex-col lg:mt-0 top-0 px-5 left-0 bg-gradient-to-b from-brand-950 via-brand-900 to-brand-800 text-white h-screen transition-all duration-300 ease-in-out z-50 border-r border-brand-700/70 shadow-[0_24px_80px_rgba(8,29,60,0.35)] 
         ${isExpanded || isMobileOpen ? "w-[290px]" : isHovered ? "w-[290px]" : "w-[90px]"}
         ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
         lg:translate-x-0`}
@@ -494,11 +502,18 @@ const AppSidebar: React.FC = () => {
         <Link to="/dashboard" className="flex items-center gap-3">
           {isExpanded || isHovered || isMobileOpen ? (
             <>
-              <img src="/images/logo/logo.png" alt="Logo" className="h-12 w-12 object-contain" />
-              <h3 className="text-xl font-bold text-gray-800 dark:text-white">PDRM</h3>
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/15 backdrop-blur-sm shadow-lg shadow-black/15">
+                <img src="/images/logo/logo.png" alt="Logo" className="h-10 w-10 object-contain" />
+              </div>
+              <div>
+                <h3 className="text-xl font-black tracking-[0.16em] text-white">PDRM</h3>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-brand-200">Fire & DRM</p>
+              </div>
             </>
           ) : (
-            <img src="/images/logo/logo.png" alt="Logo" className="h-10 w-10 object-contain" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/15 backdrop-blur-sm shadow-lg shadow-black/15">
+              <img src="/images/logo/logo.png" alt="Logo" className="h-8 w-8 object-contain" />
+            </div>
           )}
         </Link>
       </div>
@@ -508,7 +523,7 @@ const AppSidebar: React.FC = () => {
           <div className="flex flex-col gap-4">
             <div>
               <h2
-                className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
+                className={`mb-4 text-xs uppercase flex leading-[20px] text-brand-200 ${
                   !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
                 }`}
               >
@@ -525,7 +540,7 @@ const AppSidebar: React.FC = () => {
               {hasAdminAccess && (
                 <>
                   <h2
-                    className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
+                    className={`mb-4 text-xs uppercase flex leading-[20px] text-brand-200 ${
                       !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
                     }`}
                   >

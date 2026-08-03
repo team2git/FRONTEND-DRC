@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Link } from 'react-router';
 import api from '../../api/axios';
 import { Mail, ArrowLeft, CheckCircle2, AlertCircle } from 'lucide-react';
@@ -43,7 +43,7 @@ const ForgotPassword: React.FC = () => {
                 <motion.div 
                     animate={{ y: [0, -20, 0], rotate: [0, 5, 0] }} 
                     transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute top-1/4 left-1/4 w-64 h-64 bg-[#C8102E] rounded-full mix-blend-multiply filter blur-[80px] opacity-40"
+                    className="absolute top-1/4 left-1/4 w-64 h-64 bg-[#e11d2d] rounded-full mix-blend-multiply filter blur-[80px] opacity-40"
                 />
                 {/* Floating Navy/Blue Accents */}
                 <motion.div 
@@ -69,8 +69,8 @@ const ForgotPassword: React.FC = () => {
                             Recover your account password. Enter your registered email address and we'll send secure instructions to reset your password.
                         </p>
                         <div className="flex items-center justify-center space-x-6 text-sm font-medium text-slate-300">
-                            <span className="flex items-center"><CheckCircle2 className="w-5 h-5 mr-2 text-[#C8102E]" /> Secure Recovery</span>
-                            <span className="flex items-center"><CheckCircle2 className="w-5 h-5 mr-2 text-[#C8102E]" /> Auto-Expiration Links</span>
+                            <span className="flex items-center"><CheckCircle2 className="w-5 h-5 mr-2 text-[#e11d2d]" /> Secure Recovery</span>
+                            <span className="flex items-center"><CheckCircle2 className="w-5 h-5 mr-2 text-[#e11d2d]" /> Auto-Expiration Links</span>
                         </div>
                     </motion.div>
                 </div>
@@ -80,7 +80,7 @@ const ForgotPassword: React.FC = () => {
             <div className="w-full lg:w-1/2 flex flex-col justify-between p-8 sm:p-12 md:p-16 relative">
                 {/* Mobile Background Elements */}
                 <div className="absolute inset-0 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 -z-10" />
-                <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-[#C8102E]/10 dark:bg-[#C8102E]/20 rounded-full mix-blend-multiply dark:mix-blend-lighten filter blur-3xl opacity-50 -z-10" />
+                <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-[#e11d2d]/10 dark:bg-[#e11d2d]/20 rounded-full mix-blend-multiply dark:mix-blend-lighten filter blur-3xl opacity-50 -z-10" />
 
                 {/* Header Logo */}
                 <div className="flex items-center space-x-3 mb-10">
@@ -96,7 +96,7 @@ const ForgotPassword: React.FC = () => {
                     className="w-full max-w-md mx-auto"
                 >
                     <div className="mb-6">
-                        <Link to="/login" className="inline-flex items-center text-sm font-medium text-[#C8102E] hover:text-[#a00d24] dark:text-[#E31837] hover:underline mb-4 transition-colors">
+                        <Link to="/login" className="inline-flex items-center text-sm font-medium text-[#e11d2d] hover:text-[#bf1124] dark:text-[#e11d2d] hover:underline mb-4 transition-colors">
                             <ArrowLeft className="w-4 h-4 mr-2" />
                             Back to Login
                         </Link>
@@ -119,7 +119,7 @@ const ForgotPassword: React.FC = () => {
                             </p>
                             <button
                                 onClick={() => setSuccess(false)}
-                                className="text-sm font-semibold text-[#C8102E] hover:text-[#a00d24] dark:text-[#E31837] hover:underline transition-colors"
+                                className="text-sm font-semibold text-[#e11d2d] hover:text-[#bf1124] dark:text-[#e11d2d] hover:underline transition-colors"
                             >
                                 Did not receive the email? Check spam or try again.
                             </button>
@@ -129,7 +129,7 @@ const ForgotPassword: React.FC = () => {
                             {error && (
                                 <motion.div 
                                     initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
-                                    className="mb-6 flex items-start p-4 text-sm text-[#C8102E] bg-red-50 dark:bg-red-500/10 dark:text-red-400 rounded-xl border border-red-100 dark:border-red-500/20"
+                                    className="mb-6 flex items-start p-4 text-sm text-[#e11d2d] bg-red-50 dark:bg-red-500/10 dark:text-red-400 rounded-xl border border-red-100 dark:border-red-500/20"
                                 >
                                     <AlertCircle className="w-5 h-5 mr-3 flex-shrink-0 mt-0.5" />
                                     <span>{error}</span>
@@ -148,7 +148,7 @@ const ForgotPassword: React.FC = () => {
                                             value={email}
                                             onChange={(e) => setEmail(e.target.value)}
                                             required
-                                            className="block w-full pl-10 pr-3 py-3.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm focus:ring-2 focus:ring-[#C8102E] focus:border-transparent dark:text-white transition-all shadow-sm"
+                                            className="block w-full pl-10 pr-3 py-3.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm focus:ring-2 focus:ring-[#e11d2d] focus:border-transparent dark:text-white transition-all shadow-sm"
                                             placeholder="you@example.com"
                                         />
                                     </div>
@@ -157,7 +157,7 @@ const ForgotPassword: React.FC = () => {
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className={`relative w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-[#C8102E]/20 text-sm font-semibold text-white bg-[#C8102E] hover:bg-[#a00d24] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#C8102E] transition-all duration-200 overflow-hidden ${loading ? 'opacity-90 cursor-not-allowed' : 'hover:-translate-y-0.5'}`}
+                                    className={`relative w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-[#e11d2d]/20 text-sm font-semibold text-white bg-[#e11d2d] hover:bg-[#bf1124] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#e11d2d] transition-all duration-200 overflow-hidden ${loading ? 'opacity-90 cursor-not-allowed' : 'hover:-translate-y-0.5'}`}
                                 >
                                     {loading ? (
                                         <div className="flex items-center">

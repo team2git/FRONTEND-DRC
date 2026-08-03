@@ -47,13 +47,13 @@ layer(base);
   --color-brand-100: #e0e7ff;
   --color-brand-200: #c7d2fe;
   --color-brand-300: #a5b4fc;
-  --color-brand-400: #6b7ff5;
-  --color-brand-500: #1f3a8a; /* navy */
-  --color-brand-600: #1b347d;
-  --color-brand-700: #162b66;
-  --color-brand-800: #122452;
-  --color-brand-900: #0e1d43;
-  --color-brand-950: #08122a;
+  --color-brand-400: #4b6dc2;
+  --color-brand-500: #143f84; /* navy */
+  --color-brand-600: #123776;
+  --color-brand-700: #0f2f64;
+  --color-brand-800: #0b254d;
+  --color-brand-900: #081d3c;
+  --color-brand-950: #051225;
 
   /* Secondary (logo red) */
   --color-accent-25: #fffbfa;
@@ -61,13 +61,13 @@ layer(base);
   --color-accent-100: #ffe4e6;
   --color-accent-200: #fecdd3;
   --color-accent-300: #fda4af;
-  --color-accent-400: #fb7185;
-  --color-accent-500: #e11d48; /* red */
-  --color-accent-600: #be123c;
-  --color-accent-700: #9f1239;
-  --color-accent-800: #881337;
-  --color-accent-900: #4c0519;
-  --color-accent-950: #2a020e;
+  --color-accent-400: #ff6677;
+  --color-accent-500: #e11d2d; /* red */
+  --color-accent-600: #bf1124;
+  --color-accent-700: #9d0f1f;
+  --color-accent-800: #7f0d1a;
+  --color-accent-900: #5c0912;
+  --color-accent-950: #330408;
 
   --color-blue-light-25: #f5fbff;
   --color-blue-light-50: #f0f9ff;
@@ -148,9 +148,9 @@ layer(base);
   --color-warning-900: #7a2e0e;
   --color-warning-950: #4e1d09;
 
-  --color-theme-pink-500: #ee46bc;
+  --color-theme-pink-500: #e11d2d;
 
-  --color-theme-purple-500: #7a5af8;
+  --color-theme-purple-500: #4b6dc2;
 
   --shadow-theme-md: 0px 4px 8px -2px rgba(16, 24, 40, 0.1),
     0px 2px 4px -2px rgba(16, 24, 40, 0.06);
@@ -162,7 +162,7 @@ layer(base);
   --shadow-theme-xl: 0px 20px 24px -4px rgba(16, 24, 40, 0.08),
     0px 8px 8px -4px rgba(16, 24, 40, 0.03);
   --shadow-datepicker: -5px 0 0 #262d3c, 5px 0 0 #262d3c;
-  --shadow-focus-ring: 0px 0px 0px 4px rgba(70, 95, 255, 0.12);
+  --shadow-focus-ring: 0px 0px 0px 4px rgba(20, 63, 132, 0.15);
   --shadow-slider-navigation: 0px 1px 2px 0px rgba(16, 24, 40, 0.1),
     0px 1px 3px 0px rgba(16, 24, 40, 0.1);
   --shadow-tooltip: 0px 4px 6px -2px rgba(16, 24, 40, 0.05),
@@ -237,19 +237,19 @@ layer(base);
 }
 
 @utility menu-item-active {
-  @apply bg-brand-50 text-brand-500 dark:bg-brand-500/[0.12] dark:text-brand-400;
+  @apply bg-accent-500 text-white shadow-lg shadow-accent-500/20;
 }
 
 @utility menu-item-inactive {
-  @apply text-gray-700 hover:bg-gray-100 group-hover:text-gray-700 dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-gray-300;
+  @apply text-brand-100/80 hover:bg-white/10 hover:text-white group-hover:text-white;
 }
 
 @utility menu-item-icon {
-  @apply text-gray-500 group-hover:text-gray-700 dark:text-gray-400;
+  @apply text-brand-100/70 group-hover:text-white;
 }
 
 @utility menu-item-icon-active {
-  @apply text-brand-500 dark:text-brand-400;
+  @apply text-white;
 }
 
 @utility menu-item-icon-size {
@@ -259,7 +259,7 @@ layer(base);
 }
 
 @utility menu-item-icon-inactive {
-  @apply text-gray-500 group-hover:text-gray-700 dark:text-gray-400 dark:group-hover:text-gray-300;
+  @apply text-brand-100/70 group-hover:text-white;
 }
 
 @utility menu-item-arrow {
@@ -267,11 +267,11 @@ layer(base);
 }
 
 @utility menu-item-arrow-active {
-  @apply rotate-180 text-brand-500 dark:text-brand-400;
+  @apply rotate-180 text-white;
 }
 
 @utility menu-item-arrow-inactive {
-  @apply text-gray-500 group-hover:text-gray-700 dark:text-gray-400 dark:group-hover:text-gray-300;
+  @apply text-brand-100/70 group-hover:text-white;
 }
 
 @utility menu-dropdown-item {
@@ -279,23 +279,23 @@ layer(base);
 }
 
 @utility menu-dropdown-item-active {
-  @apply bg-brand-50 text-brand-500 dark:bg-brand-500/[0.12] dark:text-brand-400;
+  @apply bg-white/10 text-white ring-1 ring-white/10 shadow-sm;
 }
 
 @utility menu-dropdown-item-inactive {
-  @apply text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5;
+  @apply text-brand-100/80 hover:bg-white/10 hover:text-white;
 }
 
 @utility menu-dropdown-badge {
-  @apply block rounded-full px-2.5 py-0.5 text-xs font-medium uppercase text-brand-500 dark:text-brand-400;
+  @apply block rounded-full px-2.5 py-0.5 text-xs font-medium uppercase text-brand-100;
 }
 
 @utility menu-dropdown-badge-active {
-  @apply bg-brand-100 dark:bg-brand-500/20;
+  @apply bg-brand-500/30;
 }
 
 @utility menu-dropdown-badge-inactive {
-  @apply bg-brand-50 group-hover:bg-brand-100 dark:bg-brand-500/15 dark:group-hover:bg-brand-500/20;
+  @apply bg-white/10 group-hover:bg-white/15;
 }
 @utility no-scrollbar {
   /* Chrome, Safari and Opera */
@@ -559,13 +559,13 @@ span.flatpickr-weekday,
 .flatpickr-day.selected.nextMonthDay,
 .flatpickr-day.startRange.nextMonthDay,
 .flatpickr-day.endRange.nextMonthDay {
-  background: #465fff;
+  background: #143f84;
   @apply !border-brand-500 !bg-brand-500 hover:!border-brand-500 hover:!bg-brand-500;
 }
 .flatpickr-day.selected.startRange + .endRange:not(:nth-child(7n + 1)),
 .flatpickr-day.startRange.startRange + .endRange:not(:nth-child(7n + 1)),
 .flatpickr-day.endRange.startRange + .endRange:not(:nth-child(7n + 1)) {
-  box-shadow: -10px 0 0 #465fff;
+  box-shadow: -10px 0 0 #143f84;
 }
 
 .flatpickr-months .flatpickr-prev-month svg,
@@ -817,4 +817,34 @@ span.flatpickr-weekday,
 
 .simplebar-scrollbar.simplebar-visible:before {
   @apply opacity-100;
+}
+
+/* Utility: hide scrollbar while preserving scroll */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Assessment modal range input styling */
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #143f84;
+  cursor: pointer;
+  box-shadow: 0 0 0 3px rgba(20, 63, 132, 0.18);
+  border: 2px solid white;
+}
+input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #143f84;
+  cursor: pointer;
+  box-shadow: 0 0 0 3px rgba(20, 63, 132, 0.18);
+  border: 2px solid white;
 }

@@ -1,4 +1,4 @@
-import Chart from "react-apexcharts";
+﻿import Chart from "react-apexcharts";
 import { ApexOptions } from "apexcharts";
 
 export default function LineChartOne() {
@@ -8,7 +8,7 @@ export default function LineChartOne() {
       position: "top",
       horizontalAlign: "left",
     },
-    colors: ["#465FFF", "#9CB9FF"], // Define line colors
+    colors: ["#143f84", "#c7d2fe"], // Define line colors
     chart: {
       fontFamily: "Outfit, sans-serif",
       height: 310,

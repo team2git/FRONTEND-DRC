@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { useHierarchy } from '../../context/HierarchyContext';
 
 interface AccessControlProps {
@@ -120,11 +120,11 @@ export const AccessLevelBadge: React.FC<{ level: string }> = ({ level }) => {
     const getBadgeColor = (level: string) => {
         switch (level) {
             case 'super_admin':
-                return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
+                return 'bg-accent-100 text-accent-800 dark:bg-accent-900 dark:text-accent-200';
             case 'manager':
-                return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+                return 'bg-brand-100 text-brand-800 dark:bg-brand-900 dark:text-brand-200';
             case 'deputy':
-                return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200';
+                return 'bg-brand-100 text-brand-800 dark:bg-brand-900 dark:text-brand-200';
             case 'branch_admin':
                 return 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200';
             case 'directorate':

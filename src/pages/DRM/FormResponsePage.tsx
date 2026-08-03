@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router';
 import api from '@/api/axios';
 import FormRenderer from '@/components/TemplateEngine/FormRenderer/FormRenderer';
@@ -97,7 +97,7 @@ const FormResponsePage: React.FC = () => {
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center min-h-screen bg-white">
-                <Loader2 className="animate-spin text-blue-600 mb-6" size={48} />
+                <Loader2 className="animate-spin text-brand-600 mb-6" size={48} />
                 <div className="text-center">
                     <p className="text-xl font-black text-gray-900 mb-1">Preparing Questionnaire</p>
                     <p className="text-gray-400 font-medium">Please wait while we fetch the latest version...</p>
@@ -133,7 +133,7 @@ const FormResponsePage: React.FC = () => {
                 <motion.div
                     initial={{ scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    className="bg-white p-12 rounded-[40px] shadow-2xl shadow-blue-100 border border-blue-50 text-center max-w-lg"
+                    className="bg-white p-12 rounded-[40px] shadow-2xl shadow-brand-100 border border-brand-50 text-center max-w-lg"
                 >
                     <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-8">
                         <CheckCircle2 className="text-green-600" size={48} />
@@ -144,7 +144,7 @@ const FormResponsePage: React.FC = () => {
                     <div className="flex flex-col gap-3">
                         <button
                             onClick={() => window.location.reload()}
-                            className="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition-all"
+                            className="w-full py-4 bg-brand-600 text-white rounded-2xl font-bold hover:bg-brand-700 transition-all"
                         >
                             Submit Another Response
                         </button>
@@ -197,7 +197,7 @@ const FormResponsePage: React.FC = () => {
                         exit={{ opacity: 0 }}
                         className="fixed inset-0 z-[100] bg-white/60 backdrop-blur-sm flex items-center justify-center flex-col"
                     >
-                        <Loader2 className="animate-spin text-blue-600 mb-4" size={48} />
+                        <Loader2 className="animate-spin text-brand-600 mb-4" size={48} />
                         <p className="text-xl font-black text-gray-900">Uploading Responses...</p>
                     </motion.div>
                 )}

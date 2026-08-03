@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import api from '@/api/axios';
 import FormRenderer from '@/components/TemplateEngine/FormRenderer/FormRenderer';
@@ -153,7 +153,7 @@ const PublicFeedbackPage: React.FC = () => {
                 </div>
 
                 {/* Dynamic Background Elements */}
-                <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.1),transparent)] pointer-events-none" />
+                <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_top_right,rgba(20,63,132,0.1),transparent)] pointer-events-none" />
 
                 <div className="container mx-auto px-6 relative z-10 transition-all duration-700">
                     <div className="flex flex-col lg:flex-row items-center gap-16">

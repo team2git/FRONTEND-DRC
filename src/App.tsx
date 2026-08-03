@@ -17,6 +17,7 @@ import PermissionList from "./pages/admin/PermissionList";
 import Teams from "./pages/admin/Teams";
 import StructureGraph from "./pages/admin/StructureGraph";
 import HierarchyManagement from "./pages/admin/HierarchyManagement";
+import LocationManagement from "./pages/admin/LocationManagement";
 import AuditLogs from "./pages/admin/AuditLogs";
 import AdminLogs from "./pages/admin/AdminLogs";
 import EmailLogs from "./pages/admin/EmailLogs";
@@ -120,6 +121,7 @@ export default function App() {
                   <Route path="/admin/teams" element={<Teams />} />
                   <Route path="/admin/structure-graph" element={<StructureGraph />} />
                   <Route path="/admin/hierarchy" element={<HierarchyManagement />} />
+                  <Route path="/admin/locations" element={<LocationManagement />} />
                   <Route path="/admin/audit-logs" element={<AuditLogs />} />
                   <Route path="/admin/admin-logs" element={<AdminLogs />} />
                   <Route path="/admin/email-logs" element={<EmailLogs />} />

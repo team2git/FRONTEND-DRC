@@ -147,6 +147,8 @@ export interface Hazard {
     hazard_name?: string;
     frequency?: string;
     severity?: string;
+    duration?: string;
+    spatial_extent?: string;
     seasonality?: string;
     historical_events?: string;
 }
@@ -293,6 +295,42 @@ export interface RawSurveyData {
     key_informant_interview?: RawSurveySection;
 }
 
+export interface KiiCapacityIndicators {
+    ews?: number;
+    drm_committee?: number;
+    focal_persons?: number;
+    training_freq?: number;
+    shelters?: number;
+    community_structures?: number;
+    emergency_services?: number;
+    inter_sector_coordination?: number;
+    institutional_strength?: number;
+    recovery_plan?: number;
+    budget?: number;
+    drm_mainstreaming?: number;
+}
+
+export interface KiiInfrastructureExposure {
+    health?: number;
+    water?: number;
+    energy?: number;
+    emergency?: number;
+    communications?: number;
+}
+
+export interface KiiEnvironmentalIndicators {
+    drainage?: number;
+    green_cover?: number;
+    waste_mgmt?: number;
+    pollution?: number;
+}
+
+export interface CgdCommunityVoice {
+    coping_strategies?: string;
+    collective_action_structure?: string;
+    suggested_interventions?: string;
+}
+
 export interface WoredaProfileInput {
     location: AdminLocation;
     assessment_date: string;
@@ -320,6 +358,10 @@ export interface WoredaProfileInput {
     recovery_indicators?: RecoveryIndicators;
     risk_index?: RiskIndex;
     risk_assessments?: RiskAssessment[];
+    kii_capacity_indicators?: KiiCapacityIndicators;
+    kii_infrastructure_exposure?: KiiInfrastructureExposure;
+    kii_environmental_indicators?: KiiEnvironmentalIndicators;
+    cgd_community_voice?: CgdCommunityVoice;
     status?: 'Draft' | 'Submitted' | 'Reviewed';
 }
 
@@ -405,4 +447,90 @@ export const syncFromInterview = async (data: {
 }): Promise<WoredaProfile | { message: string; data: any; validationErrors: any[] }> => {
     const response = await api.post('/woreda-profiles/sync-interview', data);
     return response.data;
+};
+
+// ─── Household Profile ─────────────────────────────────────────────────────────
+export interface HouseholdProfileInput {
+    location: {
+        subcity?: string;
+        woreda: string;
+        kebele?: string;
+        block?: string;
+        house_no?: string;
+    };
+    assessment_date: string;
+    remarks?: string;
+    identity_location?: HouseholdIdentityLocation;
+    demographics?: HouseholdDemographicsProfile;
+    livelihood_economy?: HouseholdLivelihoodEconomyProfile;
+    housing_physical_conditions?: HouseholdHousingProfile;
+    preparedness?: HouseholdPreparednessProfile;
+    recovery_capacity?: HouseholdRecoveryCapacityProfile;
+    status?: 'Draft' | 'Submitted' | 'Reviewed';
+}
+
+export const getHouseholdProfiles = async (params?: { subcity?: string; woreda?: string; kebele?: string }): Promise<any[]> => {
+    const response = await api.get('/household-profiles', { params });
+    return response.data;
+};
+
+export const getHouseholdProfileById = async (id: string): Promise<any> => {
+    const response = await api.get(`/household-profiles/${id}`);
+    return response.data;
+};
+
+export const createHouseholdProfile = async (data: HouseholdProfileInput): Promise<any> => {
+    const response = await api.post('/household-profiles', data);
+    return response.data;
+};
+
+export const updateHouseholdProfile = async (id: string, data: Partial<HouseholdProfileInput>): Promise<any> => {
+    const response = await api.put(`/household-profiles/${id}`, data);
+    return response.data;
+};
+
+export const deleteHouseholdProfile = async (id: string): Promise<void> => {
+    await api.delete(`/household-profiles/${id}`);
+};
+
+// ─── Woreda Assessment ─────────────────────────────────────────────────────────
+export type CommunityHazard = Hazard;
+
+export interface WoredaAssessmentInput {
+    location: {
+        subcity?: string;
+        woreda: string;
+    };
+    assessment_date: string;
+    remarks?: string;
+    hazards?: CommunityHazard[];
+    cgd_community_voice?: CgdCommunityVoice;
+    kii_capacity_indicators?: KiiCapacityIndicators;
+    kii_infrastructure_exposure?: KiiInfrastructureExposure;
+    kii_environmental_indicators?: KiiEnvironmentalIndicators;
+    status?: 'Draft' | 'Submitted' | 'Reviewed';
+}
+
+export const getWoredaAssessments = async (params?: { subcity?: string; woreda?: string }): Promise<any[]> => {
+    const response = await api.get('/woreda-assessments', { params });
+    return response.data;
+};
+
+export const getWoredaAssessmentById = async (id: string): Promise<any> => {
+    const response = await api.get(`/woreda-assessments/${id}`);
+    return response.data;
+};
+
+export const createWoredaAssessment = async (data: WoredaAssessmentInput): Promise<any> => {
+    const response = await api.post('/woreda-assessments', data);
+    return response.data;
+};
+
+export const updateWoredaAssessment = async (id: string, data: Partial<WoredaAssessmentInput>): Promise<any> => {
+    const response = await api.put(`/woreda-assessments/${id}`, data);
+    return response.data;
+};
+
+export const deleteWoredaAssessment = async (id: string): Promise<void> => {
+    await api.delete(`/woreda-assessments/${id}`);
 };

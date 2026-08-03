@@ -1,17 +1,17 @@
-import React, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-    Plus, Edit3, Trash2, X, 
+import {
+    Plus, Edit3, Trash2, X,
     CheckCircle, Database, Layers, ArrowRightLeft,
-    Calculator, Hash, RefreshCw, 
+    Calculator, Hash, RefreshCw,
     Info, Sparkles, Filter, Search,
     ArrowRight, Binary, Zap, ShieldCheck, Box, Send, RotateCcw
 } from 'lucide-react';
 import { toast } from 'react-toastify';
-import { 
-    getProfileMappings, 
-    createProfileMapping, 
-    updateProfileMapping, 
+import {
+    getProfileMappings,
+    createProfileMapping,
+    updateProfileMapping,
     deleteProfileMapping,
     permanentlyDeleteProfileMapping,
     type ProfileMapping,
@@ -111,38 +111,121 @@ const SOURCE_TYPES = [
     { value: 'InterviewTemplate', label: 'Interview' },
 ];
 
+const TARGET_MODEL_OPTIONS = [
+    { value: 'WoredaProfile', label: 'Woreda Profile (Legacy)', color: 'text-slate-600', bg: 'bg-slate-100', border: 'border-slate-200', desc: 'Maps to aggregated woreda-level profile (backward-compatible).' },
+    { value: 'HouseholdProfile', label: 'Household Profile', color: 'text-emerald-700', bg: 'bg-emerald-50', border: 'border-emerald-200', desc: 'Maps to a household-level assessment record (HH demographics, housing, livelihoods).' },
+    { value: 'WoredaAssessment', label: 'Woreda Assessment', color: 'text-brand-700', bg: 'bg-brand-50', border: 'border-brand-200', desc: 'Maps to a woreda-level KII/CGD assessment record (hazards, capacity, environment).' },
+];
+
+// ─── Target Field Lists ───────────────────────────────────────────────────────
+const HOUSEHOLD_PROFILE_FIELDS = [
+    { group: 'Location', path: 'location.subcity', label: 'Subcity' },
+    { group: 'Location', path: 'location.woreda', label: 'Woreda' },
+    { group: 'Location', path: 'location.kebele', label: 'Kebele' },
+    { group: 'Location', path: 'location.block', label: 'Block' },
+    { group: 'Location', path: 'location.house_no', label: 'House No' },
+    { group: 'Demographics', path: 'demographics.total_household_members', label: 'Total Members' },
+    { group: 'Demographics', path: 'demographics.male_members', label: 'Male Members' },
+    { group: 'Demographics', path: 'demographics.female_members', label: 'Female Members' },
+    { group: 'Demographics', path: 'demographics.children_0_17', label: 'Children (0-17)' },
+    { group: 'Demographics', path: 'demographics.youth_18_29', label: 'Youth (18-29)' },
+    { group: 'Demographics', path: 'demographics.elderly_60_plus', label: 'Elderly (60+)' },
+    { group: 'Demographics', path: 'demographics.female_headed_household', label: 'Female-Headed HH' },
+    { group: 'Demographics', path: 'demographics.idp_status', label: 'IDP Status' },
+    { group: 'Demographics', path: 'demographics.education_level_of_head', label: 'Education of Head' },
+    { group: 'Demographics', path: 'demographics.employment_status', label: 'Employment Status' },
+    { group: 'Livelihood', path: 'livelihood_economy.primary_livelihood_type', label: 'Primary Livelihood' },
+    { group: 'Livelihood', path: 'livelihood_economy.household_income_level', label: 'Income Level' },
+    { group: 'Livelihood', path: 'livelihood_economy.daily_labour_dependency', label: 'Daily Labour Dependency' },
+    { group: 'Livelihood', path: 'livelihood_economy.insurance_coverage', label: 'Insurance Coverage' },
+    { group: 'Livelihood', path: 'livelihood_economy.access_to_credit_safety_nets', label: 'Access to Credit / Safety Nets' },
+    { group: 'Housing', path: 'housing_physical_conditions.wall_material_type', label: 'Wall Material' },
+    { group: 'Housing', path: 'housing_physical_conditions.roof_material_type', label: 'Roof Material' },
+    { group: 'Housing', path: 'housing_physical_conditions.building_age_years', label: 'Building Age (years)' },
+    { group: 'Housing', path: 'housing_physical_conditions.informal_settlement', label: 'Informal Settlement' },
+    { group: 'Housing', path: 'housing_physical_conditions.proximity_to_hazard_zone', label: 'Proximity to Hazard Zone' },
+    { group: 'Preparedness', path: 'preparedness.knows_nearest_emergency_shelter', label: 'Knows Emergency Shelter' },
+    { group: 'Preparedness', path: 'preparedness.knows_local_evacuation_route', label: 'Knows Evacuation Route' },
+    { group: 'Preparedness', path: 'preparedness.family_emergency_plan_exists', label: 'Family Emergency Plan' },
+    { group: 'Preparedness', path: 'preparedness.emergency_supplies_stockpiled', label: 'Emergency Supplies Stockpiled' },
+    { group: 'Recovery', path: 'recovery_capacity.past_disaster_experience_type', label: 'Past Disaster Experience' },
+    { group: 'Recovery', path: 'recovery_capacity.self_help_savings_group_membership', label: 'Self-Help Group Member' },
+    { group: 'Recovery', path: 'recovery_capacity.government_safety_net_access', label: 'Safety Net Access' },
+    { group: 'Recovery', path: 'recovery_capacity.income_diversification_2plus_sources', label: 'Income Diversification' },
+];
+
+const WOREDA_ASSESSMENT_FIELDS = [
+    { group: 'Location', path: 'location.subcity', label: 'Subcity' },
+    { group: 'Location', path: 'location.woreda', label: 'Woreda' },
+    { group: 'Hazards', path: 'hazards.hazard_name', label: 'Hazard Name' },
+    { group: 'Hazards', path: 'hazards.frequency', label: 'Hazard Frequency' },
+    { group: 'Hazards', path: 'hazards.severity', label: 'Hazard Severity' },
+    { group: 'Hazards', path: 'hazards.spatial_extent', label: 'Spatial Extent' },
+    { group: 'CGD', path: 'cgd_community_voice.coping_strategies', label: 'Coping Strategies' },
+    { group: 'CGD', path: 'cgd_community_voice.collective_action_structure', label: 'Collective Action Structure' },
+    { group: 'CGD', path: 'cgd_community_voice.suggested_interventions', label: 'Suggested Interventions' },
+    { group: 'KII Capacity', path: 'kii_capacity_indicators.ews', label: 'Early Warning System (1-5)' },
+    { group: 'KII Capacity', path: 'kii_capacity_indicators.drm_committee', label: 'DRM Committee (1-5)' },
+    { group: 'KII Capacity', path: 'kii_capacity_indicators.focal_persons', label: 'Focal Persons (1-5)' },
+    { group: 'KII Capacity', path: 'kii_capacity_indicators.training_freq', label: 'Training Frequency (1-5)' },
+    { group: 'KII Capacity', path: 'kii_capacity_indicators.shelters', label: 'Shelters (1-5)' },
+    { group: 'KII Capacity', path: 'kii_capacity_indicators.community_structures', label: 'Community Structures (1-5)' },
+    { group: 'KII Capacity', path: 'kii_capacity_indicators.emergency_services', label: 'Emergency Services (1-5)' },
+    { group: 'KII Capacity', path: 'kii_capacity_indicators.inter_sector_coordination', label: 'Inter-Sector Coordination (1-5)' },
+    { group: 'KII Capacity', path: 'kii_capacity_indicators.institutional_strength', label: 'Institutional Strength (1-5)' },
+    { group: 'KII Capacity', path: 'kii_capacity_indicators.recovery_plan', label: 'Recovery Plan (1-5)' },
+    { group: 'KII Capacity', path: 'kii_capacity_indicators.budget', label: 'Budget (1-5)' },
+    { group: 'KII Capacity', path: 'kii_capacity_indicators.drm_mainstreaming', label: 'DRM Mainstreaming (1-5)' },
+    { group: 'KII Infrastructure', path: 'kii_infrastructure_exposure.health', label: 'Health Infrastructure (1-5)' },
+    { group: 'KII Infrastructure', path: 'kii_infrastructure_exposure.water', label: 'Water Infrastructure (1-5)' },
+    { group: 'KII Infrastructure', path: 'kii_infrastructure_exposure.energy', label: 'Energy Infrastructure (1-5)' },
+    { group: 'KII Infrastructure', path: 'kii_infrastructure_exposure.emergency', label: 'Emergency Infrastructure (1-5)' },
+    { group: 'KII Infrastructure', path: 'kii_infrastructure_exposure.communications', label: 'Communications (1-5)' },
+    { group: 'KII Environment', path: 'kii_environmental_indicators.drainage', label: 'Drainage (1-5)' },
+    { group: 'KII Environment', path: 'kii_environmental_indicators.green_cover', label: 'Green Cover (1-5)' },
+    { group: 'KII Environment', path: 'kii_environmental_indicators.waste_mgmt', label: 'Waste Management (1-5)' },
+    { group: 'KII Environment', path: 'kii_environmental_indicators.pollution', label: 'Pollution (1-5)' },
+];
+
+const getTargetFields = (targetModel: string) => {
+    if (targetModel === 'HouseholdProfile') return HOUSEHOLD_PROFILE_FIELDS;
+    if (targetModel === 'WoredaAssessment') return WOREDA_ASSESSMENT_FIELDS;
+    return WOREDA_PROFILE_FIELDS;
+};
+
 
 // ─── Transformation Types ───────────────────────────────────────────────────
 const TRANSFORMATION_TYPES = [
     { value: 'direct', label: 'Direct Entry', icon: Zap, color: 'text-emerald-500', bg: 'bg-emerald-50' },
-    { value: 'cast_number', label: 'Convert to Number', icon: Binary, color: 'text-blue-500', bg: 'bg-blue-50' },
-    { value: 'boolean_map', label: 'Logic Map (Yes/No)', icon: ShieldCheck, color: 'text-purple-500', bg: 'bg-purple-50' },
+    { value: 'cast_number', label: 'Convert to Number', icon: Binary, color: 'text-brand-500', bg: 'bg-brand-50' },
+    { value: 'boolean_map', label: 'Logic Map (Yes/No)', icon: ShieldCheck, color: 'text-accent-500', bg: 'bg-accent-50' },
     { value: 'lookup', label: 'Lookup Table', icon: Filter, color: 'text-amber-500', bg: 'bg-amber-50' },
     { value: 'calculation', label: 'Calculation Engine', icon: Calculator, color: 'text-rose-500', bg: 'bg-rose-50' },
 ];
 
 // ─── Helper Components ────────────────────────────────────────────────────────
-const MappingRow: React.FC<{ 
-    item: ProfileMappingItem; 
+const MappingRow: React.FC<{
+    item: ProfileMappingItem;
     templateFields: any[];
+    activeFields: { group: string; path: string; label: string }[];
     updateRow: (u: Partial<ProfileMappingItem>) => void;
     removeRow: () => void;
-}> = ({ item, templateFields, updateRow, removeRow }) => {
+}> = ({ item, templateFields, activeFields, updateRow, removeRow }) => {
     const transformation = TRANSFORMATION_TYPES.find(t => t.value === item.transformation) || TRANSFORMATION_TYPES[0];
 
     return (
-        <motion.div 
+        <motion.div
             initial={{ opacity: 0, y: 10, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, x: -50 }}
-            className="grid grid-cols-12 gap-5 bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:border-indigo-100 transition-all items-center relative group/row"
+            className="grid grid-cols-12 gap-5 bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:border-brand-100 transition-all items-center relative group/row"
         >
             <div className="col-span-4 space-y-2">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Source Variable</label>
                 <div className="relative">
                     <Hash className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={14} />
-                    <select 
-                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-100 text-[11px] font-bold text-slate-700 focus:outline-none focus:border-indigo-200 focus:bg-white transition-all appearance-none"
+                    <select
+                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-100 text-[11px] font-bold text-slate-700 focus:outline-none focus:border-brand-200 focus:bg-white transition-all appearance-none"
                         value={item.sourceKey} onChange={e => updateRow({ sourceKey: e.target.value })}
                     >
                         <option value="">Choose Input...</option>
@@ -156,13 +239,13 @@ const MappingRow: React.FC<{
             <div className="col-span-3">
                 <div className="flex flex-col items-center gap-2">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Transformer</label>
-                    <button 
+                    <button
                         onClick={() => {
                             const currentIdx = TRANSFORMATION_TYPES.findIndex(t => t.value === item.transformation);
                             const nextIdx = (currentIdx + 1) % TRANSFORMATION_TYPES.length;
                             updateRow({ transformation: TRANSFORMATION_TYPES[nextIdx].value as any });
                         }}
-                        className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl border transition-all ${transformation.bg} border-transparent hover:border-indigo-200 group/btn`}
+                        className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl border transition-all ${transformation.bg} border-transparent hover:border-brand-200 group/btn`}
                     >
                         <transformation.icon className={transformation.color} size={16} />
                         <div className="text-left flex-1 min-w-0">
@@ -176,13 +259,13 @@ const MappingRow: React.FC<{
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Profile Target</label>
                 <div className="relative">
                     <Database className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={14} />
-                    <select 
-                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-100 text-[11px] font-bold text-slate-700 focus:outline-none focus:border-indigo-200 focus:bg-white transition-all appearance-none"
+                    <select
+                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-100 text-[11px] font-bold text-slate-700 focus:outline-none focus:border-brand-200 focus:bg-white transition-all appearance-none"
                         value={item.targetFieldPath} onChange={e => updateRow({ targetFieldPath: e.target.value })}
                     >
                         <option value="">Choose Database Field...</option>
                         {Object.entries(
-                            WOREDA_PROFILE_FIELDS.reduce((acc: any, curr) => {
+                            activeFields.reduce((acc: any, curr) => {
                                 if (!acc[curr.group]) acc[curr.group] = [];
                                 acc[curr.group].push(curr);
                                 return acc;
@@ -199,8 +282,8 @@ const MappingRow: React.FC<{
             </div>
 
             <div className="col-span-1 pt-6 flex justify-end">
-                <button 
-                    onClick={removeRow} 
+                <button
+                    onClick={removeRow}
                     className="w-8 h-8 flex items-center justify-center text-slate-200 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all"
                 >
                     <Trash2 size={14} />
@@ -208,15 +291,15 @@ const MappingRow: React.FC<{
             </div>
 
             {item.transformation === 'calculation' && (
-                <div className="col-span-12 mt-4 p-8 bg-gradient-to-br from-indigo-50/50 via-white to-slate-50 border border-indigo-100/50 rounded-[2.5rem]">
+                <div className="col-span-12 mt-4 p-8 bg-gradient-to-br from-brand-50/50 via-white to-slate-50 border border-brand-100/50 rounded-[2.5rem]">
                     <div className="flex items-center gap-3 mb-6">
-                        <div className="p-2 bg-indigo-600 rounded-xl text-white shadow-lg"><Calculator size={18} /></div>
+                        <div className="p-2 bg-brand-600 rounded-xl text-white shadow-lg"><Calculator size={18} /></div>
                         <div>
                             <h5 className="text-sm font-black text-slate-900">Aggregation Logic</h5>
-                            <p className="text-[10px] font-bold text-indigo-400 uppercase">Sum, Average, Concat or Logic Across Multiple Inputs</p>
+                            <p className="text-[10px] font-bold text-brand-400 uppercase">Sum, Average, Concat or Logic Across Multiple Inputs</p>
                         </div>
                     </div>
-                    
+
                     <div className="space-y-6">
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-4">
                             <div className="space-y-4">
@@ -231,10 +314,10 @@ const MappingRow: React.FC<{
                                         { id: 'or', label: 'OR' },
                                         { id: 'count', label: '# Count' }
                                     ].map(op => (
-                                        <button 
+                                        <button
                                             key={op.id}
                                             onClick={() => updateRow({ operation: op.id as any })}
-                                            className={`py-2 px-1 rounded-xl text-[9px] font-black uppercase transition-all ${item.operation === op.id ? 'bg-indigo-600 text-white shadow-md shadow-indigo-100' : 'text-slate-400 hover:bg-slate-50'}`}
+                                            className={`py-2 px-1 rounded-xl text-[9px] font-black uppercase transition-all ${item.operation === op.id ? 'bg-brand-600 text-white shadow-md shadow-brand-100' : 'text-slate-400 hover:bg-slate-50'}`}
                                         >
                                             {op.label}
                                         </button>
@@ -244,8 +327,8 @@ const MappingRow: React.FC<{
 
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Source Factors</label>
-                                <select 
-                                    className="w-full px-6 py-3 rounded-2xl bg-white border border-slate-100 text-[11px] font-bold text-slate-700 shadow-sm transition-all focus:border-indigo-200 outline-none"
+                                <select
+                                    className="w-full px-6 py-3 rounded-2xl bg-white border border-slate-100 text-[11px] font-bold text-slate-700 shadow-sm transition-all focus:border-brand-200 outline-none"
                                     onChange={e => {
                                         if (!e.target.value) return;
                                         const keys = [...(item.sourceKeys || [])];
@@ -265,8 +348,8 @@ const MappingRow: React.FC<{
                         {item.operation === 'formula' ? (
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Formula (Use {"{{Q_CODE}}"})</label>
-                                <input 
-                                    className="w-full px-6 py-3 rounded-2xl bg-white border border-slate-200 text-[11px] font-bold text-slate-700 shadow-sm focus:border-indigo-400 outline-none transition-all"
+                                <input
+                                    className="w-full px-6 py-3 rounded-2xl bg-white border border-slate-200 text-[11px] font-bold text-slate-700 shadow-sm focus:border-brand-400 outline-none transition-all"
                                     placeholder="e.g. {{Q1}} + {{Q2}}"
                                     value={item.formula || ''}
                                     onChange={e => updateRow({ formula: e.target.value })}
@@ -275,25 +358,25 @@ const MappingRow: React.FC<{
                         ) : item.operation === 'concat' ? (
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Separator</label>
-                                <input 
-                                    className="w-full px-6 py-3 rounded-2xl bg-white border border-slate-200 text-[11px] font-bold text-slate-700 shadow-sm focus:border-indigo-400 outline-none transition-all"
+                                <input
+                                    className="w-full px-6 py-3 rounded-2xl bg-white border border-slate-200 text-[11px] font-bold text-slate-700 shadow-sm focus:border-brand-400 outline-none transition-all"
                                     placeholder="Fixed string separator (e.g. , or /)"
                                     value={item.separator || ' '}
                                     onChange={e => updateRow({ separator: e.target.value })}
                                 />
                             </div>
                         ) : (
-                            <div className="flex items-center gap-3 bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100/50">
-                                <Info size={14} className="text-indigo-600" />
+                            <div className="flex items-center gap-3 bg-brand-50/50 p-4 rounded-2xl border border-brand-100/50">
+                                <Info size={14} className="text-brand-600" />
                                 <p className="text-[10px] font-medium text-slate-500 italic">This will combine all listed source variables using the selected operator.</p>
                             </div>
                         )}
                     </div>
 
-                    <div className="flex flex-wrap gap-2.5 p-4 mt-6 bg-white/50 rounded-2xl border border-dashed border-indigo-100 min-h-[60px]">
+                    <div className="flex flex-wrap gap-2.5 p-4 mt-6 bg-white/50 rounded-2xl border border-dashed border-brand-100 min-h-[60px]">
                         {(item.sourceKeys || []).map((key, kIdx) => (
                             <div key={kIdx} className="flex items-center gap-2.5 px-3 py-2 bg-slate-900 text-white rounded-xl text-[10px] font-black group">
-                                <Hash size={12} className="text-indigo-400" /> {key}
+                                <Hash size={12} className="text-brand-400" /> {key}
                                 <button onClick={() => {
                                     const keys = (item.sourceKeys || []).filter((_, i) => i !== kIdx);
                                     updateRow({ sourceKeys: keys, sourceKey: keys[0] || '' });
@@ -354,18 +437,18 @@ const STATUS_CONFIG: Record<string, { bg: string; text: string; dot: string }> =
     Archived: { bg: 'bg-gray-100', text: 'text-gray-600', dot: 'bg-gray-400' },
 };
 
-const MappingCard: React.FC<{ 
-    mapping: ProfileMapping; 
-    onEdit: () => void; 
+const MappingCard: React.FC<{
+    mapping: ProfileMapping;
+    onEdit: () => void;
     onDelete: (permanent?: boolean) => void;
     onStatusChange: (status: ProfileMapping['status']) => void;
 }> = ({ mapping, onEdit, onDelete, onStatusChange }) => (
-    <motion.div 
-        layout 
-        initial={{ opacity: 0, y: 20 }} 
-        animate={{ opacity: 1, y: 0 }} 
-        whileHover={{ y: -5 }} 
-        className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:border-indigo-200 transition-all duration-300 group flex flex-col overflow-hidden"
+    <motion.div
+        layout
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        whileHover={{ y: -5 }}
+        className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:border-brand-200 transition-all duration-300 group flex flex-col overflow-hidden"
     >
         {/* Top color strip */}
         <div className={`h-1.5 w-full ${mapping.status === 'Published' ? 'bg-gradient-to-r from-emerald-400 to-teal-500' : mapping.status === 'Draft' ? 'bg-gradient-to-r from-amber-400 to-orange-500' : 'bg-slate-200'}`} />
@@ -373,7 +456,7 @@ const MappingCard: React.FC<{
         <div className="p-6 flex-1">
             <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-2">
-                    <div className="px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full text-[10px] font-black uppercase tracking-wider">
+                    <div className="px-3 py-1 bg-brand-50 text-brand-700 rounded-full text-[10px] font-black uppercase tracking-wider">
                         {mapping.sourceType}
                     </div>
                     <div className={`
@@ -381,7 +464,7 @@ const MappingCard: React.FC<{
                         ${STATUS_CONFIG[mapping.status]?.bg || STATUS_CONFIG.Draft.bg} 
                         ${STATUS_CONFIG[mapping.status]?.text || STATUS_CONFIG.Draft.text}
                     `}>
-                        <div className={`w-1.5 h-1.5 rounded-full ${STATUS_CONFIG[mapping.status]?.dot || STATUS_CONFIG.Draft.dot} ${mapping.status === 'Published' ? 'animate-pulse' : ''}`} /> 
+                        <div className={`w-1.5 h-1.5 rounded-full ${STATUS_CONFIG[mapping.status]?.dot || STATUS_CONFIG.Draft.dot} ${mapping.status === 'Published' ? 'animate-pulse' : ''}`} />
                         {mapping.status}
                     </div>
                 </div>
@@ -398,7 +481,7 @@ const MappingCard: React.FC<{
                     <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Transformers</p>
                 </div>
                 <div className="text-center">
-                    <p className="text-xl font-black text-indigo-600">v{mapping.version}</p>
+                    <p className="text-xl font-black text-brand-600">v{mapping.version}</p>
                     <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Revision</p>
                 </div>
             </div>
@@ -406,21 +489,21 @@ const MappingCard: React.FC<{
 
         <div className="bg-slate-50 px-6 py-3 flex justify-between items-center border-t border-slate-100">
             <div className="flex items-center gap-2 text-[10px] text-slate-400 font-bold uppercase tracking-wider group-hover:text-slate-600 transition-colors">
-                <Box size={12} className="text-indigo-400" />
+                <Box size={12} className="text-brand-400" />
                 {mapping.createdBy?.fullname || 'System'}
             </div>
             <div className="flex items-center gap-1">
                 {mapping.status === 'Archived' ? (
                     <>
-                        <button 
-                            onClick={(e) => { e.stopPropagation(); onStatusChange('Draft'); }} 
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onStatusChange('Draft'); }}
                             className="p-2 rounded-lg text-emerald-500 hover:bg-emerald-50 transition-all"
                             title="Restore Connector"
                         >
                             <RotateCcw size={16} />
                         </button>
-                        <button 
-                            onClick={(e) => { e.stopPropagation(); onDelete(true); }} 
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onDelete(true); }}
                             className="p-2 rounded-lg text-rose-600 hover:bg-rose-50 transition-all"
                             title="Delete Permanently"
                         >
@@ -430,31 +513,31 @@ const MappingCard: React.FC<{
                 ) : (
                     <>
                         {mapping.status === 'Draft' ? (
-                            <button 
-                                onClick={(e) => { e.stopPropagation(); onStatusChange('Published'); }} 
+                            <button
+                                onClick={(e) => { e.stopPropagation(); onStatusChange('Published'); }}
                                 className="p-2 rounded-lg text-amber-500 hover:bg-amber-50 transition-all"
                                 title="Publish Mapping"
                             >
                                 <Send size={16} />
                             </button>
                         ) : (
-                            <button 
-                                onClick={(e) => { e.stopPropagation(); onStatusChange('Draft'); }} 
+                            <button
+                                onClick={(e) => { e.stopPropagation(); onStatusChange('Draft'); }}
                                 className="p-2 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-all"
                                 title="Revert to Draft"
                             >
                                 <RotateCcw size={16} />
                             </button>
                         )}
-                        <button 
-                            onClick={onEdit} 
-                            className="p-2 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-white border border-transparent hover:border-indigo-100 transition-all"
+                        <button
+                            onClick={onEdit}
+                            className="p-2 rounded-lg text-slate-400 hover:text-brand-600 hover:bg-white border border-transparent hover:border-brand-100 transition-all"
                             title="Edit Connector"
                         >
                             <Edit3 size={16} />
                         </button>
-                        <button 
-                            onClick={(e) => { e.stopPropagation(); onDelete(false); }} 
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onDelete(false); }}
                             className="p-2 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-white border border-transparent hover:border-rose-100 transition-all"
                             title="Archive Connector"
                         >
@@ -467,16 +550,17 @@ const MappingCard: React.FC<{
     </motion.div>
 );
 
-const MappingForm: React.FC<{ 
-    initial: ProfileMapping | null; 
-    templates: any[]; 
-    onClose: () => void; 
-    onSave: () => void 
+const MappingForm: React.FC<{
+    initial: ProfileMapping | null;
+    templates: any[];
+    onClose: () => void;
+    onSave: () => void
 }> = ({ initial, templates, onClose, onSave }) => {
     const [name, setName] = useState(initial?.name || '');
     const [description, setDescription] = useState(initial?.description || '');
     const [sourceId, setSourceId] = useState(initial?.sourceId || '');
     const [sourceType, setSourceType] = useState<ProfileMapping['sourceType']>(initial?.sourceType || 'SiteSurveyTemplate');
+    const [targetModel, setTargetModel] = useState<'WoredaProfile' | 'WoredaAssessment' | 'HouseholdProfile'>(initial?.targetModel || 'WoredaProfile');
     const [mappings, setMappings] = useState<ProfileMappingItem[]>(initial?.mappings || []);
     const [status, setStatus] = useState<'Draft' | 'Published' | 'Archived'>(initial?.status || 'Draft');
     const [saving, setSaving] = useState(false);
@@ -492,7 +576,7 @@ const MappingForm: React.FC<{
 
     const templateFields = useMemo(() => {
         if (!selectedTemplate) return [];
-        return selectedTemplate.modules.flatMap((m: any) => 
+        return selectedTemplate.modules.flatMap((m: any) =>
             m.sections.flatMap((s: any) => s.fields.map((f: any) => ({
                 code: f.questionCode,
                 label: f.label
@@ -500,13 +584,16 @@ const MappingForm: React.FC<{
         );
     }, [selectedTemplate]);
 
+    const activeFields = useMemo(() => getTargetFields(targetModel), [targetModel]);
+
     const handleSave = async () => {
         if (!name || !sourceId) return toast.error('Check your configuration settings');
         try {
             setSaving(true);
-            const payload = { 
-                name, description, 
-                sourceType, 
+            const payload = {
+                name, description,
+                sourceType,
+                targetModel,
                 sourceId, mappings,
                 status
             };
@@ -531,8 +618,8 @@ const MappingForm: React.FC<{
         let count = 0;
         templateFields.forEach((tf: any) => {
             if (newMappings.some(m => m.sourceKey === tf.code)) return;
-            const match = WOREDA_PROFILE_FIELDS.find(pf => 
-                tf.label.toLowerCase().includes(pf.label.toLowerCase()) || 
+            const match = activeFields.find((pf: any) =>
+                tf.label.toLowerCase().includes(pf.label.toLowerCase()) ||
                 pf.label.toLowerCase().includes(tf.label.toLowerCase()) ||
                 tf.code.toLowerCase().includes(pf.path.split('.').pop() || '')
             );
@@ -551,7 +638,7 @@ const MappingForm: React.FC<{
             <motion.div initial={{ opacity: 0, y: 50, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 30, scale: 0.95 }} className="relative bg-white rounded-3xl w-full max-w-6xl h-[90vh] flex flex-col shadow-2xl overflow-hidden border border-slate-100">
                 <div className="px-10 py-7 bg-white flex items-center justify-between border-b border-slate-100">
                     <div className="flex items-center gap-5">
-                        <div className="w-14 h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-100">
+                        <div className="w-14 h-14 rounded-2xl bg-brand-600 flex items-center justify-center text-white shadow-lg shadow-brand-100">
                             <ArrowRightLeft size={24} />
                         </div>
                         <div>
@@ -564,8 +651,8 @@ const MappingForm: React.FC<{
                     </div>
                     <div className="flex items-center gap-4">
                         <div className="flex p-1 bg-slate-50 rounded-xl mr-2">
-                            <button onClick={() => setActiveTab('config')} className={`px-5 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === 'config' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>Settings</button>
-                            <button onClick={() => setActiveTab('mappings')} className={`px-5 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === 'mappings' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>Mapping</button>
+                            <button onClick={() => setActiveTab('config')} className={`px-5 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === 'config' ? 'bg-white text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>Settings</button>
+                            <button onClick={() => setActiveTab('mappings')} className={`px-5 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === 'mappings' ? 'bg-white text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>Mapping</button>
                         </div>
                         <button onClick={onClose} className="w-10 h-10 rounded-xl bg-white border border-slate-100 text-slate-400 hover:text-rose-500 hover:bg-rose-50 flex items-center justify-center transition-all">
                             <X size={20} />
@@ -578,16 +665,16 @@ const MappingForm: React.FC<{
                         <div className="p-10 max-w-2xl mx-auto space-y-10">
                             <div className="space-y-6">
                                 <div className="flex items-center gap-3 mb-2">
-                                    <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest border-l-4 border-indigo-600 pl-3">General Settings</h3>
+                                    <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest border-l-4 border-brand-600 pl-3">General Settings</h3>
                                 </div>
                                 <div className="space-y-6">
                                     <div className="space-y-2">
                                         <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Connector Identity</label>
-                                        <input className="w-full px-5 py-3.5 rounded-2xl bg-white border border-slate-100 text-slate-900 font-bold placeholder:text-slate-300 shadow-sm focus:border-indigo-300 transition-all outline-none" value={name} onChange={e => setName(e.target.value)} placeholder="e.g., Woreda Profile Sync" />
+                                        <input className="w-full px-5 py-3.5 rounded-2xl bg-white border border-slate-100 text-slate-900 font-bold placeholder:text-slate-300 shadow-sm focus:border-brand-300 transition-all outline-none" value={name} onChange={e => setName(e.target.value)} placeholder="e.g., Woreda Profile Sync" />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Documentation</label>
-                                        <textarea className="w-full px-5 py-3.5 rounded-2xl bg-white border border-slate-100 text-slate-900 font-medium placeholder:text-slate-300 shadow-sm focus:border-indigo-300 transition-all outline-none min-h-[100px]" value={description} onChange={e => setDescription(e.target.value)} placeholder="Describe the purpose of this mapping..." />
+                                        <textarea className="w-full px-5 py-3.5 rounded-2xl bg-white border border-slate-100 text-slate-900 font-medium placeholder:text-slate-300 shadow-sm focus:border-brand-300 transition-all outline-none min-h-[100px]" value={description} onChange={e => setDescription(e.target.value)} placeholder="Describe the purpose of this mapping..." />
                                     </div>
                                     <div className="space-y-2 pt-2">
                                         <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Source Type</label>
@@ -596,7 +683,7 @@ const MappingForm: React.FC<{
                                                 <button
                                                     key={option.value}
                                                     onClick={() => setSourceType(option.value as ProfileMapping['sourceType'])}
-                                                    className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${sourceType === option.value ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                                                    className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${sourceType === option.value ? 'bg-white text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
                                                 >
                                                     {option.label}
                                                 </button>
@@ -605,18 +692,45 @@ const MappingForm: React.FC<{
                                     </div>
                                     <div className="space-y-2 pt-2">
                                         <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Source Template</label>
-                                        <div className="p-5 bg-indigo-50/50 rounded-2xl border border-indigo-100 border-dashed">
-                                            <select className="w-full px-5 py-3 rounded-xl bg-white border border-indigo-100 text-slate-900 font-black shadow-sm" value={sourceId} onChange={e => setSourceId(e.target.value)}>
+                                        <div className="p-5 bg-brand-50/50 rounded-2xl border border-brand-100 border-dashed">
+                                            <select className="w-full px-5 py-3 rounded-xl bg-white border border-brand-100 text-slate-900 font-black shadow-sm" value={sourceId} onChange={e => setSourceId(e.target.value)}>
                                                 <option value="">Choose a Template...</option>
                                                 {templates.map(t => <option key={t._id} value={t._id}>{t.name} (v{t.version})</option>)}
                                             </select>
                                             {selectedTemplate && (
-                                                <div className="flex items-center gap-4 mt-3 px-1 text-[10px] font-bold uppercase tracking-tight text-indigo-400">
+                                                <div className="flex items-center gap-4 mt-3 px-1 text-[10px] font-bold uppercase tracking-tight text-brand-400">
                                                     <span className="flex items-center gap-1.5"><Layers size={10} /> {selectedTemplate.modules.length} Modules</span>
                                                     <span className="flex items-center gap-1.5"><Database size={10} /> {templateFields.length} Data Points</span>
                                                     <span className="flex items-center gap-1.5"><ArrowRightLeft size={10} /> {SOURCE_TYPES.find(t => t.value === sourceType)?.label || 'Survey'}</span>
                                                 </div>
                                             )}
+                                        </div>
+                                    </div>
+                                    {/* ── Target Module Selector ── */}
+                                    <div className="space-y-3 pt-2">
+                                        <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Target Module</label>
+                                        <p className="text-[10px] text-slate-400 ml-1 -mt-1">Where should synced data be stored?</p>
+                                        <div className="grid grid-cols-1 gap-2">
+                                            {TARGET_MODEL_OPTIONS.map(opt => (
+                                                <button
+                                                    key={opt.value}
+                                                    type="button"
+                                                    onClick={() => { setTargetModel(opt.value as any); setMappings([]); }}
+                                                    className={`w-full text-left px-4 py-3 rounded-2xl border-2 transition-all flex items-start gap-3 ${targetModel === opt.value
+                                                            ? `${opt.bg} ${opt.border} ${opt.color}`
+                                                            : 'bg-white border-slate-100 text-slate-400 hover:border-slate-200'
+                                                        }`}
+                                                >
+                                                    <div className={`mt-0.5 w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${targetModel === opt.value ? `${opt.border} ${opt.bg}` : 'border-slate-300'
+                                                        }`}>
+                                                        {targetModel === opt.value && <div className={`w-2 h-2 rounded-full ${opt.color.replace('text-', 'bg-')}`} />}
+                                                    </div>
+                                                    <div>
+                                                        <p className={`text-[11px] font-black uppercase tracking-widest ${targetModel === opt.value ? opt.color : 'text-slate-500'}`}>{opt.label}</p>
+                                                        <p className="text-[10px] font-medium text-slate-400 mt-0.5">{opt.desc}</p>
+                                                    </div>
+                                                </button>
+                                            ))}
                                         </div>
                                     </div>
                                     {initial && (
@@ -635,7 +749,7 @@ const MappingForm: React.FC<{
                                     )}
                                 </div>
                                 <div className="pt-6">
-                                    <button onClick={() => setActiveTab('mappings')} className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black uppercase flex items-center justify-center gap-3 shadow-xl hover:bg-indigo-600 transition-all">
+                                    <button onClick={() => setActiveTab('mappings')} className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black uppercase flex items-center justify-center gap-3 shadow-xl hover:bg-brand-600 transition-all">
                                         Next Step: Configuration <ArrowRight size={18} />
                                     </button>
                                 </div>
@@ -645,7 +759,7 @@ const MappingForm: React.FC<{
                         <div className="p-8 lg:p-10 space-y-6">
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-2 border-b border-slate-100 pb-6 mb-8">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+                                    <div className="w-10 h-10 rounded-xl bg-brand-50 flex items-center justify-center text-brand-600">
                                         <Binary size={20} />
                                     </div>
                                     <div>
@@ -658,14 +772,14 @@ const MappingForm: React.FC<{
                                         <Sparkles size={14} /> Auto-Sync
                                     </button>
                                     <div className="w-px h-8 bg-slate-200 mx-2" />
-                                    <button onClick={() => setMappings([...mappings, { targetFieldPath: '', sourceKey: '', transformation: 'direct' }])} className="flex items-center gap-2 px-6 py-2 bg-indigo-600 text-white rounded-xl text-[11px] font-black uppercase shadow-lg shadow-indigo-100 hover:bg-slate-900 transition-all">
+                                    <button onClick={() => setMappings([...mappings, { targetFieldPath: '', sourceKey: '', transformation: 'direct' }])} className="flex items-center gap-2 px-6 py-2 bg-brand-600 text-white rounded-xl text-[11px] font-black uppercase shadow-lg shadow-brand-100 hover:bg-slate-900 transition-all">
                                         <Plus size={14} /> New Link
                                     </button>
                                 </div>
                             </div>
                             <div className="space-y-3">
                                 <AnimatePresence>
-                                    {mappings.map((m, idx) => <MappingRow key={idx} item={m} templateFields={templateFields} updateRow={(updates) => setMappings(mappings.map((row, i) => i === idx ? { ...row, ...updates } : row))} removeRow={() => setMappings(mappings.filter((_, i) => i !== idx))} />)}
+                                    {mappings.map((m, idx) => <MappingRow key={idx} item={m} templateFields={templateFields} activeFields={activeFields} updateRow={(updates) => setMappings(mappings.map((row, i) => i === idx ? { ...row, ...updates } : row))} removeRow={() => setMappings(mappings.filter((_, i) => i !== idx))} />)}
                                 </AnimatePresence>
                                 {mappings.length === 0 && (
                                     <div className="flex flex-col items-center justify-center py-24 bg-white/50 rounded-3xl border-2 border-dashed border-slate-200">
@@ -673,7 +787,7 @@ const MappingForm: React.FC<{
                                             <Info size={32} />
                                         </div>
                                         <p className="text-slate-400 font-bold uppercase tracking-[0.2em] text-[10px]">Canvas is Empty</p>
-                                        <button onClick={() => setMappings([{ targetFieldPath: '', sourceKey: '', transformation: 'direct' }])} className="mt-4 text-[11px] font-black text-indigo-600 hover:underline px-4 py-2 bg-indigo-50 rounded-lg">Add First Link</button>
+                                        <button onClick={() => setMappings([{ targetFieldPath: '', sourceKey: '', transformation: 'direct' }])} className="mt-4 text-[11px] font-black text-brand-600 hover:underline px-4 py-2 bg-brand-50 rounded-lg">Add First Link</button>
                                     </div>
                                 )}
                             </div>
@@ -691,7 +805,7 @@ const MappingForm: React.FC<{
                         </div>
                         {selectedTemplate && (
                             <div className="hidden lg:flex items-center gap-2">
-                                <Box size={14} className="text-indigo-400" />
+                                <Box size={14} className="text-brand-400" />
                                 <span className="text-[10px] font-black text-slate-600 uppercase">
                                     Template: {selectedTemplate.name}
                                 </span>
@@ -700,12 +814,12 @@ const MappingForm: React.FC<{
                     </div>
                     <div className="flex items-center gap-3">
                         <button onClick={onClose} className="px-6 py-2.5 text-sm font-bold text-slate-400 hover:text-slate-900 transition-colors uppercase tracking-widest">Discard</button>
-                        <button 
-                            disabled={saving || !name || !sourceId} 
-                            onClick={handleSave} 
+                        <button
+                            disabled={saving || !name || !sourceId}
+                            onClick={handleSave}
                             className={`
                                 px-10 py-3 rounded-xl text-sm font-black uppercase tracking-tight flex items-center gap-2 transition-all shadow-md
-                                ${saving || !name || !sourceId ? 'bg-slate-100 text-slate-300 cursor-not-allowed' : 'bg-indigo-600 text-white hover:bg-slate-900 hover:shadow-xl hover:-translate-y-0.5 shadow-indigo-100'}
+                                ${saving || !name || !sourceId ? 'bg-slate-100 text-slate-300 cursor-not-allowed' : 'bg-brand-600 text-white hover:bg-slate-900 hover:shadow-xl hover:-translate-y-0.5 shadow-brand-100'}
                             `}
                         >
                             {saving ? <RefreshCw className="animate-spin" size={16} /> : <CheckCircle size={16} />}
@@ -761,12 +875,12 @@ const MappingConfig: React.FC = () => {
     });
 
     const handleDelete = async (id: string, isPermanent: boolean = false) => {
-        const msg = isPermanent 
-            ? 'This mapping will be gone forever. Continue?' 
+        const msg = isPermanent
+            ? 'This mapping will be gone forever. Continue?'
             : 'Archive this mapping? You can restore it later.';
-            
+
         if (!window.confirm(msg)) return;
-        
+
         try {
             if (isPermanent) {
                 await permanentlyDeleteProfileMapping(id);
@@ -809,9 +923,9 @@ const MappingConfig: React.FC = () => {
                         <p className="text-slate-500 mt-1 font-medium">Map survey data to your Woreda Profile database with precision.</p>
                     </div>
                     <div className="flex items-center gap-3">
-                        <button 
-                            onClick={() => { setEditingMapping(null); setShowForm(true); }} 
-                            className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-blue-700 text-white px-8 py-3.5 rounded-xl font-bold hover:shadow-xl hover:shadow-indigo-100 transition-all"
+                        <button
+                            onClick={() => { setEditingMapping(null); setShowForm(true); }}
+                            className="flex items-center gap-2 bg-gradient-to-r from-brand-600 to-brand-700 text-white px-8 py-3.5 rounded-xl font-bold hover:shadow-xl hover:shadow-brand-100 transition-all"
                         >
                             <Plus size={20} />
                             Create New Link
@@ -822,7 +936,7 @@ const MappingConfig: React.FC = () => {
                 {/* ── Stats Bar ── */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
                     <div className="bg-white border border-slate-100 rounded-2xl p-6 flex items-center gap-5 shadow-sm">
-                        <div className="h-14 w-14 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+                        <div className="h-14 w-14 rounded-2xl bg-brand-50 flex items-center justify-center text-brand-600">
                             <Layers size={24} />
                         </div>
                         <div>
@@ -840,7 +954,7 @@ const MappingConfig: React.FC = () => {
                         </div>
                     </div>
                     <div className="bg-white border border-slate-100 rounded-2xl p-6 flex items-center gap-5 shadow-sm">
-                        <div className="h-14 w-14 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600">
+                        <div className="h-14 w-14 rounded-2xl bg-brand-50 flex items-center justify-center text-brand-600">
                             <ArrowRightLeft size={24} />
                         </div>
                         <div>
@@ -858,7 +972,7 @@ const MappingConfig: React.FC = () => {
                                 key={s}
                                 onClick={() => setFilterStatus(s as any)}
                                 className={`px-6 py-2 text-xs font-black uppercase tracking-tight rounded-lg transition-all ${filterStatus === s
-                                    ? 'bg-indigo-600 text-white shadow-md'
+                                    ? 'bg-brand-600 text-white shadow-md'
                                     : 'text-slate-400 hover:bg-slate-50'
                                     }`}
                             >
@@ -866,15 +980,15 @@ const MappingConfig: React.FC = () => {
                             </button>
                         ))}
                     </div>
-                    
+
                     <div className="flex flex-1 items-center gap-4 w-full">
                         <div className="relative flex-1 group">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" size={18} />
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-600 transition-colors" size={18} />
                             <input
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 placeholder="Search connectors by name or description..."
-                                className="w-full pl-12 pr-6 py-3 bg-white border border-slate-200 rounded-xl outline-none focus:ring-4 focus:ring-indigo-50 focus:border-indigo-500 transition-all font-medium text-sm shadow-sm"
+                                className="w-full pl-12 pr-6 py-3 bg-white border border-slate-200 rounded-xl outline-none focus:ring-4 focus:ring-brand-50 focus:border-brand-500 transition-all font-medium text-sm shadow-sm"
                             />
                         </div>
                         <button className="px-5 py-3 bg-white border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 transition-all shadow-sm">
@@ -885,25 +999,25 @@ const MappingConfig: React.FC = () => {
 
                 {loading ? (
                     <div className="flex flex-col items-center justify-center py-32 bg-white/50 backdrop-blur-sm rounded-[3rem] border border-slate-100/50">
-                        <div className="relative"><div className="w-16 h-16 border-4 border-indigo-50 rounded-full" /><div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin absolute top-0" /></div>
+                        <div className="relative"><div className="w-16 h-16 border-4 border-brand-50 rounded-full" /><div className="w-16 h-16 border-4 border-brand-600 border-t-transparent rounded-full animate-spin absolute top-0" /></div>
                         <p className="mt-6 text-slate-400 font-bold uppercase tracking-widest text-xs">Initializing Layer</p>
                     </div>
                 ) : filteredMappings.length === 0 ? (
                     <div className="text-center py-32 bg-white rounded-[3rem] border border-dashed border-slate-200">
                         <div className="bg-slate-50 w-24 h-24 rounded-3xl flex items-center justify-center mx-auto mb-6"><ArrowRightLeft size={40} className="text-slate-300" /></div>
                         <h3 className="text-2xl font-black text-slate-800">No Mappings Found</h3>
-                        <p className="mt-8 px-8 py-3 bg-indigo-50 text-indigo-700 rounded-2xl font-bold inline-block cursor-pointer" onClick={() => setShowForm(true)}>Configure Now</p>
+                        <p className="mt-8 px-8 py-3 bg-brand-50 text-brand-700 rounded-2xl font-bold inline-block cursor-pointer" onClick={() => setShowForm(true)}>Configure Now</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {filteredMappings.map(m => (
-                                <MappingCard 
-                                    key={m._id} 
-                                    mapping={m} 
-                                    onEdit={() => { setEditingMapping(m); setShowForm(true); }} 
-                                    onDelete={(permanent) => handleDelete(m._id, permanent)} 
-                                    onStatusChange={(status) => handleStatusUpdate(m._id, status)}
-                                />
+                            <MappingCard
+                                key={m._id}
+                                mapping={m}
+                                onEdit={() => { setEditingMapping(m); setShowForm(true); }}
+                                onDelete={(permanent) => handleDelete(m._id, permanent)}
+                                onStatusChange={(status) => handleStatusUpdate(m._id, status)}
+                            />
                         ))}
                     </div>
                 )}

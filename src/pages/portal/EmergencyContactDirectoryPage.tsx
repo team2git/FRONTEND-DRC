@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import {
   AlertTriangle,
@@ -88,7 +88,7 @@ const EmergencyContactDirectoryPage = () => {
           <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/80 to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-60" />
         </div>
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.1),transparent)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(20,63,132,0.1),transparent)]" />
 
         <div className="relative z-10 mx-auto max-w-5xl px-4 sm:px-6">
           <div className="max-w-3xl space-y-6">
@@ -140,7 +140,7 @@ const EmergencyContactDirectoryPage = () => {
             ) : (
               <>
                 <div className="relative flex items-center justify-between bg-gradient-to-r from-slate-900 via-slate-900 to-slate-800 px-6 py-5 text-white sm:px-9">
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.2),transparent)]" />
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(20,63,132,0.2),transparent)]" />
                   <div className="relative">
                     <h1 className="text-xl font-black tracking-tight sm:text-2xl">{directory.title}</h1>
                     <p className="mt-1 text-sm font-medium text-slate-300 sm:text-base">

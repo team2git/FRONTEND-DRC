@@ -1,9 +1,9 @@
-import Chart from "react-apexcharts";
+﻿import Chart from "react-apexcharts";
 import { ApexOptions } from "apexcharts";
 
 export default function BarChartOne() {
   const options: ApexOptions = {
-    colors: ["#465fff"],
+    colors: ["#143f84"],
     chart: {
       fontFamily: "Outfit, sans-serif",
       type: "bar",

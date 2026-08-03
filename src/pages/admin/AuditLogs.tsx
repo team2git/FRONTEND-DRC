@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import api from '../../api/axios';
 import PageMeta from "../../components/common/PageMeta";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
@@ -183,7 +183,7 @@ const AuditLogs: React.FC = () => {
             case 'critical': return 'bg-red-500/10 text-red-600 border-red-200';
             case 'high': return 'bg-orange-500/10 text-orange-600 border-orange-200';
             case 'medium': return 'bg-amber-500/10 text-amber-600 border-amber-200';
-            default: return 'bg-blue-500/10 text-blue-600 border-blue-200';
+            default: return 'bg-brand-500/10 text-brand-600 border-brand-200';
         }
     };
 
@@ -196,9 +196,9 @@ const AuditLogs: React.FC = () => {
         if (a.includes('delete') || a.includes('remove') || a.includes('drop') || a.includes('clear')) 
             return 'bg-rose-500/10 text-rose-600 border-rose-200';
         if (a.includes('login') || a.includes('auth') || a.includes('access')) 
-            return 'bg-indigo-500/10 text-indigo-600 border-indigo-200';
+            return 'bg-brand-500/10 text-brand-600 border-brand-200';
         if (a.includes('export') || a.includes('download')) 
-            return 'bg-blue-500/10 text-blue-600 border-blue-200';
+            return 'bg-brand-500/10 text-brand-600 border-brand-200';
         return 'bg-slate-500/10 text-slate-600 border-slate-200';
     };
 
@@ -275,7 +275,7 @@ const AuditLogs: React.FC = () => {
                 <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
                     <div className="space-y-1">
                         <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 md:h-12 md:w-12 bg-blue-600 rounded-xl md:rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
+                            <div className="h-10 w-10 md:h-12 md:w-12 bg-brand-600 rounded-xl md:rounded-2xl flex items-center justify-center text-white shadow-lg shadow-brand-500/20">
                                 <Shield size={20} />
                             </div>
                             <h2 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tighter uppercase">Audit Logs</h2>
@@ -287,13 +287,13 @@ const AuditLogs: React.FC = () => {
 
                     <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
                         <div className="relative flex-1 sm:w-64 group">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors" size={14} />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-600 transition-colors" size={14} />
                             <input
                                 type="text"
                                 placeholder="Search action..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="h-11 w-full rounded-xl bg-white/60 dark:bg-white/5 border border-white/50 dark:border-white/10 pl-10 pr-4 text-[11px] font-bold shadow-sm focus:outline-none focus:border-blue-500 transition-all backdrop-blur-xl"
+                                className="h-11 w-full rounded-xl bg-white/60 dark:bg-white/5 border border-white/50 dark:border-white/10 pl-10 pr-4 text-[11px] font-bold shadow-sm focus:outline-none focus:border-brand-500 transition-all backdrop-blur-xl"
                             />
                         </div>
                         <div className="flex bg-white/60 dark:bg-white/5 p-1 rounded-xl border border-white/50 dark:border-white/10 backdrop-blur-xl shadow-sm overflow-x-auto">
@@ -336,7 +336,7 @@ const AuditLogs: React.FC = () => {
                                         <tr>
                                             <td colSpan={6} className="px-8 py-32">
                                                 <div className="flex flex-col items-center justify-center gap-3">
-                                                    <div className="h-8 w-8 border-2 border-blue-500/20 border-t-blue-500 rounded-full animate-spin" />
+                                                    <div className="h-8 w-8 border-2 border-brand-500/20 border-t-brand-500 rounded-full animate-spin" />
                                                     <span className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400">Loading Ledger...</span>
                                                 </div>
                                             </td>
@@ -348,7 +348,7 @@ const AuditLogs: React.FC = () => {
                                             <React.Fragment key={log._id}>
                                                 <motion.tr
                                                     layout
-                                                    className={`transition-colors h-16 ${isExp ? 'bg-blue-50/50 dark:bg-blue-500/5' : 'hover:bg-slate-50/50 dark:hover:bg-white/[0.01]'}`}
+                                                    className={`transition-colors h-16 ${isExp ? 'bg-brand-50/50 dark:bg-brand-500/5' : 'hover:bg-slate-50/50 dark:hover:bg-white/[0.01]'}`}
                                                 >
                                                     <td className="px-8 py-3">
                                                         <div className="space-y-1.5">
@@ -359,7 +359,7 @@ const AuditLogs: React.FC = () => {
                                                                 {log.action}
                                                             </div>
                                                             <div className="flex items-center gap-1.5 text-[8px] font-bold text-slate-400">
-                                                                <Clock size={10} className="text-blue-500" />
+                                                                <Clock size={10} className="text-brand-500" />
                                                                 {new Date(log.timestamp).toLocaleString()}
                                                             </div>
                                                         </div>
@@ -396,7 +396,7 @@ const AuditLogs: React.FC = () => {
                                                     <td className="px-6 py-3 text-center">
                                                         <div className="flex flex-col items-center gap-0.5">
                                                             <div className="flex items-center gap-1 text-[8px] font-black text-slate-500 uppercase tracking-tighter">
-                                                                <Server size={8} className="text-blue-500" />
+                                                                <Server size={8} className="text-brand-500" />
                                                                 {log.ipAddress || log.ip || '0.0.0.0'}
                                                             </div>
                                                             <div className={`px-1.5 py-0.5 rounded text-[7px] font-black uppercase tracking-tighter border ${getSeverityStyles(log.severity)}`}>
@@ -407,7 +407,7 @@ const AuditLogs: React.FC = () => {
                                                     <td className="px-8 py-3 text-right">
                                                         <button
                                                             onClick={() => setExpandedLogId(isExp ? null : log._id)}
-                                                            className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${isExp ? 'bg-blue-600 text-white shadow-lg' : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-white/60'}`}
+                                                            className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${isExp ? 'bg-brand-600 text-white shadow-lg' : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-white/60'}`}
                                                         >
                                                             {isExp ? 'Close' : 'Diff'}
                                                         </button>
@@ -434,7 +434,7 @@ const AuditLogs: React.FC = () => {
                                                                     {log.details && (
                                                                         <div className="p-4 bg-white dark:bg-slate-900/50 rounded-[1.5rem] border border-slate-100 dark:border-white/5">
                                                                             <h6 className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-400 mb-3 flex items-center gap-2">
-                                                                                <Info size={12} className="text-blue-500" /> 
+                                                                                <Info size={12} className="text-brand-500" /> 
                                                                                 Execution Meta
                                                                             </h6>
                                                                             <div className="p-4 rounded-xl bg-slate-50 dark:bg-black/40 font-mono text-[9px] text-slate-600 dark:text-slate-400 border border-slate-200/50 dark:border-white/5">

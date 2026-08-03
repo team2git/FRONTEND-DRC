@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import api from '../../api/axios';
 import PageMeta from "../../components/common/PageMeta";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
@@ -23,14 +23,14 @@ interface AdminLog {
 
 const ACTION_CATEGORIES: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
     CREATE:  { label: 'Create',  icon: <Plus size={11} />,      color: 'bg-emerald-100 text-emerald-700' },
-    UPDATE:  { label: 'Update',  icon: <Edit2 size={11} />,     color: 'bg-blue-100 text-blue-700' },
+    UPDATE:  { label: 'Update',  icon: <Edit2 size={11} />,     color: 'bg-brand-100 text-brand-700' },
     DELETE:  { label: 'Delete',  icon: <Trash2 size={11} />,    color: 'bg-rose-100 text-rose-700' },
-    LOGIN:   { label: 'Login',   icon: <LogIn size={11} />,     color: 'bg-violet-100 text-violet-700' },
+    LOGIN:   { label: 'Login',   icon: <LogIn size={11} />,     color: 'bg-accent-100 text-accent-700' },
     VIEW:    { label: 'View',    icon: <Eye size={11} />,        color: 'bg-slate-100 text-slate-600' },
     IMPORT:  { label: 'Import',  icon: <FileText size={11} />,  color: 'bg-amber-100 text-amber-700' },
     SYNC:    { label: 'Sync',    icon: <RefreshCw size={11} />, color: 'bg-cyan-100 text-cyan-700' },
     CONFIG:  { label: 'Config',  icon: <Settings size={11} />,  color: 'bg-orange-100 text-orange-700' },
-    ACCESS:  { label: 'Access',  icon: <Lock size={11} />,      color: 'bg-indigo-100 text-indigo-700' },
+    ACCESS:  { label: 'Access',  icon: <Lock size={11} />,      color: 'bg-brand-100 text-brand-700' },
 };
 
 const getActionCategory = (action: string) => {
@@ -127,7 +127,7 @@ const AdminLogs: React.FC = () => {
         today:    logs.filter(l => new Date(l.timestamp).toDateString() === new Date().toDateString()).length,
     }), [logs]);
 
-    const inputCls = "h-9 px-3 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-700 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all";
+    const inputCls = "h-9 px-3 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-700 outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100 transition-all";
 
     return (
         <div className="min-h-screen pb-20 px-4 sm:px-6 lg:px-10">
@@ -139,7 +139,7 @@ const AdminLogs: React.FC = () => {
                 {/* ── Compact Stats Row ─────────────────────── */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
                     {[
-                        { label: 'Total Actions', value: stats.total,    color: 'text-indigo-700', bg: 'bg-indigo-50',  icon: <Shield size={14} /> },
+                        { label: 'Total Actions', value: stats.total,    color: 'text-brand-700', bg: 'bg-brand-50',  icon: <Shield size={14} /> },
                         { label: 'Critical',      value: stats.critical, color: 'text-rose-700',   bg: 'bg-rose-50',    icon: <AlertTriangle size={14} /> },
                         { label: 'Warnings',      value: stats.warning,  color: 'text-amber-700',  bg: 'bg-amber-50',   icon: <Info size={14} /> },
                         { label: 'Today',         value: stats.today,    color: 'text-emerald-700',bg: 'bg-emerald-50', icon: <Calendar size={14} /> },
@@ -166,7 +166,7 @@ const AdminLogs: React.FC = () => {
                                 value={search}
                                 onChange={e => setSearch(e.target.value)}
                                 placeholder="Search by action, user, email, resource, IP, payload..."
-                                className="w-full h-10 pl-9 pr-4 rounded-xl border border-slate-200 bg-slate-50 text-sm font-medium text-slate-700 placeholder:text-slate-300 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 focus:bg-white transition-all"
+                                className="w-full h-10 pl-9 pr-4 rounded-xl border border-slate-200 bg-slate-50 text-sm font-medium text-slate-700 placeholder:text-slate-300 outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100 focus:bg-white transition-all"
                             />
                             {search && (
                                 <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
@@ -178,7 +178,7 @@ const AdminLogs: React.FC = () => {
                         {/* Toggle Filters */}
                         <button
                             onClick={() => setShowFilters(f => !f)}
-                            className={`flex items-center gap-2 h-10 px-4 rounded-xl border text-xs font-bold transition-all ${showFilters || hasActiveFilters ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+                            className={`flex items-center gap-2 h-10 px-4 rounded-xl border text-xs font-bold transition-all ${showFilters || hasActiveFilters ? 'bg-brand-600 border-brand-600 text-white' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
                         >
                             <Filter size={13} />
                             Filters
@@ -187,7 +187,7 @@ const AdminLogs: React.FC = () => {
                         </button>
 
                         {/* Refresh */}
-                        <button onClick={fetchLogs} className="h-10 w-10 rounded-xl border border-slate-200 bg-white text-slate-400 hover:text-indigo-600 flex items-center justify-center transition-all hover:border-indigo-300">
+                        <button onClick={fetchLogs} className="h-10 w-10 rounded-xl border border-slate-200 bg-white text-slate-400 hover:text-brand-600 flex items-center justify-center transition-all hover:border-brand-300">
                             <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
                         </button>
 
@@ -281,7 +281,7 @@ const AdminLogs: React.FC = () => {
                                         <tr>
                                             <td colSpan={6} className="py-24 text-center">
                                                 <div className="flex flex-col items-center gap-3">
-                                                    <div className="w-8 h-8 rounded-full border-4 border-indigo-100 border-t-indigo-600 animate-spin" />
+                                                    <div className="w-8 h-8 rounded-full border-4 border-brand-100 border-t-brand-600 animate-spin" />
                                                     <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">Loading...</span>
                                                 </div>
                                             </td>
@@ -302,7 +302,7 @@ const AdminLogs: React.FC = () => {
                                                     <Database size={28} />
                                                     <p className="font-bold text-sm">No logs match your filters</p>
                                                     {hasActiveFilters && (
-                                                        <button onClick={clearFilters} className="text-xs text-indigo-600 font-bold hover:underline">Clear filters</button>
+                                                        <button onClick={clearFilters} className="text-xs text-brand-600 font-bold hover:underline">Clear filters</button>
                                                     )}
                                                 </div>
                                             </td>
@@ -316,7 +316,7 @@ const AdminLogs: React.FC = () => {
                                                     layout
                                                     initial={{ opacity: 0 }}
                                                     animate={{ opacity: 1 }}
-                                                    className={`group hover:bg-slate-50/80 transition-colors text-sm ${isExpanded ? 'bg-indigo-50/40' : ''}`}
+                                                    className={`group hover:bg-slate-50/80 transition-colors text-sm ${isExpanded ? 'bg-brand-50/40' : ''}`}
                                                 >
                                                     {/* Action */}
                                                     <td className="px-5 py-3">
@@ -375,7 +375,7 @@ const AdminLogs: React.FC = () => {
                                                     <td className="px-5 py-3 text-right">
                                                         <button
                                                             onClick={() => setExpandedId(isExpanded ? null : log._id)}
-                                                            className={`h-7 px-3 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${isExpanded ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-900 hover:text-white'}`}
+                                                            className={`h-7 px-3 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${isExpanded ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-900 hover:text-white'}`}
                                                         >
                                                             {isExpanded ? <ChevronUp size={12} /> : 'View'}
                                                         </button>
@@ -386,7 +386,7 @@ const AdminLogs: React.FC = () => {
                                                 <AnimatePresence>
                                                     {isExpanded && (
                                                         <tr>
-                                                            <td colSpan={6} className="p-0 border-none bg-indigo-50/30">
+                                                            <td colSpan={6} className="p-0 border-none bg-brand-50/30">
                                                                 <motion.div
                                                                     initial={{ height: 0, opacity: 0 }}
                                                                     animate={{ height: 'auto', opacity: 1 }}
@@ -396,16 +396,16 @@ const AdminLogs: React.FC = () => {
                                                                     <div className="mx-5 my-3 rounded-2xl bg-slate-950 border border-white/5 overflow-hidden">
                                                                         <div className="flex items-center justify-between px-5 py-3 border-b border-white/5">
                                                                             <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white/40">
-                                                                                <Activity size={12} className="text-indigo-400" />
+                                                                                <Activity size={12} className="text-brand-400" />
                                                                                 Action Payload — {log.action}
                                                                             </div>
                                                                             {log.resourceId && (
-                                                                                <span className="text-[10px] font-mono text-indigo-400 bg-white/5 px-3 py-1 rounded-full">
+                                                                                <span className="text-[10px] font-mono text-brand-400 bg-white/5 px-3 py-1 rounded-full">
                                                                                     REF: {log.resourceId}
                                                                                 </span>
                                                                             )}
                                                                         </div>
-                                                                        <pre className="text-xs font-mono text-indigo-100 leading-relaxed p-5 overflow-x-auto max-h-72">
+                                                                        <pre className="text-xs font-mono text-brand-100 leading-relaxed p-5 overflow-x-auto max-h-72">
                                                                             {JSON.stringify(log.details || {}, null, 2)}
                                                                         </pre>
                                                                     </div>
@@ -442,7 +442,7 @@ const AdminLogs: React.FC = () => {
                                     else page = currentPage - 3 + i;
                                     return (
                                         <button key={page} onClick={() => setCurrentPage(page)}
-                                            className={`h-8 w-8 rounded-lg text-xs font-black transition-all ${currentPage === page ? 'bg-indigo-600 text-white shadow-lg' : 'border border-slate-200 text-slate-500 hover:bg-slate-100'}`}>
+                                            className={`h-8 w-8 rounded-lg text-xs font-black transition-all ${currentPage === page ? 'bg-brand-600 text-white shadow-lg' : 'border border-slate-200 text-slate-500 hover:bg-slate-100'}`}>
                                             {page}
                                         </button>
                                     );

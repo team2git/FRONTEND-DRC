@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { motion } from 'framer-motion';
 import { Mail, Phone, Shield, MapPin, Edit2, Trash2, Eye, KeyRound } from 'lucide-react';
 import { Can } from '../auth/PermissionGuard';
@@ -38,10 +38,10 @@ const getStatusColor = (status: string) => {
 
 const getAccessLevelStyles = (level: string) => {
     const map: Record<string, string> = {
-        super_admin: 'from-purple-600 to-indigo-600 shadow-purple-500/20',
+        super_admin: 'from-accent-600 to-brand-600 shadow-accent-500/20',
         branch_admin: 'from-pink-600 to-rose-600 shadow-pink-500/20',
         manager: 'from-amber-500 to-orange-600 shadow-amber-500/20',
-        expert: 'from-blue-500 to-cyan-600 shadow-blue-500/20',
+        expert: 'from-brand-500 to-cyan-600 shadow-brand-500/20',
         team_leader: 'from-cyan-500 to-teal-600 shadow-cyan-500/20',
     };
     return map[level] || 'from-slate-500 to-slate-600 shadow-slate-500/20';

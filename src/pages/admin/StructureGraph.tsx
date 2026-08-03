@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import PageMeta from "../../components/common/PageMeta";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import { getOrganizations } from '../../api/organizationService';
@@ -102,8 +102,8 @@ const TreeNode = ({ node, level = 0, onTeamClick }: { node: TreeNodeType; level?
 
     const getTheme = (type: string) => {
         switch (type) {
-            case 'organization': return 'border-blue-200 bg-blue-50/50 text-blue-700 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-300';
-            case 'sector': return 'border-purple-200 bg-purple-50/50 text-purple-700 dark:border-purple-500/20 dark:bg-purple-500/10 dark:text-purple-300';
+            case 'organization': return 'border-brand-200 bg-brand-50/50 text-brand-700 dark:border-brand-500/20 dark:bg-brand-500/10 dark:text-brand-300';
+            case 'sector': return 'border-accent-200 bg-accent-50/50 text-accent-700 dark:border-accent-500/20 dark:bg-accent-500/10 dark:text-accent-300';
             case 'department': return 'border-emerald-200 bg-emerald-50/50 text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300';
             case 'team': return 'border-amber-200 bg-amber-50/50 text-amber-700 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300 hover:scale-[1.01]';
             default: return 'border-slate-200 bg-slate-50 text-slate-700 dark:border-white/10 dark:bg-white/5 dark:text-white';
@@ -166,7 +166,7 @@ const TreeNode = ({ node, level = 0, onTeamClick }: { node: TreeNodeType; level?
                     )}
 
                     {node.type === 'organization' && (
-                        <span className="ml-auto rounded-lg bg-blue-600/10 px-2 py-0.5 text-[10px] font-bold text-blue-600 dark:text-blue-400">
+                        <span className="ml-auto rounded-lg bg-brand-600/10 px-2 py-0.5 text-[10px] font-bold text-brand-600 dark:text-brand-400">
                             {node.data.type?.replace('_', ' ') || 'Sub'}
                         </span>
                     )}
@@ -252,15 +252,15 @@ const TeamDetailsModal = ({ team, onClose }: { team: Team | null; onClose: () =>
                             <div>
                                 <h4 className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">Team Leadership</h4>
                                 {team.teamLeader ? (
-                                    <div className="flex items-center gap-4 rounded-2xl border border-blue-100 bg-blue-50/50 p-4 dark:border-blue-500/20 dark:bg-blue-500/10">
-                                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-600 text-white font-bold">
+                                    <div className="flex items-center gap-4 rounded-2xl border border-brand-100 bg-brand-50/50 p-4 dark:border-brand-500/20 dark:bg-brand-500/10">
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-600 text-white font-bold">
                                             {team.teamLeader.fullname?.charAt(0)}
                                         </div>
                                         <div>
                                             <p className="font-bold text-slate-900 dark:text-white">{team.teamLeader.fullname}</p>
                                             <p className="text-sm text-slate-500 dark:text-white/40">{team.teamLeader.email}</p>
                                         </div>
-                                        <div className="ml-auto rounded-lg bg-blue-600 px-3 py-1 text-[10px] font-bold text-white uppercase tracking-wider">
+                                        <div className="ml-auto rounded-lg bg-brand-600 px-3 py-1 text-[10px] font-bold text-white uppercase tracking-wider">
                                             Leader
                                         </div>
                                     </div>
@@ -460,7 +460,7 @@ export default function StructureGraph() {
                                 Interactive visual map of the entire organizational hierarchy, departments, and tactical teams.
                             </p>
                         </div>
-                        <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-blue-600/10 text-blue-600 dark:bg-primary/10 dark:text-primary">
+                        <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-brand-600/10 text-brand-600 dark:bg-primary/10 dark:text-primary">
                             <Layers size={28} />
                         </div>
                     </div>
@@ -468,9 +468,9 @@ export default function StructureGraph() {
                     {loading ? (
                         <div className="flex h-80 items-center justify-center">
                             <div className="relative">
-                                <div className="h-20 w-20 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600 dark:border-white/10 dark:border-t-primary" />
+                                <div className="h-20 w-20 animate-spin rounded-full border-4 border-slate-200 border-t-brand-600 dark:border-white/10 dark:border-t-primary" />
                                 <div className="absolute inset-0 flex items-center justify-center">
-                                    <div className="h-10 w-10 animate-pulse rounded-full bg-blue-600/20 dark:bg-primary/20" />
+                                    <div className="h-10 w-10 animate-pulse rounded-full bg-brand-600/20 dark:bg-primary/20" />
                                 </div>
                             </div>
                         </div>

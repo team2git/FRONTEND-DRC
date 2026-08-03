@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { motion } from 'framer-motion';
 import { Shield, Edit2, Trash2, Eye, Key } from 'lucide-react';
 import { Can } from '../auth/PermissionGuard';
@@ -30,7 +30,7 @@ export const RoleCard: React.FC<RoleCardProps> = ({ role, onEdit, onView, onDele
             <div className="relative flex flex-col gap-5">
                 {/* Header: Icon & Actions */}
                 <div className="flex items-start justify-between">
-                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/20">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-brand-600 text-white shadow-lg shadow-brand-500/20">
                         <Shield size={32} />
                     </div>
 

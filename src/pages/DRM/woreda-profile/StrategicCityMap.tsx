@@ -1,36 +1,19 @@
-﻿import { useState, useEffect, useRef, useMemo } from 'react';
-import { ArrowLeft, Map as MapIcon, Loader2, Activity, Info } from 'lucide-react';
-import { getWoredaProfiles, type WoredaProfile as WProfile } from '../../api/woredaProfileService';
+﻿import React, { useEffect, useRef, useMemo, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { MapPin, Activity, Info } from 'lucide-react';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import { type WoredaProfile as WProfile } from '../../../api/woredaProfileService';
 import {
     addisAbabaGeoData, ADDIS_ABABA_CENTER, ADDIS_ABABA_ZOOM, ADDIS_ABABA_BOUNDS,
     RISK_LEVELS, getRiskLevel, getRiskColor
-} from './addisAbabaGeoData';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+} from '../addisAbabaGeoData';
 
-export default function WoredaGeneralMap() {
-    const mapContainerRef = useRef<HTMLDivElement>(null);
+export const StrategicCityMap: React.FC<{ profiles: WProfile[] }> = ({ profiles }) => {
     const mapRef = useRef<L.Map | null>(null);
     const geoLayerRef = useRef<L.GeoJSON | null>(null);
-    
-    const [profiles, setProfiles] = useState<WProfile[]>([]);
-    const [loading, setLoading] = useState(true);
-
-    // Fetch all profiles on mount
-    useEffect(() => {
-        const fetchProfiles = async () => {
-            try {
-                setLoading(true);
-                const res = await getWoredaProfiles();
-                setProfiles(res);
-            } catch (err) {
-                console.error('Failed to load profiles for General Risk Map', err);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchProfiles();
-    }, []);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [hoveredSubCity, setHoveredSubCity] = useState<string | null>(null);
 
     // Build a lookup: subcity name -> risk data from profiles
     const subcityRiskMap = useMemo(() => {
@@ -51,6 +34,7 @@ export default function WoredaGeneralMap() {
                     profiles: 1
                 };
             } else {
+                // Average scores across multiple profiles for same sub-city
                 const existing = map[name];
                 const total = existing.profiles + 1;
                 existing.risk = ((existing.risk * existing.profiles) + risk) / total;
@@ -65,32 +49,10 @@ export default function WoredaGeneralMap() {
         return map;
     }, [profiles]);
 
-    // Compute overall city stats
-    const cityStats = useMemo(() => {
-        const names = Object.keys(subcityRiskMap);
-        if (names.length === 0) return { assessed: 0, avgRisk: 0, highRisk: 0, totalPop: 0 };
-        const totalRisk = names.reduce((sum, n) => sum + subcityRiskMap[n].risk, 0);
-        const highRisk = names.filter(n => subcityRiskMap[n].risk >= 7).length;
-        const totalPop = names.reduce((sum, n) => sum + subcityRiskMap[n].population, 0);
-        return {
-            assessed: names.length,
-            avgRisk: totalRisk / names.length,
-            highRisk,
-            totalPop
-        };
-    }, [subcityRiskMap]);
-
-    // Initialize Map and Render Layers
     useEffect(() => {
-        if (!mapContainerRef.current || loading) return;
+        if (!containerRef.current || mapRef.current) return;
 
-        // Cleanup existing map if present
-        if (mapRef.current) {
-            mapRef.current.remove();
-            mapRef.current = null;
-        }
-
-        const map = L.map(mapContainerRef.current, {
+        const map = L.map(containerRef.current, {
             zoomControl: false,
             attributionControl: false,
             minZoom: 11,
@@ -99,12 +61,15 @@ export default function WoredaGeneralMap() {
             maxBoundsViscosity: 1.0
         }).setView(ADDIS_ABABA_CENTER, ADDIS_ABABA_ZOOM);
 
-        L.tileLayer('https://{s.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        // Light-themed tile layer for better contrast with colored polygons
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
+        // Add zoom control to bottom-left
         L.control.zoom({ position: 'bottomleft' }).addTo(map);
 
+        // Create GeoJSON layer with choropleth coloring
         const geoLayer = L.geoJSON(addisAbabaGeoData as any, {
             style: (feature) => {
                 const name = (feature as any)?.properties?.name || '';
@@ -118,7 +83,7 @@ export default function WoredaGeneralMap() {
                     opacity: 1,
                     color: '#ffffff',
                     dashArray: '',
-                    fillOpacity: 0.75
+                    fillOpacity: 0.7
                 };
             },
             onEachFeature: (feature, layer) => {
@@ -184,7 +149,7 @@ export default function WoredaGeneralMap() {
                     offset: [0, -10]
                 });
 
-                // Add subcity label markers
+                // Sub-city name labels at center
                 const bounds = (layer as any).getBounds?.();
                 if (bounds) {
                     const center = bounds.getCenter();
@@ -209,19 +174,21 @@ export default function WoredaGeneralMap() {
                     }).addTo(map);
                 }
 
-                // Mouse handlers
+                // Hover effects
                 layer.on({
                     mouseover: (e) => {
                         const target = e.target;
                         target.setStyle({
-                            weight: 3.5,
+                            weight: 3,
                             color: '#1e293b',
                             fillOpacity: 0.9
                         });
                         target.bringToFront();
+                        setHoveredSubCity(name);
                     },
                     mouseout: (e) => {
                         geoLayer.resetStyle(e.target);
+                        setHoveredSubCity(null);
                     }
                 });
             }
@@ -231,35 +198,42 @@ export default function WoredaGeneralMap() {
         mapRef.current = map;
 
         return () => {
-            if (mapRef.current) {
-                mapRef.current.remove();
-                mapRef.current = null;
-            }
+            map.remove();
+            mapRef.current = null;
             geoLayerRef.current = null;
         };
-    }, [profiles, subcityRiskMap, loading]);
+    }, [profiles, subcityRiskMap]);
+
+    // Compute overall city stats
+    const cityStats = useMemo(() => {
+        const names = Object.keys(subcityRiskMap);
+        if (names.length === 0) return { assessed: 0, avgRisk: 0, highRisk: 0, totalPop: 0 };
+        const totalRisk = names.reduce((sum, n) => sum + subcityRiskMap[n].risk, 0);
+        const highRisk = names.filter(n => subcityRiskMap[n].risk >= 7).length;
+        const totalPop = names.reduce((sum, n) => sum + subcityRiskMap[n].population, 0);
+        return {
+            assessed: names.length,
+            avgRisk: totalRisk / names.length,
+            highRisk,
+            totalPop
+        };
+    }, [subcityRiskMap]);
 
     return (
-        <div className="h-screen w-screen flex flex-col bg-slate-950 font-outfit text-slate-100 overflow-hidden relative">
-            {/* Header bar */}
-            <header className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 px-8 py-4 flex items-center justify-between border-b border-white/5 z-30">
+        <div className="relative w-full rounded-[2.5rem] overflow-hidden border border-slate-200 shadow-2xl bg-white">
+            {/* Map Header */}
+            <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 px-8 py-5 flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                    <button onClick={() => window.close()} className="flex items-center gap-2 text-brand-400 hover:text-brand-300 font-black text-[10px] uppercase tracking-wider transition-colors cursor-pointer bg-white/5 border border-white/10 px-4 py-2.5 rounded-xl">
-                        <ArrowLeft size={14} /> Close Map
-                    </button>
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-2xl bg-brand-50/10 flex items-center justify-center text-brand-400 border border-brand-500/20 shadow-sm">
-                            <MapIcon size={20} />
-                        </div>
-                        <div>
-                            <h2 className="text-base font-black tracking-tight text-white">Addis Ababa General Risk Map</h2>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sub-City DRM Risk Distribution Choropleth</p>
-                        </div>
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-500 to-accent-600 flex items-center justify-center shadow-lg shadow-brand-500/20">
+                        <MapPin size={22} className="text-white" />
+                    </div>
+                    <div>
+                        <h4 className="text-base font-black text-white tracking-tight">Addis Ababa Risk Map</h4>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Sub-City Choropleth &middot; Disaster Risk Distribution</p>
                     </div>
                 </div>
-
-                <div className="flex items-center gap-4">
-                    <div className="bg-white/5 border border-white/10 rounded-2xl px-5 py-2 flex items-center gap-3">
+                <div className="flex items-center gap-3">
+                    <div className="bg-white/5 border border-white/10 rounded-2xl px-4 py-2 flex items-center gap-3">
                         <div className="flex items-center gap-2">
                             <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                             <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">{cityStats.assessed} Sub-cities</span>
@@ -268,26 +242,16 @@ export default function WoredaGeneralMap() {
                         <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Avg Risk: <span className={`${cityStats.avgRisk >= 7 ? 'text-rose-400' : cityStats.avgRisk >= 4 ? 'text-amber-400' : 'text-emerald-400'}`}>{cityStats.avgRisk.toFixed(1)}</span></span>
                     </div>
                 </div>
-            </header>
+            </div>
 
-            {/* Map Area */}
-            <div className="flex-1 relative">
-                {loading && (
-                    <div className="absolute inset-0 z-[500] bg-slate-900/80 backdrop-blur-sm flex items-center justify-center">
-                        <div className="flex flex-col items-center gap-4">
-                            <Loader2 className="w-12 h-12 text-brand-500 animate-spin" />
-                            <p className="text-sm font-bold text-slate-300">Loading General DRM Layer…</p>
-                        </div>
-                    </div>
-                )}
-
-                {/* Map Div */}
-                <div ref={mapContainerRef} className="w-full h-full" />
+            {/* Map Container */}
+            <div className="relative h-[550px]">
+                <div ref={containerRef} className="w-full h-full" />
 
                 {/* Risk Legend - Bottom Right */}
-                <div className="absolute bottom-6 right-6 z-[1000] bg-slate-900/90 backdrop-blur-xl p-5 rounded-3xl border border-white/10 shadow-2xl max-w-[220px]">
-                    <p className="text-[9px] font-black uppercase tracking-[0.2em] text-white mb-4 flex items-center gap-2">
-                        <Activity size={12} className="text-brand-400" />
+                <div className="absolute bottom-6 right-6 z-[1000] bg-white/95 backdrop-blur-xl p-5 rounded-3xl border border-slate-200 shadow-2xl max-w-[200px]">
+                    <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-900 mb-4 flex items-center gap-2">
+                        <Activity size={12} className="text-brand-600" />
                         Risk Classification
                     </p>
                     <div className="space-y-1.5">
@@ -298,31 +262,82 @@ export default function WoredaGeneralMap() {
                                     style={{ backgroundColor: level.color }}
                                 />
                                 <div className="flex items-center justify-between flex-1 gap-2">
-                                    <span className="text-[10px] font-black text-slate-300 uppercase tracking-tight">{level.label}</span>
+                                    <span className="text-[10px] font-black text-slate-700 uppercase tracking-tight">{level.label}</span>
                                     <span className="text-[9px] font-bold text-slate-400">{level.min}&ndash;{level.max}</span>
                                 </div>
                             </div>
                         ))}
                     </div>
-                    <div className="mt-4 pt-3 border-t border-white/5">
+                    <div className="mt-4 pt-3 border-t border-slate-100">
                         <div className="flex items-center gap-2">
-                            <div className="w-5 h-3 rounded-sm bg-slate-600 flex-shrink-0" />
-                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">No Data Available</span>
+                            <div className="w-5 h-3 rounded-sm bg-slate-300 flex-shrink-0" />
+                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">No Data</span>
                         </div>
+                    </div>
+                </div>
+
+                {/* Hovered Sub-city Quick Info - Top Right */}
+                <AnimatePresence>
+                    {hoveredSubCity && subcityRiskMap[hoveredSubCity] && (
+                        <motion.div
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: 20 }}
+                            className="absolute top-6 right-6 z-[1000] bg-slate-900/95 backdrop-blur-xl p-5 rounded-3xl border border-white/10 shadow-2xl min-w-[220px]"
+                        >
+                            <div className="flex items-center gap-3 mb-4">
+                                <div
+                                    className="w-3 h-3 rounded-full flex-shrink-0"
+                                    style={{ backgroundColor: getRiskColor(subcityRiskMap[hoveredSubCity].risk) }}
+                                />
+                                <h5 className="text-sm font-black text-white tracking-tight">{hoveredSubCity}</h5>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                                <div className="bg-white/5 rounded-xl p-2.5 border border-white/5">
+                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Risk</p>
+                                    <p className="text-lg font-black" style={{ color: getRiskColor(subcityRiskMap[hoveredSubCity].risk) }}>
+                                        {subcityRiskMap[hoveredSubCity].risk.toFixed(1)}
+                                    </p>
+                                </div>
+                                <div className="bg-white/5 rounded-xl p-2.5 border border-white/5">
+                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Pop</p>
+                                    <p className="text-lg font-black text-white">
+                                        {subcityRiskMap[hoveredSubCity].population.toLocaleString()}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="mt-3 flex items-center gap-1.5">
+                                <span className="text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-lg"
+                                    style={{
+                                        backgroundColor: getRiskColor(subcityRiskMap[hoveredSubCity].risk) + '22',
+                                        color: getRiskColor(subcityRiskMap[hoveredSubCity].risk)
+                                    }}
+                                >
+                                    {getRiskLevel(subcityRiskMap[hoveredSubCity].risk).label}
+                                </span>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* Map Attribution */}
+                <div className="absolute bottom-6 left-6 z-[1000]">
+                    <div className="bg-white/80 backdrop-blur-sm rounded-2xl px-4 py-2 border border-slate-100">
+                        <p className="text-[9px] font-bold text-slate-400">Addis Ababa City Administration &middot; PDRM</p>
                     </div>
                 </div>
             </div>
 
-            {/* Footer summary bar */}
-            <footer className="bg-slate-900 border-t border-white/5 px-8 py-4 flex items-center justify-between z-30">
+            {/* Bottom Summary Bar */}
+            <div className="bg-gradient-to-r from-slate-50 to-white border-t border-slate-100 px-8 py-4 flex items-center justify-between">
                 <div className="flex items-center gap-6">
                     {[
-                        { label: 'Assessed Population', value: cityStats.totalPop.toLocaleString(), color: 'text-brand-400' },
-                        { label: 'High Risk Zones', value: `${cityStats.highRisk} sub-cities`, color: 'text-rose-400' },
-                        { label: 'Avg DRM Risk Score', value: cityStats.avgRisk.toFixed(1), color: cityStats.avgRisk >= 7 ? 'text-rose-400' : cityStats.avgRisk >= 4 ? 'text-amber-400' : 'text-emerald-400' }
+                        { label: 'Total Population', value: cityStats.totalPop.toLocaleString(), color: 'text-brand-600' },
+                        { label: 'High Risk Areas', value: `${cityStats.highRisk} sub-cities`, color: 'text-rose-600' },
+                        { label: 'Avg Risk Score', value: cityStats.avgRisk.toFixed(1), color: cityStats.avgRisk >= 7 ? 'text-rose-600' : cityStats.avgRisk >= 4 ? 'text-amber-600' : 'text-emerald-600' }
                     ].map((item, i) => (
                         <div key={i} className="flex items-center gap-3">
-                            {i > 0 && <div className="w-px h-6 bg-white/10" />}
+                            {i > 0 && <div className="w-px h-6 bg-slate-200" />}
                             <div>
                                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.15em]">{item.label}</p>
                                 <p className={`text-sm font-black ${item.color}`}>{item.value}</p>
@@ -332,9 +347,10 @@ export default function WoredaGeneralMap() {
                 </div>
                 <div className="flex items-center gap-2 text-[9px] font-bold text-slate-400">
                     <Info size={12} />
-                    <span>Click on any sub-city boundary on the map for detailed metrics.</span>
+                    <span>Hover over sub-cities for detailed risk breakdown</span>
                 </div>
-            </footer>
+            </div>
         </div>
     );
-}
+};
+export default StrategicCityMap;

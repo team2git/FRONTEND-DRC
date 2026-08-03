@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { 
     Mail, Inbox, Send, Edit3, Trash2, Search, RefreshCw, 
     Plus, AlertCircle, Clock, 
@@ -119,7 +119,7 @@ export default function EmailLogs() {
                     </button>
                     <div className="min-w-0">
                         <div className="flex items-center gap-3 mb-1">
-                            <span className="px-3 py-1 bg-indigo-50 text-[9px] sm:text-[10px] font-black text-indigo-600 rounded-lg uppercase tracking-widest border border-indigo-100 truncate">
+                            <span className="px-3 py-1 bg-brand-50 text-[9px] sm:text-[10px] font-black text-brand-600 rounded-lg uppercase tracking-widest border border-brand-100 truncate">
                                 Communication Hub • Version 1
                             </span>
                         </div>
@@ -129,7 +129,7 @@ export default function EmailLogs() {
                 <div className="flex items-center gap-3 w-full md:w-auto">
                     <button 
                          onClick={() => setShowCompose(true)}
-                         className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 sm:py-3.5 bg-indigo-600 text-white rounded-xl sm:rounded-2xl font-bold text-xs sm:text-sm shadow-xl shadow-indigo-200 hover:scale-[1.02] transition-all"
+                         className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 sm:py-3.5 bg-brand-600 text-white rounded-xl sm:rounded-2xl font-bold text-xs sm:text-sm shadow-xl shadow-brand-200 hover:scale-[1.02] transition-all"
                     >
                         <Plus className="h-4 w-4" />
                         New Email
@@ -169,7 +169,7 @@ export default function EmailLogs() {
                         placeholder="Filter by recipient or subject..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-14 pr-6 py-3.5 sm:py-4 bg-gray-50 border-none rounded-xl sm:rounded-2xl outline-none focus:ring-2 focus:ring-indigo-100 transition-all font-medium text-sm"
+                        className="w-full pl-14 pr-6 py-3.5 sm:py-4 bg-gray-50 border-none rounded-xl sm:rounded-2xl outline-none focus:ring-2 focus:ring-brand-100 transition-all font-medium text-sm"
                     />
                 </div>
                 
@@ -181,7 +181,7 @@ export default function EmailLogs() {
                             onClick={() => setActiveFolder(f.id as any)}
                             className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${
                                 activeFolder === f.id 
-                                ? 'bg-white text-indigo-600 shadow-sm border border-gray-100' 
+                                ? 'bg-white text-brand-600 shadow-sm border border-gray-100' 
                                 : 'text-gray-400 hover:text-gray-600'
                             }`}
                         >
@@ -231,8 +231,8 @@ export default function EmailLogs() {
                                     </td>
                                     <td className="px-8 py-6">
                                         <div className="flex items-center gap-3">
-                                            <div className="h-10 w-10 flex items-center justify-center bg-indigo-50 rounded-xl">
-                                                <User className="h-5 w-5 text-indigo-400" />
+                                            <div className="h-10 w-10 flex items-center justify-center bg-brand-50 rounded-xl">
+                                                <User className="h-5 w-5 text-brand-400" />
                                             </div>
                                             <div>
                                                 <p className="text-sm font-black text-gray-900 leading-none mb-1">{log.recipient}</p>
@@ -292,8 +292,8 @@ export default function EmailLogs() {
                 <div className="bg-white rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-10 border border-gray-100 shadow-4xl overflow-hidden relative">
                     <div className="flex items-center justify-between mb-8">
                         <div className="flex items-center gap-4">
-                            <div className="h-12 w-12 flex items-center justify-center bg-indigo-50 rounded-2xl">
-                                <Mail className="h-6 w-6 text-indigo-500" />
+                            <div className="h-12 w-12 flex items-center justify-center bg-brand-50 rounded-2xl">
+                                <Mail className="h-6 w-6 text-brand-500" />
                             </div>
                             <div>
                                 <h4 className="text-xl font-black text-gray-900 leading-none">Signal Decryption</h4>
@@ -335,7 +335,7 @@ export default function EmailLogs() {
                             <div className="flex items-center justify-end gap-4 border-t border-gray-100 pt-8">
                                 <Button variant="outline" onClick={() => setSelectedLog(null)} className="rounded-2xl px-8">Dismiss</Button>
                                 {selectedLog!.status === 'failed' && (
-                                    <Button onClick={() => handleResend(selectedLog!._id)} className="rounded-2xl px-12 shadow-xl shadow-indigo-100">Re-transmit Signal</Button>
+                                    <Button onClick={() => handleResend(selectedLog!._id)} className="rounded-2xl px-12 shadow-xl shadow-brand-100">Re-transmit Signal</Button>
                                 )}
                             </div>
                         </div>
@@ -349,7 +349,7 @@ export default function EmailLogs() {
                     <div className="flex items-center justify-between mb-10">
                         <div>
                             <h4 className="text-3xl font-black text-gray-900 tracking-tighter">New Outreach</h4>
-                            <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mt-1">Secure Protocol Initialization</p>
+                            <p className="text-[10px] font-black text-brand-500 uppercase tracking-widest mt-1">Secure Protocol Initialization</p>
                         </div>
                         <button onClick={() => setShowCompose(false)} className="p-2 hover:bg-gray-100 rounded-full transition-all">
                             <X className="h-6 w-6 text-gray-400" />
@@ -364,7 +364,7 @@ export default function EmailLogs() {
                                 placeholder="Target Recipient Signal"
                                 value={composeData.to}
                                 onChange={(e) => setComposeData({...composeData, to: e.target.value})}
-                                className="w-full pl-16 pr-6 py-5 bg-gray-50 border-none rounded-2xl outline-none focus:ring-4 focus:ring-indigo-50 transition-all font-bold text-gray-700"
+                                className="w-full pl-16 pr-6 py-5 bg-gray-50 border-none rounded-2xl outline-none focus:ring-4 focus:ring-brand-50 transition-all font-bold text-gray-700"
                             />
                         </div>
                         <div className="relative">
@@ -374,7 +374,7 @@ export default function EmailLogs() {
                                 placeholder="Mission Header / Subject"
                                 value={composeData.subject}
                                 onChange={(e) => setComposeData({...composeData, subject: e.target.value})}
-                                className="w-full pl-16 pr-6 py-5 bg-gray-50 border-none rounded-2xl outline-none focus:ring-4 focus:ring-indigo-50 transition-all font-bold text-gray-700"
+                                className="w-full pl-16 pr-6 py-5 bg-gray-50 border-none rounded-2xl outline-none focus:ring-4 focus:ring-brand-50 transition-all font-bold text-gray-700"
                             />
                         </div>
                         <textarea 
@@ -382,20 +382,20 @@ export default function EmailLogs() {
                             placeholder="Message Buffer Payload..."
                             value={composeData.body}
                             onChange={(e) => setComposeData({...composeData, body: e.target.value})}
-                            className="w-full p-8 bg-gray-50 border-none rounded-[2rem] outline-none focus:ring-4 focus:ring-indigo-50 transition-all font-bold text-gray-700 resize-none h-60 shadow-inner"
+                            className="w-full p-8 bg-gray-50 border-none rounded-[2rem] outline-none focus:ring-4 focus:ring-brand-50 transition-all font-bold text-gray-700 resize-none h-60 shadow-inner"
                         />
 
                         <div className="flex items-center justify-end gap-4 pt-6">
                             <button 
                                 onClick={() => handleComposeAction('draft')}
-                                className="text-xs font-black uppercase text-gray-400 hover:text-indigo-600 tracking-widest transition-colors"
+                                className="text-xs font-black uppercase text-gray-400 hover:text-brand-600 tracking-widest transition-colors"
                             >
                                 Stage as Draft
                             </button>
                             <Button 
                                 onClick={() => handleComposeAction('send')}
                                 disabled={sending}
-                                className="rounded-[1.5rem] px-16 py-4 shadow-2xl shadow-indigo-100 font-black"
+                                className="rounded-[1.5rem] px-16 py-4 shadow-2xl shadow-brand-100 font-black"
                             >
                                 {sending ? 'Transmitting...' : 'Transmit Packet'}
                             </Button>

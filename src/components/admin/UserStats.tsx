@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { motion } from 'framer-motion';
 import { Users, UserCheck, UserPlus, UserX } from 'lucide-react';
 
@@ -52,7 +52,7 @@ export const UserStats: React.FC<{ users: any[] }> = ({ users }) => {
             title: 'Total Users',
             value: total,
             icon: <Users size={24} />,
-            color: 'from-blue-600 to-indigo-600 shadow-blue-500/20',
+            color: 'from-brand-600 to-brand-600 shadow-brand-500/20',
             description: 'System wide'
         },
         {

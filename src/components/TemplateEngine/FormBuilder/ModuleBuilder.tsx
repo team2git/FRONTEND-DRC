@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Plus, Database, Info } from 'lucide-react';
 import { useFormBuilder, Question } from '../../../context/FormBuilderContext';
 import { clsx } from 'clsx';
@@ -30,20 +30,20 @@ const QuestionCard: React.FC<{ question: Question }> = ({ question }) => {
             onClick={() => dispatch({ type: 'SELECT_QUESTION', questionId: question.questionId })}
             className={clsx(
                 "group relative bg-white border-2 rounded-2xl p-5 cursor-pointer transition-all hover:shadow-lg",
-                isActive ? "border-blue-600 ring-4 ring-blue-50 shadow-xl scale-[1.02]" : "border-gray-100 hover:border-blue-200"
+                isActive ? "border-brand-600 ring-4 ring-brand-50 shadow-xl scale-[1.02]" : "border-gray-100 hover:border-brand-200"
             )}
         >
             <div className="flex gap-4">
                 <div className={clsx(
                     "w-12 h-12 rounded-xl flex items-center justify-center transition-colors shadow-sm",
-                    isActive ? "bg-blue-600 text-white" : "bg-gray-50 text-gray-400 group-hover:bg-blue-50 group-hover:text-blue-600"
+                    isActive ? "bg-brand-600 text-white" : "bg-gray-50 text-gray-400 group-hover:bg-brand-50 group-hover:text-brand-600"
                 )}>
                     <Icon size={24} />
                 </div>
 
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded uppercase tracking-widest border border-blue-100">
+                        <span className="text-[10px] font-black text-brand-600 bg-brand-50 px-2 py-0.5 rounded uppercase tracking-widest border border-brand-100">
                             {question.questionCode}
                         </span>
                         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
@@ -81,14 +81,14 @@ const QuestionCard: React.FC<{ question: Question }> = ({ question }) => {
                                             <div className={clsx(
                                                 "w-5 h-5 border-2 flex items-center justify-center transition-all",
                                                 question.answerType === 'radio' ? "rounded-full" : "rounded-md",
-                                                isSelected ? "border-blue-500 shadow-[0_0_0_4px_rgba(59,130,246,0.2)] bg-blue-50" : "border-gray-300 bg-white"
+                                                isSelected ? "border-brand-500 shadow-[0_0_0_4px_rgba(20,63,132,0.2)] bg-brand-50" : "border-gray-300 bg-white"
                                             )}>
-                                                {isSelected && <div className={clsx("bg-blue-600", question.answerType === 'radio' ? "w-2.5 h-2.5 rounded-full" : "w-3 h-3 rounded-[2px]")} />}
+                                                {isSelected && <div className={clsx("bg-brand-600", question.answerType === 'radio' ? "w-2.5 h-2.5 rounded-full" : "w-3 h-3 rounded-[2px]")} />}
                                             </div>
                                             <span className="text-sm font-medium text-gray-700 tracking-tight">{opt.label}</span>
 
                                             {opt.hasAdditionalInput && isSelected && (
-                                                <div className="flex-1 ml-4 h-8 bg-white border-b-2 border-dashed border-blue-200 rounded-t-md px-3 flex items-center shadow-[0_4px_10px_rgba(0,0,0,0.02)]">
+                                                <div className="flex-1 ml-4 h-8 bg-white border-b-2 border-dashed border-brand-200 rounded-t-md px-3 flex items-center shadow-[0_4px_10px_rgba(0,0,0,0.02)]">
                                                     <span className="text-[10px] text-gray-400 font-bold italic uppercase">{opt.additionalInput?.label || 'Please specify'}</span>
                                                 </div>
                                             )}
@@ -158,7 +158,7 @@ const QuestionCard: React.FC<{ question: Question }> = ({ question }) => {
                                     ))}
                                 </div>
                                 <div className="mt-4 flex justify-between items-center px-1">
-                                    <div className="text-[10px] font-black text-blue-600 uppercase tracking-widest">+ Add New Row</div>
+                                    <div className="text-[10px] font-black text-brand-600 uppercase tracking-widest">+ Add New Row</div>
                                     <div className="text-[10px] font-black text-gray-300 uppercase underline tracking-widest italic">Dynamic Table</div>
                                 </div>
                             </div>
@@ -198,7 +198,7 @@ const ModuleBuilder: React.FC = () => {
 
                         <button
                             onClick={() => dispatch({ type: 'OPEN_TYPE_SELECTOR', moduleId: module.moduleId })}
-                            className="mt-4 flex flex-col items-center justify-center p-8 rounded-3xl border-4 border-dashed border-gray-100 text-gray-300 hover:border-blue-200 hover:bg-blue-50/50 hover:text-blue-400 transition-all group scale-100 active:scale-95"
+                            className="mt-4 flex flex-col items-center justify-center p-8 rounded-3xl border-4 border-dashed border-gray-100 text-gray-300 hover:border-brand-200 hover:bg-brand-50/50 hover:text-brand-400 transition-all group scale-100 active:scale-95"
                         >
                             <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center group-hover:bg-white group-hover:shadow-lg transition-all mb-4">
                                 <Plus size={24} />

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import api from '@/api/axios';
 import {
     Search, Filter, Plus, MoreVertical,
@@ -33,7 +33,7 @@ const PreviewModal: React.FC<{ template: any; onClose: () => void }> = ({ templa
                 <div className="flex-1 overflow-y-auto p-6 space-y-6">
                     {template.modules.map((mod: any, mIdx: number) => (
                         <div key={mIdx} className="space-y-4">
-                            <div className="bg-white rounded-2xl p-6 border-t-4 border-blue-600 shadow-sm">
+                            <div className="bg-white rounded-2xl p-6 border-t-4 border-brand-600 shadow-sm">
                                 <h3 className="text-2xl font-bold text-gray-900">{mod.title}</h3>
                                 {mod.description && <p className="text-sm text-gray-500 mt-2">{mod.description}</p>}
                             </div>
@@ -46,7 +46,7 @@ const PreviewModal: React.FC<{ template: any; onClose: () => void }> = ({ templa
                                     {sec.fields.map((field: any, fIdx: number) => (
                                         <div key={fIdx} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
                                             <p className="text-sm font-semibold text-gray-800 mb-4 flex items-start gap-2">
-                                                <span className="text-blue-500 font-black">{field.questionCode}</span>
+                                                <span className="text-brand-500 font-black">{field.questionCode}</span>
                                                 {field.label}
                                                 {field.required && <span className="text-red-500">*</span>}
                                             </p>
@@ -136,7 +136,7 @@ const TemplateCard: React.FC<{
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl hover:border-blue-200 transition-all duration-300 group flex flex-col"
+            className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl hover:border-brand-200 transition-all duration-300 group flex flex-col"
         >
             {/* Top color strip */}
             <div className={`h-1.5 w-full ${template.status === 'Published' ? 'bg-gradient-to-r from-green-400 to-emerald-500' : template.status === 'Draft' ? 'bg-gradient-to-r from-amber-400 to-orange-500' : 'bg-gray-200'}`} />
@@ -152,7 +152,7 @@ const TemplateCard: React.FC<{
                             <Can resource="FormResponse" action="create">
                                 <button
                                     onClick={(e) => { e.stopPropagation(); window.open(`/responses/${template._id}`, '_blank'); }}
-                                    className="flex items-center justify-center w-8 h-8 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 group/btn"
+                                    className="flex items-center justify-center w-8 h-8 bg-brand-600 text-white rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-100 group/btn"
                                     title="Start Data Entry"
                                 >
                                     <LayoutDashboard size={14} className="group-hover/btn:scale-110 transition-transform" />
@@ -164,7 +164,7 @@ const TemplateCard: React.FC<{
                         <Can resource="Template" action="update">
                             <button
                                 onClick={() => onEdit(template._id)}
-                                className="p-1.5 rounded-lg text-gray-300 hover:text-blue-600 hover:bg-blue-50 transition-all opacity-0 group-hover:opacity-100"
+                                className="p-1.5 rounded-lg text-gray-300 hover:text-brand-600 hover:bg-brand-50 transition-all opacity-0 group-hover:opacity-100"
                                 title="Edit template"
                             >
                                 <MoreVertical size={18} />
@@ -184,7 +184,7 @@ const TemplateCard: React.FC<{
                         <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Modules</p>
                     </div>
                     <div className="text-center border-x border-gray-100">
-                        <p className="text-lg font-black text-blue-600">{fields}</p>
+                        <p className="text-lg font-black text-brand-600">{fields}</p>
                         <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Fields</p>
                     </div>
                     <div className="text-center">
@@ -206,7 +206,7 @@ const TemplateCard: React.FC<{
                     <div className="flex gap-0.5">
                         <button
                             onClick={() => onPreview(template)}
-                            className="p-2 hover:bg-white rounded-lg text-gray-400 hover:text-blue-600 transition-all border border-transparent hover:border-blue-100"
+                            className="p-2 hover:bg-white rounded-lg text-gray-400 hover:text-brand-600 transition-all border border-transparent hover:border-brand-100"
                             title="Preview"
                         >
                             <Eye size={16} />
@@ -281,7 +281,7 @@ const TemplateCard: React.FC<{
                                     <Can resource="Template" action="update">
                                         <button
                                             onClick={() => onEdit(template._id)}
-                                            className="p-2 hover:bg-white rounded-lg text-gray-400 hover:text-indigo-600 transition-all border border-transparent hover:border-indigo-100"
+                                            className="p-2 hover:bg-white rounded-lg text-gray-400 hover:text-brand-600 transition-all border border-transparent hover:border-brand-100"
                                             title="Edit / Update"
                                         >
                                             <Edit3 size={16} />
@@ -450,7 +450,7 @@ const TemplateLibrary: React.FC<TemplateLibraryProps> = ({ mode = 'admin' }) => 
                         <Can resource="Template" action="create">
                             <button
                                 onClick={() => setShowImportModal(true)}
-                                className="flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 hover:border-blue-300 shadow-sm transition-all"
+                                className="flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-brand-600 bg-brand-50 hover:bg-brand-100 border border-brand-200 hover:border-brand-300 shadow-sm transition-all"
                             >
                                 <Upload size={18} />
                                 Import from Word
@@ -460,7 +460,7 @@ const TemplateLibrary: React.FC<TemplateLibraryProps> = ({ mode = 'admin' }) => 
                         <Can resource="Template" action="create">
                             <button
                                 onClick={() => navigate('/admin/form-builder')}
-                                className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-6 py-3 rounded-xl font-bold hover:from-blue-700 hover:to-indigo-800 shadow-xl shadow-blue-200 transition-all"
+                                className="flex items-center gap-2 bg-gradient-to-r from-brand-600 to-brand-700 text-white px-6 py-3 rounded-xl font-bold hover:from-brand-700 hover:to-brand-800 shadow-xl shadow-brand-200 transition-all"
                             >
                                 <Plus size={20} />
                                 Create New
@@ -493,7 +493,7 @@ const TemplateLibrary: React.FC<TemplateLibraryProps> = ({ mode = 'admin' }) => 
                                 key={status}
                                 onClick={() => setFilterStatus(status)}
                                 className={`px-5 py-2 text-sm font-semibold rounded-lg transition-all ${filterStatus === status
-                                    ? 'bg-blue-600 text-white shadow-md'
+                                    ? 'bg-brand-600 text-white shadow-md'
                                     : 'text-gray-500 hover:bg-gray-50'
                                     }`}
                             >
@@ -502,9 +502,9 @@ const TemplateLibrary: React.FC<TemplateLibraryProps> = ({ mode = 'admin' }) => 
                         ))}
                     </div>
                 ) : (
-                    <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-100 rounded-xl">
-                        <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-                        <span className="text-xs font-bold text-blue-700 uppercase tracking-widest">Active Survey Instruments</span>
+                    <div className="flex items-center gap-2 px-4 py-2 bg-brand-50 border border-brand-100 rounded-xl">
+                        <span className="w-2 h-2 rounded-full bg-brand-500 animate-pulse" />
+                        <span className="text-xs font-bold text-brand-700 uppercase tracking-widest">Active Survey Instruments</span>
                     </div>
                 )}
 
@@ -516,7 +516,7 @@ const TemplateLibrary: React.FC<TemplateLibraryProps> = ({ mode = 'admin' }) => 
                             placeholder="Search templates..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-10 pr-4 py-2.5 bg-white border rounded-xl outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all w-72"
+                            className="pl-10 pr-4 py-2.5 bg-white border rounded-xl outline-none focus:ring-4 focus:ring-brand-100 focus:border-brand-500 transition-all w-72"
                         />
                         {searchQuery && (
                             <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
@@ -550,13 +550,13 @@ const TemplateLibrary: React.FC<TemplateLibraryProps> = ({ mode = 'admin' }) => 
                         <div className="flex items-center justify-center gap-3">
                             <button
                                 onClick={() => setShowImportModal(true)}
-                                className="flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-all"
+                                className="flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-brand-600 bg-brand-50 hover:bg-brand-100 border border-brand-200 transition-all"
                             >
                                 <Upload size={16} /> Import from Word
                             </button>
                             <button
                                 onClick={() => navigate('/admin/form-builder')}
-                                className="flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-white bg-blue-600 hover:bg-blue-700 transition-all"
+                                className="flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-white bg-brand-600 hover:bg-brand-700 transition-all"
                             >
                                 <Plus size={16} /> Create New
                             </button>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useToast } from '../../hooks/useToast';
 import PageMeta from "../../components/common/PageMeta";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
@@ -459,7 +459,7 @@ export default function Users() {
                             <Can resource="User" action="create">
                                 <button
                                     onClick={() => handleOpenModal()}
-                                    className="flex h-11 items-center gap-2 rounded-2xl bg-blue-600 px-6 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition-all hover:bg-blue-700 hover:scale-[1.02] active:scale-[0.98] dark:bg-primary dark:shadow-primary/20"
+                                    className="flex h-11 items-center gap-2 rounded-2xl bg-brand-600 px-6 text-sm font-semibold text-white shadow-lg shadow-brand-600/20 transition-all hover:bg-brand-700 hover:scale-[1.02] active:scale-[0.98] dark:bg-primary dark:shadow-primary/20"
                                 >
                                     <Plus size={18} />
                                     Add User
@@ -618,7 +618,7 @@ export default function Users() {
             <Modal isOpen={isOpen} onClose={closeModal} className="max-w-[850px] m-4">
                 <div className="no-scrollbar relative w-full overflow-hidden rounded-[2rem] bg-white shadow-2xl dark:bg-slate-900 border border-white/20">
                     {/* Header with Background Accent */}
-                    <div className="relative h-32 bg-gradient-to-r from-blue-600 to-indigo-700 px-8 flex items-center dark:from-blue-900 dark:to-indigo-950 overflow-hidden">
+                    <div className="relative h-32 bg-gradient-to-r from-brand-600 to-brand-700 px-8 flex items-center dark:from-brand-900 dark:to-brand-950 overflow-hidden">
                         <div className="absolute inset-0 opacity-20 pointer-events-none">
                             <div className="absolute top-0 right-0 w-64 h-64 bg-white/20 rounded-full blur-3xl -mr-20 -mt-20" />
                             <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/20 rounded-full blur-2xl -ml-16 -mb-16" />
@@ -631,7 +631,7 @@ export default function Users() {
                                 <h4 className="text-3xl font-bold text-white tracking-tight">
                                     {isViewMode ? 'User Profile Details' : editUser ? 'Modify User Account' : 'Register New User'}
                                 </h4>
-                                <p className="text-blue-100 text-sm opacity-80 mt-1">
+                                <p className="text-brand-100 text-sm opacity-80 mt-1">
                                     {isViewMode ? 'Review system account access and details' : 'Configure account credentials and organizational access'}
                                 </p>
                             </div>
@@ -646,7 +646,7 @@ export default function Users() {
                                 <div className="lg:col-span-5 space-y-8">
                                     <div className="rounded-3xl border border-slate-200 bg-slate-50/50 p-6 dark:border-white/10 dark:bg-white/[0.02]">
                                         <div className="flex items-center gap-2 mb-6 text-slate-900 dark:text-white pb-3 border-b border-slate-200 dark:border-white/10">
-                                            <div className="h-2 w-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
+                                            <div className="h-2 w-2 rounded-full bg-brand-500 shadow-[0_0_8px_rgba(20,63,132,0.5)]" />
                                             <h5 className="text-xs font-bold uppercase tracking-widest">Personal Information</h5>
                                         </div>
 
@@ -750,7 +750,7 @@ export default function Users() {
 
                                     <div className="rounded-3xl border border-slate-200 bg-slate-50/50 p-6 dark:border-white/10 dark:bg-white/[0.02]">
                                         <div className="flex items-center gap-2 mb-6 text-slate-900 dark:text-white pb-3 border-b border-slate-200 dark:border-white/10">
-                                            <div className="h-2 w-2 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]" />
+                                            <div className="h-2 w-2 rounded-full bg-brand-500 shadow-[0_0_8px_rgba(20,63,132,0.5)]" />
                                             <h5 className="text-xs font-bold uppercase tracking-widest">Access Control</h5>
                                         </div>
 
@@ -786,8 +786,8 @@ export default function Users() {
                                                             key={r._id || r.id}
                                                             className={`flex items-center gap-2 p-2 rounded-lg border text-[10px] font-bold uppercase tracking-wider cursor-pointer transition-all ${
                                                                 formData.roles.includes(r._id || r.id || '')
-                                                                ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-600/20'
-                                                                : 'bg-white border-slate-200 text-slate-600 hover:border-blue-300 dark:bg-white/5 dark:border-white/10 dark:text-white/50'
+                                                                ? 'bg-brand-600 border-brand-600 text-white shadow-lg shadow-brand-600/20'
+                                                                : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300 dark:bg-white/5 dark:border-white/10 dark:text-white/50'
                                                             } ${isViewMode ? 'pointer-events-none opacity-80' : ''}`}
                                                         >
                                                             <input
@@ -823,7 +823,7 @@ export default function Users() {
                                         
                                         <div className="relative z-10 space-y-8">
                                             <div className="flex items-center gap-3 mb-4">
-                                                <div className="h-10 w-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                                                <div className="h-10 w-10 rounded-xl bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center text-brand-600 dark:text-brand-400">
                                                     <List size={22} />
                                                 </div>
                                                 <div>
@@ -961,7 +961,7 @@ export default function Users() {
                                 {!isViewMode && (
                                     <Button 
                                         type="submit"
-                                        className="rounded-xl px-10 shadow-xl shadow-blue-600/20 active:scale-95 transition-transform"
+                                        className="rounded-xl px-10 shadow-xl shadow-brand-600/20 active:scale-95 transition-transform"
                                     >
                                         {editUser ? 'Save Account Changes' : 'Complete User Registration'}
                                     </Button>
@@ -974,14 +974,14 @@ export default function Users() {
             {/* Role Management Modal */}
             <Modal isOpen={isRoleModalOpen} onClose={() => setIsRoleModalOpen(false)} className="max-w-md">
                 <div className="overflow-hidden rounded-3xl bg-white shadow-2xl dark:bg-slate-900">
-                    <div className="bg-gradient-to-r from-indigo-600 to-blue-700 px-6 py-8 text-white">
+                    <div className="bg-gradient-to-r from-brand-600 to-brand-700 px-6 py-8 text-white">
                         <div className="flex items-center gap-4">
                             <div className="h-12 w-12 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center">
                                 <KeyRound size={24} />
                             </div>
                             <div>
                                 <h4 className="text-xl font-bold">Manage User Roles</h4>
-                                <p className="text-xs text-blue-100 opacity-80">{selectedUserForRoles?.fullname}</p>
+                                <p className="text-xs text-brand-100 opacity-80">{selectedUserForRoles?.fullname}</p>
                             </div>
                         </div>
                     </div>
@@ -995,8 +995,8 @@ export default function Users() {
                                         key={r._id || r.id}
                                         className={`flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer ${
                                             formData.roles.includes(r._id || r.id || '')
-                                            ? 'bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-300'
-                                            : 'bg-white border-slate-100 text-slate-600 hover:border-blue-200 dark:bg-white/5 dark:border-white/10 dark:text-white/40'
+                                            ? 'bg-brand-50 border-brand-200 text-brand-700 dark:bg-brand-900/20 dark:border-brand-800 dark:text-brand-300'
+                                            : 'bg-white border-slate-100 text-slate-600 hover:border-brand-200 dark:bg-white/5 dark:border-white/10 dark:text-white/40'
                                         }`}
                                     >
                                         <div className="flex flex-col">
@@ -1015,7 +1015,7 @@ export default function Users() {
                                                         : [...prev.roles, roleId]
                                                 }));
                                             }}
-                                            className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                                            className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
                                         />
                                     </label>
                                 ))}
@@ -1032,7 +1032,7 @@ export default function Users() {
                             </button>
                             <button
                                 type="submit"
-                                className="flex-1 rounded-xl bg-blue-600 py-3 text-sm font-bold text-white shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition-all"
+                                className="flex-1 rounded-xl bg-brand-600 py-3 text-sm font-bold text-white shadow-lg shadow-brand-600/20 hover:bg-brand-700 transition-all"
                             >
                                 Save Changes
                             </button>

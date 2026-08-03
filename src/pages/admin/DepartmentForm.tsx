@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import Button from "../../components/ui/button/Button";
 import Input from "../../components/form/input/InputField";
 import Label from "../../components/form/Label";
@@ -179,17 +179,17 @@ export const DepartmentForm: React.FC<DepartmentFormProps> = ({ initialData, isV
 
                 {/* Show organization type info */}
                 {selectedOrgType && (
-                    <div className="mt-2 p-2 rounded-md bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
-                        <p className="text-sm text-blue-700 dark:text-blue-300">
+                    <div className="mt-2 p-2 rounded-md bg-brand-50 dark:bg-brand-900/20 border border-brand-200 dark:border-brand-800">
+                        <p className="text-sm text-brand-700 dark:text-brand-300">
                             <span className="font-semibold">Organization Type: </span>
                             <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${selectedOrgType === 'head_office'
-                                ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
+                                ? 'bg-accent-100 text-accent-800 dark:bg-accent-900 dark:text-accent-200'
                                 : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
                                 }`}>
                                 {selectedOrgType}
                             </span>
                         </p>
-                        <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                        <p className="text-xs text-brand-600 dark:text-brand-400 mt-1">
                             {selectedOrgType === 'head_office'
                                 ? '📋 Head Office can have sectors. You can assign this department to a sector or directly to the organization.'
                                 : '🏢 Branch departments are directly connected to the organization (no sectors).'}

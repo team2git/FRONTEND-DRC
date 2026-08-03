@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import {
     Heading, StickyNote, Type, MessageSquare, Hash, Calendar,
     Circle, CheckSquare, ChevronDown, Grid, Table, MapPin,
@@ -59,12 +59,12 @@ const QuestionTypeSelector: React.FC = () => {
                                     });
                                 }
                             }}
-                            className="group flex flex-col items-start p-6 rounded-2xl border-2 border-gray-100 hover:border-blue-500 hover:bg-blue-50/30 transition-all text-left"
+                            className="group flex flex-col items-start p-6 rounded-2xl border-2 border-gray-100 hover:border-brand-500 hover:bg-brand-50/30 transition-all text-left"
                         >
-                            <div className="p-3 rounded-xl bg-gray-100 group-hover:bg-blue-600 group-hover:text-white transition-colors mb-4">
+                            <div className="p-3 rounded-xl bg-gray-100 group-hover:bg-brand-600 group-hover:text-white transition-colors mb-4">
                                 <field.icon size={24} />
                             </div>
-                            <h3 className="font-bold text-gray-900 group-hover:text-blue-700">{field.label}</h3>
+                            <h3 className="font-bold text-gray-900 group-hover:text-brand-700">{field.label}</h3>
                             <p className="text-sm text-gray-500 mt-1 line-clamp-2">{field.desc}</p>
                         </button>
                     ))}

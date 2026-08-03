@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { FormBuilderProvider, useFormBuilder, Question, AnswerType, Option, Module } from '../../../context/FormBuilderContext';
 import {
     Plus, Save, Send, Eye, X, ChevronLeft, Trash2,
@@ -31,7 +31,7 @@ const SettingToggle: React.FC<{
             onClick={() => onChange(!value)}
             className={clsx(
                 "w-11 h-6 rounded-full relative transition-all duration-300",
-                value ? "bg-purple-600" : "bg-gray-300"
+                value ? "bg-accent-600" : "bg-gray-300"
             )}
         >
             <div className={clsx(
@@ -157,7 +157,7 @@ const OptionRow: React.FC<{
             type="text"
             value={option.label}
             onChange={e => onChange(index, { label: e.target.value, value: e.target.value.toLowerCase().replace(/\s+/g, '_') })}
-            className="flex-1 border-b border-transparent hover:border-gray-300 focus:border-blue-500 outline-none text-sm text-gray-700 bg-transparent py-0.5 transition-colors"
+            className="flex-1 border-b border-transparent hover:border-gray-300 focus:border-brand-500 outline-none text-sm text-gray-700 bg-transparent py-0.5 transition-colors"
             placeholder={`Option ${index + 1}`}
         />
         <button
@@ -205,12 +205,12 @@ const MatrixEditorInline: React.FC<{
                                     <input
                                         type="text" value={col.label}
                                         onChange={e => updateCol(i, e.target.value)}
-                                        className="w-20 text-center border-b border-gray-200 focus:border-blue-500 outline-none text-xs bg-transparent"
+                                        className="w-20 text-center border-b border-gray-200 focus:border-brand-500 outline-none text-xs bg-transparent"
                                     />
                                 </th>
                             ))}
                             <th className="p-2">
-                                <button onClick={addCol} className="text-blue-500 hover:text-blue-700 font-bold">+ Col</button>
+                                <button onClick={addCol} className="text-brand-500 hover:text-brand-700 font-bold">+ Col</button>
                             </th>
                         </tr>
                     </thead>
@@ -221,7 +221,7 @@ const MatrixEditorInline: React.FC<{
                                     <input
                                         type="text" value={row.label}
                                         onChange={e => updateRow(i, e.target.value)}
-                                        className="w-full border-b border-gray-200 focus:border-blue-500 outline-none text-xs bg-transparent"
+                                        className="w-full border-b border-gray-200 focus:border-brand-500 outline-none text-xs bg-transparent"
                                     />
                                 </td>
                                 {config.columns.map((_, ci) => (
@@ -234,7 +234,7 @@ const MatrixEditorInline: React.FC<{
                     </tbody>
                 </table>
             </div>
-            <button onClick={addRow} className="text-xs text-blue-600 hover:text-blue-800 font-medium">+ Add Row</button>
+            <button onClick={addRow} className="text-xs text-brand-600 hover:text-brand-800 font-medium">+ Add Row</button>
         </div>
     );
 };
@@ -294,14 +294,14 @@ const QuestionCard: React.FC<{
             )}>
                 <button
                     onClick={(e) => { e.stopPropagation(); dispatch({ type: 'MOVE_QUESTION', questionId: question.questionId, direction: 'up' }); }}
-                    className="p-1.5 bg-gray-50 hover:bg-purple-100 text-gray-400 hover:text-purple-600 rounded-md shadow-sm transition-all border border-gray-100"
+                    className="p-1.5 bg-gray-50 hover:bg-accent-100 text-gray-400 hover:text-accent-600 rounded-md shadow-sm transition-all border border-gray-100"
                     title="Move Up"
                 >
                     <ChevronUp size={16} />
                 </button>
                 <button
                     onClick={(e) => { e.stopPropagation(); dispatch({ type: 'MOVE_QUESTION', questionId: question.questionId, direction: 'down' }); }}
-                    className="p-1.5 bg-gray-50 hover:bg-purple-100 text-gray-400 hover:text-purple-600 rounded-md shadow-sm transition-all border border-gray-100"
+                    className="p-1.5 bg-gray-50 hover:bg-accent-100 text-gray-400 hover:text-accent-600 rounded-md shadow-sm transition-all border border-gray-100"
                     title="Move Down"
                 >
                     <ChevronDown size={16} />
@@ -318,7 +318,7 @@ const QuestionCard: React.FC<{
                             onChange={e => updateQuestion({ label: e.target.value })}
                             className={clsx(
                                 "w-full text-lg outline-none bg-transparent border-b transition-all duration-200",
-                                isActive ? "border-purple-200 focus:border-purple-600 pb-2" : "border-transparent"
+                                isActive ? "border-accent-200 focus:border-accent-600 pb-2" : "border-transparent"
                             )}
                             placeholder="Question text"
                         />
@@ -338,7 +338,7 @@ const QuestionCard: React.FC<{
                             <select
                                 value={question.answerType}
                                 onChange={e => updateQuestion({ answerType: e.target.value as AnswerType })}
-                                className="w-full appearance-none bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-500 transition-all cursor-pointer"
+                                className="w-full appearance-none bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-accent-100 focus:border-accent-500 transition-all cursor-pointer"
                             >
                                 {QUESTION_TYPES.map(t => (
                                     <option key={t.type} value={t.type}>{t.label}</option>
@@ -415,7 +415,7 @@ const QuestionCard: React.FC<{
                                 </div>
                                 <button
                                     onClick={addOption}
-                                    className="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors"
+                                    className="text-sm text-brand-600 hover:text-brand-800 font-medium transition-colors"
                                 >
                                     Add option
                                 </button>
@@ -474,7 +474,7 @@ const QuestionCard: React.FC<{
                                 value={question.label}
                                 onChange={e => updateQuestion({ label: e.target.value })}
                                 placeholder="Section title"
-                                className="w-full text-xl font-semibold text-gray-800 border-b-2 border-blue-400 outline-none bg-transparent pb-1 focus:border-blue-600"
+                                className="w-full text-xl font-semibold text-gray-800 border-b-2 border-brand-400 outline-none bg-transparent pb-1 focus:border-brand-600"
                                 onClick={e => e.stopPropagation()}
                             />
                             <input
@@ -504,7 +504,7 @@ const QuestionCard: React.FC<{
                     <div className="flex items-center gap-2 border-t pt-4">
                         {state.settings.showQuestionCodes && (
                             <div className="flex-1 flex items-center gap-1.5 grayscale group-hover:grayscale-0 transition-all opacity-50 group-hover:opacity-100">
-                                <span className="text-[10px] font-black tracking-widest text-purple-600 uppercase">Question Code</span>
+                                <span className="text-[10px] font-black tracking-widest text-accent-600 uppercase">Question Code</span>
                                 <input
                                     type="text"
                                     value={question.questionCode}
@@ -520,7 +520,7 @@ const QuestionCard: React.FC<{
                                 onClick={() => {
                                     dispatch({ type: 'DUPLICATE_QUESTION', questionId: question.questionId });
                                 }}
-                                className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all"
+                                className="p-2 text-gray-400 hover:text-accent-600 hover:bg-accent-50 rounded-lg transition-all"
                                 title="Duplicate"
                             >
                                 <Copy size={18} />
@@ -540,7 +540,7 @@ const QuestionCard: React.FC<{
                                 onClick={() => updateQuestion({ required: !question.required })}
                                 className={clsx(
                                     "w-10 h-5 rounded-full transition-all relative",
-                                    question.required ? "bg-purple-600" : "bg-gray-200"
+                                    question.required ? "bg-accent-600" : "bg-gray-200"
                                 )}
                             >
                                 <div className={clsx(
@@ -576,7 +576,7 @@ const ModuleBlock: React.FC<{ module: Module; order: number }> = ({ module, orde
                             value={state.template.templateName}
                             onChange={e => dispatch({ type: 'SET_TEMPLATE_NAME', name: e.target.value })}
                             placeholder="Form title"
-                            className="w-full text-2xl font-semibold text-gray-800 border-b-2 border-purple-300 focus:border-purple-600 outline-none bg-transparent pb-1 transition-colors"
+                            className="w-full text-2xl font-semibold text-gray-800 border-b-2 border-accent-300 focus:border-accent-600 outline-none bg-transparent pb-1 transition-colors"
                         />
                         <input
                             type="text"
@@ -589,7 +589,7 @@ const ModuleBlock: React.FC<{ module: Module; order: number }> = ({ module, orde
                 </div>
             ) : (
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                    <div className="h-1 bg-blue-400" />
+                    <div className="h-1 bg-brand-400" />
                     <div className="p-5 flex items-center gap-4">
                         <div className="flex-1">
                             <input
@@ -597,27 +597,27 @@ const ModuleBlock: React.FC<{ module: Module; order: number }> = ({ module, orde
                                 value={module.moduleName}
                                 onChange={e => dispatch({ type: 'UPDATE_MODULE_NAME', moduleId: module.moduleId, name: e.target.value })}
                                 placeholder="Section title"
-                                className="w-full text-lg font-semibold text-gray-800 border-b-2 border-blue-300 focus:border-blue-600 outline-none bg-transparent pb-1 transition-colors"
+                                className="w-full text-lg font-semibold text-gray-800 border-b-2 border-brand-300 focus:border-brand-600 outline-none bg-transparent pb-1 transition-colors"
                             />
                         </div>
                         <div className="flex items-center gap-1">
                             <button
                                 onClick={() => dispatch({ type: 'ADD_MODULE_AT', name: 'New Section', index: order + 1 })}
-                                className="p-2 bg-gray-50 hover:bg-purple-100 text-gray-400 hover:text-purple-600 rounded-lg transition-all"
+                                className="p-2 bg-gray-50 hover:bg-accent-100 text-gray-400 hover:text-accent-600 rounded-lg transition-all"
                                 title="Insert Section Below"
                             >
                                 <Plus size={18} />
                             </button>
                             <button
                                 onClick={() => dispatch({ type: 'MOVE_MODULE', moduleId: module.moduleId, direction: 'up' })}
-                                className="p-2 bg-gray-50 hover:bg-blue-100 text-gray-400 hover:text-blue-600 rounded-lg transition-all"
+                                className="p-2 bg-gray-50 hover:bg-brand-100 text-gray-400 hover:text-brand-600 rounded-lg transition-all"
                                 title="Move Module Up"
                             >
                                 <ChevronUp size={18} />
                             </button>
                             <button
                                 onClick={() => dispatch({ type: 'MOVE_MODULE', moduleId: module.moduleId, direction: 'down' })}
-                                className="p-2 bg-gray-50 hover:bg-blue-100 text-gray-400 hover:text-blue-600 rounded-lg transition-all"
+                                className="p-2 bg-gray-50 hover:bg-brand-100 text-gray-400 hover:text-brand-600 rounded-lg transition-all"
                                 title="Move Module Down"
                             >
                                 <ChevronDown size={18} />
@@ -639,7 +639,7 @@ const ModuleBlock: React.FC<{ module: Module; order: number }> = ({ module, orde
                 <div className="mb-4">
                     <button
                         onClick={() => dispatch({ type: 'OPEN_TYPE_SELECTOR', moduleId: module.moduleId, insertIndex: 0 })}
-                        className="w-full border-2 border-dashed border-gray-200 rounded-xl py-3 text-xs font-black uppercase tracking-widest text-gray-400 hover:text-purple-600 hover:border-purple-200 hover:bg-purple-50/20 transition-all"
+                        className="w-full border-2 border-dashed border-gray-200 rounded-xl py-3 text-xs font-black uppercase tracking-widest text-gray-400 hover:text-accent-600 hover:border-accent-200 hover:bg-accent-50/20 transition-all"
                         title="Add question here"
                     >
                         + Add question here
@@ -665,7 +665,7 @@ const ModuleBlock: React.FC<{ module: Module; order: number }> = ({ module, orde
                             <div>
                                 <button
                                     onClick={() => dispatch({ type: 'OPEN_TYPE_SELECTOR', moduleId: module.moduleId, insertIndex: qIdx + 1 })}
-                                    className="w-full border border-transparent rounded-xl py-2 text-[10px] font-black uppercase tracking-widest text-gray-300 hover:text-purple-600 hover:border-purple-100 hover:bg-purple-50/20 transition-all"
+                                    className="w-full border border-transparent rounded-xl py-2 text-[10px] font-black uppercase tracking-widest text-gray-300 hover:text-accent-600 hover:border-accent-100 hover:bg-accent-50/20 transition-all"
                                     title="Add question below"
                                 >
                                     + Add below
@@ -716,23 +716,23 @@ const PreviewModal: React.FC<{ template: any; onClose: () => void }> = ({ templa
                                             {q.helperText && <p className="text-xs text-gray-400 mb-3">{q.helperText}</p>}
 
                                             {['text', 'email', 'phone'].includes(q.answerType) && (
-                                                <input type="text" className="w-full border-b border-gray-300 focus:border-blue-500 outline-none text-sm py-1.5 bg-transparent" placeholder="Your answer" />
+                                                <input type="text" className="w-full border-b border-gray-300 focus:border-brand-500 outline-none text-sm py-1.5 bg-transparent" placeholder="Your answer" />
                                             )}
                                             {q.answerType === 'textarea' && (
-                                                <textarea className="w-full border-b border-gray-300 focus:border-blue-500 outline-none text-sm py-1.5 bg-transparent resize-none min-h-[60px]" placeholder="Your answer" />
+                                                <textarea className="w-full border-b border-gray-300 focus:border-brand-500 outline-none text-sm py-1.5 bg-transparent resize-none min-h-[60px]" placeholder="Your answer" />
                                             )}
                                             {q.answerType === 'number' && (
-                                                <input type="number" className="w-full border-b border-gray-300 focus:border-blue-500 outline-none text-sm py-1.5 bg-transparent" placeholder="0" />
+                                                <input type="number" className="w-full border-b border-gray-300 focus:border-brand-500 outline-none text-sm py-1.5 bg-transparent" placeholder="0" />
                                             )}
                                             {q.answerType === 'date' && (
-                                                <input type="date" className="border-b border-gray-300 focus:border-blue-500 outline-none text-sm py-1.5 bg-transparent" />
+                                                <input type="date" className="border-b border-gray-300 focus:border-brand-500 outline-none text-sm py-1.5 bg-transparent" />
                                             )}
                                             {q.answerType === 'radio' && q.options?.map((opt, oi) => (
                                                 <label key={oi} className="flex items-center gap-3 py-1.5 cursor-pointer">
                                                     <input type="radio" name={q.questionId} value={opt.value}
                                                         checked={radioValues[q.questionId] === opt.value}
                                                         onChange={() => setRadioValues(prev => ({ ...prev, [q.questionId]: opt.value }))}
-                                                        className="accent-purple-600" />
+                                                        className="accent-accent-600" />
                                                     <span className="text-sm text-gray-700">{opt.label}</span>
                                                 </label>
                                             ))}
@@ -746,7 +746,7 @@ const PreviewModal: React.FC<{ template: any; onClose: () => void }> = ({ templa
                                                                 ? prev[q.questionId].filter(v => v !== opt.value)
                                                                 : [...(prev[q.questionId] || []), opt.value]
                                                         }))}
-                                                        className="accent-purple-600 rounded" />
+                                                        className="accent-accent-600 rounded" />
                                                     <span className="text-sm text-gray-700">{opt.label}</span>
                                                 </label>
                                             ))}
@@ -766,7 +766,7 @@ const PreviewModal: React.FC<{ template: any; onClose: () => void }> = ({ templa
                                                                     <td className="p-2 border font-medium">{r.label}</td>
                                                                     {q.matrixConfig.columns.map(c => (
                                                                         <td key={c.value} className="p-2 border text-center">
-                                                                            <input type="radio" name={`${q.questionId}_${r.value}`} className="accent-purple-600" />
+                                                                            <input type="radio" name={`${q.questionId}_${r.value}`} className="accent-accent-600" />
                                                                         </td>
                                                                     ))}
                                                                 </tr>
@@ -806,13 +806,13 @@ const PreviewModal: React.FC<{ template: any; onClose: () => void }> = ({ templa
                                                         </div>
                                                     )}
                                                     {q.tableConfig?.allowAddRow !== false && (
-                                                        <div className="mt-2 text-[10px] font-black text-blue-600 uppercase tracking-widest">+ Add new row</div>
+                                                        <div className="mt-2 text-[10px] font-black text-brand-600 uppercase tracking-widest">+ Add new row</div>
                                                     )}
                                                 </div>
                                             )}
 
                                             {q.answerType === 'geo' && (
-                                                <div className="flex items-center gap-2 p-3 bg-blue-50/50 border border-blue-100 rounded-lg text-blue-600 text-xs mt-2">
+                                                <div className="flex items-center gap-2 p-3 bg-brand-50/50 border border-brand-100 rounded-lg text-brand-600 text-xs mt-2">
                                                     <MapPin size={16} /> Capture GPS Location
                                                 </div>
                                             )}
@@ -847,7 +847,7 @@ const SidebarActions: React.FC = () => {
         <div className="fixed right-10 top-1/2 -translate-y-1/2 bg-white rounded-2xl shadow-2xl border border-gray-100 p-2 flex flex-col gap-2 z-40">
             <button
                 onClick={() => dispatch({ type: 'OPEN_TYPE_SELECTOR', moduleId: 'any' })}
-                className="p-4 rounded-xl text-gray-500 hover:text-purple-600 hover:bg-purple-50 transition-all group relative"
+                className="p-4 rounded-xl text-gray-500 hover:text-accent-600 hover:bg-accent-50 transition-all group relative"
                 title="Add Question"
             >
                 <Plus size={24} />
@@ -855,7 +855,7 @@ const SidebarActions: React.FC = () => {
             </button>
             <button
                 onClick={() => dispatch({ type: 'ADD_MODULE_AT', name: 'New Section', index: insertSectionIndex })}
-                className="p-4 rounded-xl text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-all group relative"
+                className="p-4 rounded-xl text-gray-500 hover:text-brand-600 hover:bg-brand-50 transition-all group relative"
                 title="Add Section"
             >
                 <Layers size={24} />
@@ -872,7 +872,7 @@ const SidebarActions: React.FC = () => {
             <div className="h-px bg-gray-100 mx-2" />
             <button
                 onClick={() => dispatch({ type: 'TOGGLE_SETTINGS' })}
-                className="p-4 rounded-xl text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 transition-all group relative"
+                className="p-4 rounded-xl text-gray-500 hover:text-brand-600 hover:bg-brand-50 transition-all group relative"
                 title="Settings"
             >
                 <Settings size={24} />
@@ -965,7 +965,7 @@ const InnerFormBuilder: React.FC = () => {
     if (isLoading) {
         return (
             <div className="flex flex-col h-screen bg-gray-100 items-center justify-center">
-                <Loader2 className="w-10 h-10 animate-spin text-blue-600 mb-4" />
+                <Loader2 className="w-10 h-10 animate-spin text-brand-600 mb-4" />
                 <p className="text-gray-500 font-bold">Loading Template...</p>
             </div>
         );
@@ -1017,7 +1017,7 @@ const InnerFormBuilder: React.FC = () => {
                     <button
                         onClick={handleSave}
                         disabled={isSaving}
-                        className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-purple-700 hover:bg-purple-50 rounded-lg transition-all disabled:opacity-50"
+                        className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-accent-700 hover:bg-accent-50 rounded-lg transition-all disabled:opacity-50"
                     >
                         {isSaving ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
                         {isSaving ? 'Saving...' : 'Save'}
@@ -1041,7 +1041,7 @@ const InnerFormBuilder: React.FC = () => {
             <main className="flex-1 overflow-y-auto pt-8 pb-32 px-4 scroll-smooth">
                 <div className="max-w-[770px] mx-auto">
                     {/* Header Image Area */}
-                    <div className="h-40 w-full rounded-2xl mb-8 overflow-hidden relative shadow-xl shadow-purple-200/50">
+                    <div className="h-40 w-full rounded-2xl mb-8 overflow-hidden relative shadow-xl shadow-accent-200/50">
                         <img
                             src={state.theme.headerImage}
                             className="w-full h-full object-cover"
@@ -1080,11 +1080,11 @@ const InnerFormBuilder: React.FC = () => {
                     <div className="flex justify-center mt-12 pb-24">
                         <button
                             onClick={() => dispatch({ type: 'ADD_MODULE', name: 'New Section' })}
-                            className="flex items-center gap-2 group text-gray-400 hover:text-purple-600 transition-all"
+                            className="flex items-center gap-2 group text-gray-400 hover:text-accent-600 transition-all"
                         >
-                            <div className="w-12 h-px bg-gray-200 group-hover:bg-purple-200 transition-all" />
-                            <span className="text-xs font-black uppercase tracking-widest px-4 py-2 border border-gray-100 rounded-full group-hover:border-purple-100">Add New Module</span>
-                            <div className="w-12 h-px bg-gray-200 group-hover:bg-purple-200 transition-all" />
+                            <div className="w-12 h-px bg-gray-200 group-hover:bg-accent-200 transition-all" />
+                            <span className="text-xs font-black uppercase tracking-widest px-4 py-2 border border-gray-100 rounded-full group-hover:border-accent-100">Add New Module</span>
+                            <div className="w-12 h-px bg-gray-200 group-hover:bg-accent-200 transition-all" />
                         </button>
                     </div>
                 </div>
@@ -1141,7 +1141,7 @@ const InnerFormBuilder: React.FC = () => {
                                     type="text"
                                     value={state.theme.headerImage}
                                     onChange={e => dispatch({ type: 'UPDATE_THEME', updates: { headerImage: e.target.value } })}
-                                    className="w-full bg-gray-50 border border-gray-100 rounded-lg p-3 text-xs outline-none focus:ring-2 focus:ring-purple-100 transition-all font-mono"
+                                    className="w-full bg-gray-50 border border-gray-100 rounded-lg p-3 text-xs outline-none focus:ring-2 focus:ring-accent-100 transition-all font-mono"
                                     placeholder="Enter image URL..."
                                 />
                             </div>
@@ -1153,7 +1153,7 @@ const InnerFormBuilder: React.FC = () => {
                                         type="range" min="0" max="100"
                                         value={state.theme.headerOpacity}
                                         onChange={e => dispatch({ type: 'UPDATE_THEME', updates: { headerOpacity: parseInt(e.target.value) } })}
-                                        className="flex-1 accent-purple-600"
+                                        className="flex-1 accent-accent-600"
                                     />
                                     <span className="text-xs font-mono text-gray-500 w-8">{state.theme.headerOpacity}%</span>
                                 </div>
@@ -1168,7 +1168,7 @@ const InnerFormBuilder: React.FC = () => {
                                             onClick={() => dispatch({ type: 'UPDATE_THEME', updates: { fontFamily: font } })}
                                             className={clsx(
                                                 "w-full px-4 py-3 rounded-xl border text-left transition-all",
-                                                state.theme.fontFamily === font ? "bg-purple-50 border-purple-200 text-purple-700 font-bold" : "bg-white border-gray-100 text-gray-600"
+                                                state.theme.fontFamily === font ? "bg-accent-50 border-accent-200 text-accent-700 font-bold" : "bg-white border-gray-100 text-gray-600"
                                             )}
                                             style={{ fontFamily: font }}
                                         >

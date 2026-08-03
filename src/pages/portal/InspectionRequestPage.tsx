@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+﻿import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { ClipboardPenLine, Download, CheckCircle2 } from "lucide-react";
 import { toast } from "react-toastify";
@@ -38,9 +38,9 @@ const initialForm: CreateInspectionPayload = {
 
 const statusTone: Record<string, string> = {
   Submitted: "bg-amber-50 text-amber-700 border-amber-100",
-  "Under Review": "bg-blue-50 text-blue-700 border-blue-100",
-  Assigned: "bg-indigo-50 text-indigo-700 border-indigo-100",
-  Scheduled: "bg-purple-50 text-purple-700 border-purple-100",
+  "Under Review": "bg-brand-50 text-brand-700 border-brand-100",
+  Assigned: "bg-brand-50 text-brand-700 border-brand-100",
+  Scheduled: "bg-accent-50 text-accent-700 border-accent-100",
   Completed: "bg-emerald-50 text-emerald-700 border-emerald-100",
   Rejected: "bg-rose-50 text-rose-700 border-rose-100",
 };
@@ -132,7 +132,7 @@ const InspectionRequestPage = () => {
           <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/80 to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-60" />
         </div>
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.12),transparent)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(20,63,132,0.12),transparent)]" />
 
         <div className="container relative z-10 mx-auto px-6 transition-all duration-700">
           <div className="flex flex-col items-center gap-16 lg:flex-row">
@@ -162,7 +162,7 @@ const InspectionRequestPage = () => {
         <div className="mx-auto max-w-5xl">
           <div className="overflow-hidden rounded-[40px] border border-white/80 bg-white shadow-[0_60px_120px_-30px_rgba(15,23,42,0.2)]">
             <div className="relative flex items-center justify-between bg-gradient-to-r from-slate-900 via-slate-900 to-slate-800 px-6 py-5 text-white sm:px-10">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.2),transparent)]" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(20,63,132,0.2),transparent)]" />
               <div className="relative flex items-center gap-4">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-white backdrop-blur-md">
                   <ClipboardPenLine className="h-6 w-6" />
