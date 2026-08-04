@@ -65,7 +65,6 @@ type NavItem = {
   permission?: string;
   superAdminOnly?: boolean;
   target?: string;
-  target?: string;
 };
 
 // ─── Navigation Items ─────────────────────────────────────────────────────────
@@ -92,13 +91,7 @@ const navItems: NavItem[] = [
     icon: <MapNavIcon />,
     name: "Maps",
     subItems: [
-      {
-        name: "General Risk Map",
-        path: "/woreda-profile/general-map",
-        icon: <RiskMapIcon />,
-        permission: "woredaprofile_view",
-        target: "_blank",
-      },
+      
       {
         name: "GIS Map",
         path: "/woreda-profile/map",
@@ -106,6 +99,13 @@ const navItems: NavItem[] = [
         permission: "woredaprofile_view",
         target: "_blank",
       },
+      {
+        name: "General Risk Map",
+        path: "/woreda-profile/general-map",
+        icon: <RiskMapIcon />,
+        permission: "woredaprofile_view",
+        target: "_blank",
+      }
     ],
   },
   {
@@ -199,12 +199,6 @@ const adminItems: NavItem[] = [
         icon: <GISIcon />,
         permission: "organization_view",
       },
-      {
-        name: "Locations",
-        path: "/admin/locations",
-        icon: <GISIcon />,
-        permission: "organization_view",
-      },
     ],
   },
   {
@@ -271,11 +265,18 @@ const adminItems: NavItem[] = [
         icon: <GroupIcon />,
         permission: "template_create",
       },
+      
       {
         name: "Profile Mapping",
         path: "/admin/profile-mapping",
         icon: <GroupIcon />,
         permission: "profilemapping_view",
+      },
+      {
+        name: "All Responses",
+        path: "/admin/responses/all",
+        icon: <FolderIcon />,
+        permission: "formresponse_view",
       },
     ],
   },
@@ -326,14 +327,30 @@ const AppSidebar: React.FC = () => {
     }).filter(Boolean) as NavItem[];
   };
 
+  const isAdminUser = Boolean(
+    user?.roles?.some(r => {
+      const roleName = (r.name || '').toLowerCase();
+      return (
+        roleName.includes('superadmin') ||
+        roleName.includes('super admin') ||
+        roleName.includes('super_admin') ||
+        roleName.includes('branch admin') ||
+        roleName.includes('branch_admin') ||
+        roleName.includes('branchadmin') ||
+        roleName === 'admin'
+      );
+    }) ||
+    ['super_admin', 'superadmin', 'branch_admin', 'admin'].includes(((user as any)?.accessLevel || '').toLowerCase())
+  );
+
   const filteredNavItems = filterItems(navItems);
-  const filteredAdminItems = filterItems(adminItems);
-  const hasAdminAccess = filteredAdminItems.length > 0;
+  const filteredAdminItems = isAdminUser ? filterItems(adminItems) : [];
+  const hasAdminAccess = isAdminUser && filteredAdminItems.length > 0;
 
   useEffect(() => {
     let submenuMatched = false;
     ["main", "admin"].forEach((menuType) => {
-      const items = menuType === "main" ? navItems : adminItems;
+      const items = menuType === "main" ? filteredNavItems : filteredAdminItems;
       items.forEach((nav, index) => {
         if (nav.subItems) {
           nav.subItems.forEach((subItem) => {
@@ -393,11 +410,10 @@ const AppSidebar: React.FC = () => {
               )}
               {(isExpanded || isHovered || isMobileOpen) && (
                 <ChevronDownIcon
-                  className={`ml-auto w-5 h-5 transition-transform duration-200 ${
-                    openSubmenu?.type === menuType && openSubmenu?.index === index
+                  className={`ml-auto w-5 h-5 transition-transform duration-200 ${openSubmenu?.type === menuType && openSubmenu?.index === index
                       ? "menu-item-arrow-active"
                       : ""
-                  }`}
+                    }`}
                 />
               )}
             </button>
@@ -406,9 +422,8 @@ const AppSidebar: React.FC = () => {
               <Link
                 to={nav.path}
                 target={nav.target}
-                className={`menu-item group ${
-                  isActive(nav.path) ? "menu-item-active" : "menu-item-inactive"
-                }`}
+                className={`menu-item group ${isActive(nav.path) ? "menu-item-active" : "menu-item-inactive"
+                  }`}
               >
                 <span
                   className={`menu-item-icon-size ${isActive(nav.path) ? "menu-item-icon-active" : "menu-item-icon-inactive"
@@ -516,9 +531,8 @@ const AppSidebar: React.FC = () => {
           <div className="flex flex-col gap-4">
             <div>
               <h2
-                className={`mb-4 text-xs uppercase flex leading-[20px] text-brand-200 ${
-                  !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
-                }`}
+                className={`mb-4 text-xs uppercase flex leading-[20px] text-brand-200 ${!isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
+                  }`}
               >
                 {isExpanded || isHovered || isMobileOpen ? (
                   "Menu"
@@ -533,9 +547,8 @@ const AppSidebar: React.FC = () => {
               {hasAdminAccess && (
                 <>
                   <h2
-                    className={`mb-4 text-xs uppercase flex leading-[20px] text-brand-200 ${
-                      !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
-                    }`}
+                    className={`mb-4 text-xs uppercase flex leading-[20px] text-brand-200 ${!isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
+                      }`}
                   >
                     {isExpanded || isHovered || isMobileOpen ? (
                       "Admin"

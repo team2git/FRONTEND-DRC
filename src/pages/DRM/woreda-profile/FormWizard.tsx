@@ -108,14 +108,14 @@ export const FormWizard: React.FC<{
                 <div className="w-72 bg-slate-900 p-8 flex flex-col justify-between overflow-hidden relative">
                     <div>
                         <div className="flex items-center gap-3 mb-8">
-                            <div className="w-10 h-10 rounded-2xl bg-brand-600 flex items-center justify-center text-white shadow-lg">
+                            <div className="w-10 h-10 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg">
                                 <Edit3 size={20} />
                             </div>
                             <h2 className="text-white font-black tracking-tight">{initial ? 'Update' : 'New'} Household Survey</h2>
                         </div>
                         <div className="space-y-3">
                             {sidebarSteps.map(item => (
-                                <button key={item.s} type="button" onClick={() => setStep(item.s)} className={`w-full flex items-center gap-4 p-4 rounded-[1.5rem] transition-all ${step === item.s ? 'bg-brand-600 text-white shadow-lg' : 'text-slate-400 hover:bg-white/5'}`}>
+                                <button key={item.s} type="button" onClick={() => setStep(item.s)} className={`w-full flex items-center gap-4 p-4 rounded-[1.5rem] transition-all ${step === item.s ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:bg-white/5'}`}>
                                     <item.i size={18} className={step === item.s ? 'text-white' : 'text-slate-500'} />
                                     <span className="text-[10px] font-black uppercase tracking-widest">{item.l}</span>
                                 </button>
@@ -123,7 +123,7 @@ export const FormWizard: React.FC<{
                         </div>
                     </div>
                     <div className="bg-white/5 rounded-3xl p-5 border border-white/10 backdrop-blur-sm">
-                        <p className="text-[9px] font-black text-brand-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                        <p className="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-2 flex items-center gap-2">
                             <Info size={12} /> Household Survey
                         </p>
                         <p className="text-[10px] text-slate-400 leading-relaxed">
@@ -157,7 +157,7 @@ export const FormWizard: React.FC<{
                                                     updateNested('location.subcity', e.target.value);
                                                     updateNested('location.woreda', '');
                                                 }}
-                                                className="w-full bg-white border border-slate-200 rounded-2xl p-4 text-sm font-bold focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all outline-none border-slate-200"
+                                                className="w-full bg-white border border-slate-200 rounded-2xl p-4 text-sm font-bold focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none border-slate-200"
                                             >
                                                 <option value="">-- Select Sub-city --</option>
                                                 {locationHierarchy.map(s => (
@@ -177,7 +177,7 @@ export const FormWizard: React.FC<{
                                                 updateNested('household_profile.identity_location.subcity', formData.location.subcity);
                                             }}
                                             disabled={!formData.location.subcity || availableWoredas.length === 0}
-                                            className="w-full bg-white border border-slate-200 rounded-2xl p-4 text-sm font-bold focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all outline-none disabled:opacity-50 disabled:cursor-not-allowed border-slate-200"
+                                            className="w-full bg-white border border-slate-200 rounded-2xl p-4 text-sm font-bold focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none disabled:opacity-50 disabled:cursor-not-allowed border-slate-200"
                                         >
                                             <option value="">{!formData.location.subcity ? '-- Select sub-city first --' : '-- Select Woreda --'}</option>
                                             {availableWoredas.map((w: any) => (
@@ -196,7 +196,7 @@ export const FormWizard: React.FC<{
                                                 updateNested('household_profile.identity_location.kebele', e.target.value);
                                             }}
                                             placeholder="e.g. 05"
-                                            className="w-full bg-white border border-slate-200 rounded-2xl p-4 text-sm font-bold outline-none focus:ring-2 focus:ring-brand-500/20"
+                                            className="w-full bg-white border border-slate-200 rounded-2xl p-4 text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500/20"
                                         />
                                     </div>
                                     {/* Block */}
@@ -210,7 +210,7 @@ export const FormWizard: React.FC<{
                                                 updateNested('household_profile.identity_location.block', e.target.value);
                                             }}
                                             placeholder="e.g. 12"
-                                            className="w-full bg-white border border-slate-200 rounded-2xl p-4 text-sm font-bold outline-none focus:ring-2 focus:ring-brand-500/20"
+                                            className="w-full bg-white border border-slate-200 rounded-2xl p-4 text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500/20"
                                         />
                                     </div>
                                     {/* House Number */}
@@ -224,7 +224,7 @@ export const FormWizard: React.FC<{
                                                 updateNested('household_profile.identity_location.house_no', e.target.value);
                                             }}
                                             placeholder="e.g. 1045"
-                                            className="w-full bg-white border border-slate-200 rounded-2xl p-4 text-sm font-bold outline-none focus:ring-2 focus:ring-brand-500/20"
+                                            className="w-full bg-white border border-slate-200 rounded-2xl p-4 text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500/20"
                                         />
                                     </div>
                                     {/* Enumerator Name */}
@@ -235,7 +235,7 @@ export const FormWizard: React.FC<{
                                             value={formData.household_profile?.identity_location?.enumerator_name || ''}
                                             onChange={e => updateNested('household_profile.identity_location.enumerator_name', e.target.value)}
                                             placeholder="e.g. Abebe Kebede"
-                                            className="w-full bg-white border border-slate-200 rounded-2xl p-4 text-sm font-bold outline-none focus:ring-2 focus:ring-brand-500/20"
+                                            className="w-full bg-white border border-slate-200 rounded-2xl p-4 text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500/20"
                                         />
                                     </div>
                                     {/* GPS Coordinates */}
@@ -247,7 +247,7 @@ export const FormWizard: React.FC<{
                                                 value={formData.household_profile?.identity_location?.gps_latitude ?? ''}
                                                 onChange={e => updateNested('household_profile.identity_location.gps_latitude', parseFloat(e.target.value) || undefined)}
                                                 placeholder="e.g. 9.03"
-                                                className="w-full bg-white border border-slate-200 rounded-2xl p-4 text-sm font-bold outline-none focus:ring-2 focus:ring-brand-500/20"
+                                                className="w-full bg-white border border-slate-200 rounded-2xl p-4 text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500/20"
                                             />
                                         </div>
                                         <div className="space-y-2">
@@ -257,7 +257,7 @@ export const FormWizard: React.FC<{
                                                 value={formData.household_profile?.identity_location?.gps_longitude ?? ''}
                                                 onChange={e => updateNested('household_profile.identity_location.gps_longitude', parseFloat(e.target.value) || undefined)}
                                                 placeholder="e.g. 38.74"
-                                                className="w-full bg-white border border-slate-200 rounded-2xl p-4 text-sm font-bold outline-none focus:ring-2 focus:ring-brand-500/20"
+                                                className="w-full bg-white border border-slate-200 rounded-2xl p-4 text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500/20"
                                             />
                                         </div>
                                     </div>
@@ -271,7 +271,7 @@ export const FormWizard: React.FC<{
                                                 updateNested('assessment_date', e.target.value);
                                                 updateNested('household_profile.identity_location.survey_date', e.target.value);
                                             }}
-                                            className="w-full bg-white border border-slate-200 rounded-2xl p-4 text-sm font-bold outline-none focus:ring-2 focus:ring-brand-500/20"
+                                            className="w-full bg-white border border-slate-200 rounded-2xl p-4 text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500/20"
                                         />
                                     </div>
                                     {/* Consent status */}
@@ -280,7 +280,7 @@ export const FormWizard: React.FC<{
                                         <select
                                             value={formData.household_profile?.identity_location?.respondent_consent_status || ''}
                                             onChange={e => updateNested('household_profile.identity_location.respondent_consent_status', e.target.value)}
-                                            className="w-full bg-white border border-slate-200 rounded-2xl p-4 text-sm font-bold outline-none focus:ring-2 focus:ring-brand-500/20"
+                                            className="w-full bg-white border border-slate-200 rounded-2xl p-4 text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500/20"
                                         >
                                             <option value="">Select status...</option>
                                             <option value="Yes">Yes</option>
@@ -314,7 +314,7 @@ export const FormWizard: React.FC<{
                                             key={sub.id}
                                             type="button"
                                             onClick={() => setSubStep(sub.id as HHSubStep)}
-                                            className={`flex items-center gap-2 px-5 py-3 text-xs font-black uppercase tracking-widest rounded-xl transition-all whitespace-nowrap ${subStep === sub.id ? 'bg-brand-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-200/50'}`}
+                                            className={`flex items-center gap-2 px-5 py-3 text-xs font-black uppercase tracking-widest rounded-xl transition-all whitespace-nowrap ${subStep === sub.id ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-200/50'}`}
                                         >
                                             <sub.icon size={14} />
                                             {sub.label}
@@ -326,7 +326,7 @@ export const FormWizard: React.FC<{
                                 {subStep === 'demographics' && (
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in fade-in duration-300">
                                         <div className="bg-white rounded-[2.5rem] p-8 border border-slate-200 shadow-sm space-y-6">
-                                            <h4 className="text-[10px] font-black text-brand-600 uppercase tracking-[0.2em] mb-4">Members & Headcounts</h4>
+                                            <h4 className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] mb-4">Members & Headcounts</h4>
                                             {[
                                                 { l: 'Total members', f: 'total_household_members' },
                                                 { l: 'Male members', f: 'male_members' },
@@ -348,7 +348,7 @@ export const FormWizard: React.FC<{
                                         </div>
 
                                         <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white space-y-6">
-                                            <h4 className="text-[10px] font-black text-brand-400 uppercase tracking-[0.2em] mb-4">Vulnerabilities & Head Details</h4>
+                                            <h4 className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-4">Vulnerabilities & Head Details</h4>
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div className="space-y-2">
                                                     <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Female-headed?</label>
@@ -421,13 +421,13 @@ export const FormWizard: React.FC<{
                                 {subStep === 'livelihood' && (
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in fade-in duration-300">
                                         <div className="bg-white rounded-[2.5rem] p-8 border border-slate-200 shadow-sm space-y-6">
-                                            <h4 className="text-[10px] font-black text-brand-600 uppercase tracking-[0.2em] mb-4">Livelihood Sources</h4>
+                                            <h4 className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] mb-4">Livelihood Sources</h4>
                                             <div className="space-y-2">
                                                 <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Primary Livelihood</label>
                                                 <select
                                                     value={livelihood.primary_livelihood_type || ''}
                                                     onChange={e => updateNested('household_profile.livelihood_economy.primary_livelihood_type', e.target.value)}
-                                                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-brand-500/20 transition-all"
+                                                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                                                 >
                                                     <option value="">Select Primary livelihood...</option>
                                                     {LIVELIHOOD_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
@@ -439,7 +439,7 @@ export const FormWizard: React.FC<{
                                                 <select
                                                     value={livelihood.secondary_livelihood_type || ''}
                                                     onChange={e => updateNested('household_profile.livelihood_economy.secondary_livelihood_type', e.target.value)}
-                                                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-brand-500/20 transition-all"
+                                                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                                                 >
                                                     <option value="None">None</option>
                                                     {LIVELIHOOD_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
@@ -451,7 +451,7 @@ export const FormWizard: React.FC<{
                                                 <select
                                                     value={livelihood.household_income_level || ''}
                                                     onChange={e => updateNested('household_profile.livelihood_economy.household_income_level', e.target.value)}
-                                                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-brand-500/20 transition-all"
+                                                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                                                 >
                                                     <option value="">Select Income Level...</option>
                                                     {['Low', 'Medium', 'High'].map(lvl => <option key={lvl} value={lvl}>{lvl}</option>)}
@@ -460,7 +460,7 @@ export const FormWizard: React.FC<{
                                         </div>
 
                                         <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white space-y-6">
-                                            <h4 className="text-[10px] font-black text-brand-400 uppercase tracking-[0.2em] mb-4">Economic Vulnerabilities</h4>
+                                            <h4 className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-4">Economic Vulnerabilities</h4>
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div className="space-y-2">
                                                     <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Small Business Owner?</label>
@@ -546,7 +546,7 @@ export const FormWizard: React.FC<{
                                 {subStep === 'housing' && (
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in fade-in duration-300">
                                         <div className="bg-white rounded-[2.5rem] p-8 border border-slate-200 shadow-sm space-y-6">
-                                            <h4 className="text-[10px] font-black text-brand-600 uppercase tracking-[0.2em] mb-4">Structure Characteristics</h4>
+                                            <h4 className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] mb-4">Structure Characteristics</h4>
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div className="space-y-2">
                                                     <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Wall Material</label>
@@ -555,7 +555,7 @@ export const FormWizard: React.FC<{
                                                         value={housing.wall_material_type || ''}
                                                         onChange={e => updateNested('household_profile.housing_physical_conditions.wall_material_type', e.target.value)}
                                                         placeholder="e.g. Brick, Wood and Mud"
-                                                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-brand-500/20"
+                                                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-indigo-500/20"
                                                     />
                                                 </div>
 
@@ -595,7 +595,7 @@ export const FormWizard: React.FC<{
                                         </div>
 
                                         <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white space-y-6">
-                                            <h4 className="text-[10px] font-black text-brand-400 uppercase tracking-[0.2em] mb-4">Compliance & Hazard Exposure</h4>
+                                            <h4 className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-4">Compliance & Hazard Exposure</h4>
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div className="space-y-2">
                                                     <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Informal Settlement?</label>
@@ -671,7 +671,7 @@ export const FormWizard: React.FC<{
                                 {subStep === 'preparedness' && (
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in fade-in duration-300">
                                         <div className="bg-white rounded-[2.5rem] p-8 border border-slate-200 shadow-sm space-y-6">
-                                            <h4 className="text-[10px] font-black text-brand-600 uppercase tracking-[0.2em] mb-4">Emergency Preparedness</h4>
+                                            <h4 className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] mb-4">Emergency Preparedness</h4>
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div className="space-y-2">
                                                     <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Knows emergency shelter?</label>
@@ -727,7 +727,7 @@ export const FormWizard: React.FC<{
                                         </div>
 
                                         <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white space-y-6">
-                                            <h4 className="text-[10px] font-black text-brand-400 uppercase tracking-[0.2em] mb-4">DRM training & communication</h4>
+                                            <h4 className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-4">DRM training & communication</h4>
                                             <div className="space-y-2">
                                                 <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">DRM Training Received</label>
                                                 <input
@@ -756,7 +756,7 @@ export const FormWizard: React.FC<{
                                                     type="range" min="1" max="5"
                                                     value={preparedness.community_awareness_self_rated_1_5 || 3}
                                                     onChange={e => updateNested('household_profile.preparedness.community_awareness_self_rated_1_5', parseInt(e.target.value) || 3)}
-                                                    className="w-full accent-brand-500"
+                                                    className="w-full accent-indigo-500"
                                                 />
                                                 <div className="flex justify-between text-[10px] text-slate-400">
                                                     <span>1 (Very low)</span>
@@ -770,7 +770,7 @@ export const FormWizard: React.FC<{
                                 {subStep === 'recovery' && (
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in fade-in duration-300">
                                         <div className="bg-white rounded-[2.5rem] p-8 border border-slate-200 shadow-sm space-y-6">
-                                            <h4 className="text-[10px] font-black text-brand-600 uppercase tracking-[0.2em] mb-4">Past Disaster Experience</h4>
+                                            <h4 className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] mb-4">Past Disaster Experience</h4>
                                             <div className="space-y-2">
                                                 <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Type of disaster experienced</label>
                                                 <input
@@ -794,7 +794,7 @@ export const FormWizard: React.FC<{
                                         </div>
 
                                         <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white space-y-6">
-                                            <h4 className="text-[10px] font-black text-brand-400 uppercase tracking-[0.2em] mb-4">Financial & Social Buffers</h4>
+                                            <h4 className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-4">Financial & Social Buffers</h4>
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div className="space-y-2">
                                                     <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Savings group member?</label>
@@ -839,7 +839,7 @@ export const FormWizard: React.FC<{
                                                     type="range" min="1" max="5"
                                                     value={recovery.resilience_enumerator_assessment_1_5 || 3}
                                                     onChange={e => updateNested('household_profile.recovery_capacity.resilience_enumerator_assessment_1_5', parseInt(e.target.value) || 3)}
-                                                    className="w-full accent-brand-500"
+                                                    className="w-full accent-indigo-500"
                                                 />
                                                 <div className="flex justify-between text-[10px] text-slate-400">
                                                     <span>1 (Extremely vulnerable)</span>
@@ -854,7 +854,7 @@ export const FormWizard: React.FC<{
 
                         {step === 3 && (
                             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-5 duration-500">
-                                <div className="bg-brand-600 rounded-[2.5rem] p-8 text-white relative overflow-hidden">
+                                <div className="bg-indigo-600 rounded-[2.5rem] p-8 text-white relative overflow-hidden">
                                     <div className="absolute inset-0 opacity-20 pointer-events-none bg-[radial-gradient(circle_at_top_right,_rgba(255,255,255,0.4),_transparent_50%)]" />
                                     <div className="flex items-center gap-6 mb-8">
                                         <div className="w-16 h-16 rounded-[1.5rem] bg-white/25 flex items-center justify-center">
@@ -867,12 +867,12 @@ export const FormWizard: React.FC<{
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="bg-white/10 rounded-2xl p-6 border border-white/10 backdrop-blur-md">
-                                            <p className="text-[10px] font-black text-brand-100 uppercase tracking-widest mb-1">Target Location</p>
+                                            <p className="text-[10px] font-black text-indigo-100 uppercase tracking-widest mb-1">Target Location</p>
                                             <p className="text-lg font-black">{formData.location.subcity || 'N/A'}, Woreda {formData.location.woreda || 'N/A'}</p>
                                             <p className="text-xs text-white/50">Block: {formData.location.block || 'N/A'} • House: {formData.location.house_no || 'N/A'}</p>
                                         </div>
                                         <div className="bg-white/10 rounded-2xl p-6 border border-white/10 backdrop-blur-md">
-                                            <p className="text-[10px] font-black text-brand-100 uppercase tracking-widest mb-1">Data Depth</p>
+                                            <p className="text-[10px] font-black text-indigo-100 uppercase tracking-widest mb-1">Data Depth</p>
                                             <p className="text-lg font-black">
                                                 {`${formData.household_profile?.demographics?.total_household_members || 0} Members • Household Protocol`}
                                             </p>
@@ -907,7 +907,7 @@ export const FormWizard: React.FC<{
                                 <button
                                     type="button"
                                     onClick={() => setStep(step + 1)}
-                                    className="px-10 py-4 text-white bg-slate-900 hover:bg-brand-600 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl transition-all flex items-center gap-2"
+                                    className="px-10 py-4 text-white bg-slate-900 hover:bg-indigo-600 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl transition-all flex items-center gap-2"
                                 >
                                     Continue <ChevronRight size={16} />
                                 </button>
@@ -916,7 +916,7 @@ export const FormWizard: React.FC<{
                                     type="button"
                                     onClick={() => onSave(formData)}
                                     disabled={saving}
-                                    className={`px-10 py-4 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl transition-all flex items-center gap-2 ${saving ? 'opacity-50 cursor-not-allowed' : ''} bg-brand-600 hover:bg-brand-700 hover:shadow-brand-100`}
+                                    className={`px-10 py-4 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl transition-all flex items-center gap-2 ${saving ? 'opacity-50 cursor-not-allowed' : ''} bg-indigo-600 hover:bg-indigo-700 hover:shadow-indigo-100`}
                                 >
                                     {saving ? <Loader2 size={16} className="animate-spin" /> : <ShieldCheck size={16} />}
                                     {saving ? 'Saving...' : 'Save Household Survey'}

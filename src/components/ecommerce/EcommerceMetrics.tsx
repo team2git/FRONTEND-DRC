@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getDashboardStats, DashboardStats } from "../../api/dashboardService";
+import { useAuth } from "../../context/AuthContext";
 import { Map, ClipboardList, Layers, FileText } from "lucide-react";
 
 export default function EcommerceMetrics() {

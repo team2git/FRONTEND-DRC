@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import api from '@/api/axios';
 import {
@@ -6,12 +6,13 @@ import {
     User, Clock, ChevronLeft, ChevronRight,
     Database, Calendar, X,
     FileText, CheckCircle2,
-    Eye, Edit3, RefreshCw
+    Eye, Edit3, RefreshCw, Filter, RotateCcw, MapPin, Home, Layers
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
 import PageMeta from '@/components/common/PageMeta';
 import { Can } from '@/components/auth/PermissionGuard';
+import { getLocationHierarchy, type LocationHierarchyItem } from '@/api/locationService';
 
 // --- Sub-component: Detail View Modal ---
 const ResponseDetailsModal: React.FC<{
@@ -19,7 +20,12 @@ const ResponseDetailsModal: React.FC<{
     template: any;
     onClose: () => void
 }> = ({ response, template, onClose }) => {
-    if (!response || !template) return null;
+    if (!response) return null;
+    const activeTemplate = (template && template.modules?.length > 0)
+        ? template
+        : (response.templateId && typeof response.templateId === 'object' ? response.templateId : template);
+
+    if (!activeTemplate) return null;
 
     const getAnswer = (fieldCode: string) => {
         const answers = response.answers;
@@ -78,7 +84,7 @@ const ResponseDetailsModal: React.FC<{
                         </div>
                         <div className="min-w-0">
                             <p className="text-[9px] sm:text-[11px] font-bold text-brand-600 uppercase tracking-widest mb-0.5 truncate">Assessment Record</p>
-                            <h2 className="text-lg sm:text-2xl font-bold text-slate-900 tracking-tight truncate">{template.name}</h2>
+                            <h2 className="text-lg sm:text-2xl font-bold text-slate-900 tracking-tight truncate">{activeTemplate.name}</h2>
                         </div>
                     </div>
                     <button
@@ -106,7 +112,7 @@ const ResponseDetailsModal: React.FC<{
                                 <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-widest">Submission Time</p>
                                 <div className="flex items-center gap-2 text-slate-900">
                                     <Calendar size={14} className="text-brand-400" />
-                                    <span className="text-sm sm:text-base font-semibold">{new Date(response.submittedAt).toLocaleDateString()}</span>
+                                    <span className="text-sm sm:text-base font-semibold">{new Date(response.submittedAt || response.createdAt).toLocaleDateString()}</span>
                                 </div>
                             </div>
                             <div className="space-y-1 sm:col-span-2 lg:col-span-1">
@@ -122,8 +128,8 @@ const ResponseDetailsModal: React.FC<{
 
                         {/* Responses by Module */}
                         <div className="space-y-10">
-                            {template.modules?.map((module: any, mIdx: number) => (
-                                <section key={module.moduleId} className="space-y-6">
+                            {activeTemplate.modules?.map((module: any, mIdx: number) => (
+                                <section key={module.moduleId || mIdx} className="space-y-6">
                                     <div className="flex items-center gap-4">
                                         <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-xl shadow-sm border border-slate-100 flex items-center justify-center text-slate-900 font-bold text-xs sm:text-sm flex-shrink-0">
                                             {mIdx + 1}
@@ -186,6 +192,91 @@ const ResponseExplorerPage: React.FC = () => {
     const [statusFilter, setStatusFilter] = useState<'ALL' | 'SYNCED' | 'UNSYNCED' | 'UPDATED'>('ALL');
     const [selectedResponse, setSelectedResponse] = useState<any>(null);
 
+    // Filter Panel States
+    const [showFilterPanel, setShowFilterPanel] = useState(false);
+    const [templateFilter, setTemplateFilter] = useState('');
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
+    const [subcityFilter, setSubcityFilter] = useState('');
+    const [woredaFilter, setWoredaFilter] = useState('');
+    const [blockFilter, setBlockFilter] = useState('');
+    const [houseNoFilter, setHouseNoFilter] = useState('');
+
+    const [availableTemplates, setAvailableTemplates] = useState<any[]>([]);
+    const [locationHierarchy, setLocationHierarchy] = useState<LocationHierarchyItem[]>([]);
+
+    useEffect(() => {
+        api.get('/templates').then(res => setAvailableTemplates(res.data)).catch(() => {});
+        getLocationHierarchy().then(data => setLocationHierarchy(data)).catch(() => {});
+    }, []);
+
+    const selectedSubcityObj = locationHierarchy.find(s => s.name.toLowerCase() === subcityFilter.toLowerCase());
+    const availableWoredasForFilter = selectedSubcityObj?.woredas || [];
+
+    const activeFilterCount = [
+        templateFilter,
+        startDate,
+        endDate,
+        subcityFilter,
+        woredaFilter,
+        blockFilter,
+        houseNoFilter
+    ].filter(Boolean).length;
+
+    const resetFilters = () => {
+        setTemplateFilter('');
+        setStartDate('');
+        setEndDate('');
+        setSubcityFilter('');
+        setWoredaFilter('');
+        setBlockFilter('');
+        setHouseNoFilter('');
+    };
+
+    const getTemplateAbbr = (name?: string): string => {
+        if (!name) return 'ASS';
+        const clean = name.trim();
+        const words = clean.split(/\s+/).filter(w => !['and', 'or', 'of', 'in', 'for', 'the', 'a', 'an', '&'].includes(w.toLowerCase()));
+        if (words.length >= 2) {
+            return words.map(w => w[0]?.toUpperCase() || '').slice(0, 4).join('');
+        }
+        return clean.slice(0, 3).toUpperCase();
+    };
+
+    const getResponseTemplateInfo = (res: any) => {
+        let name = '';
+        if (res?.templateId && typeof res.templateId === 'object') {
+            name = res.templateId.name || res.templateId.title || '';
+        }
+        if (!name && res?.templateId) {
+            const idStr = typeof res.templateId === 'string' ? res.templateId : res.templateId._id;
+            const found = availableTemplates.find(t => t._id === idStr);
+            if (found) name = found.name;
+        }
+        if (!name && template?.name && template.name !== 'All Assessment Responses') {
+            name = template.name;
+        }
+        if (!name) name = 'Assessment Questionnaire';
+
+        const abbr = getTemplateAbbr(name);
+        return { name, abbr };
+    };
+
+    const getAnswerValue = (answers: any, ...possibleKeys: string[]) => {
+        if (!answers) return '';
+        const entries = answers instanceof Map ? Array.from(answers.entries()) : Object.entries(answers);
+
+        for (const key of possibleKeys) {
+            const lowerKey = key.toLowerCase();
+            const found = entries.find(([k]) => k.toLowerCase() === lowerKey || k.toLowerCase().includes(lowerKey));
+            if (found) {
+                const val = found[1] as any;
+                return (val?.value ?? val)?.toString() || '';
+            }
+        }
+        return '';
+    };
+
     // Pagination
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
@@ -194,9 +285,12 @@ const ResponseExplorerPage: React.FC = () => {
         const fetchData = async () => {
             try {
                 setLoading(true);
+                const isAll = !templateId || templateId === 'all';
                 const [tmplRes, respRes] = await Promise.all([
-                    api.get(`/templates/${templateId}`),
-                    api.get(`/responses?templateId=${templateId}`)
+                    isAll
+                        ? Promise.resolve({ data: { name: 'All Assessment Responses', version: 'Global', modules: [] } })
+                        : api.get(`/templates/${templateId}`),
+                    api.get(`/responses${isAll ? '' : `?templateId=${templateId}`}`)
                 ]);
                 setTemplate(tmplRes.data);
                 setResponses(respRes.data);
@@ -208,7 +302,7 @@ const ResponseExplorerPage: React.FC = () => {
             }
         };
 
-        if (templateId) fetchData();
+        fetchData();
     }, [templateId]);
 
 
@@ -230,6 +324,56 @@ const ResponseExplorerPage: React.FC = () => {
 
         // Sync Status Filter
         if (statusFilter !== 'ALL' && r.syncStatus !== statusFilter) return false;
+
+        // Template Name / ID Filter
+        if (templateFilter) {
+            const tmplInfo = getResponseTemplateInfo(r);
+            const templateIdStr = (typeof r.templateId === 'object' ? r.templateId?._id : r.templateId)?.toString();
+
+            const matchesName = tmplInfo.name.toLowerCase().includes(templateFilter.toLowerCase());
+            const matchesId = templateIdStr === templateFilter;
+            const matchesAbbr = tmplInfo.abbr.toLowerCase() === templateFilter.toLowerCase();
+
+            if (!matchesName && !matchesId && !matchesAbbr) return false;
+        }
+
+        // Date Range Filter
+        if (startDate) {
+            const rDate = new Date(r.submittedAt || r.createdAt);
+            const start = new Date(startDate);
+            start.setHours(0, 0, 0, 0);
+            if (rDate < start) return false;
+        }
+        if (endDate) {
+            const rDate = new Date(r.submittedAt || r.createdAt);
+            const end = new Date(endDate);
+            end.setHours(23, 59, 59, 999);
+            if (rDate > end) return false;
+        }
+
+        // Subcity Filter
+        if (subcityFilter) {
+            const val = getAnswerValue(r.answers, 'subcity', 'sub_city', 'subcity_name');
+            if (!val.toLowerCase().includes(subcityFilter.toLowerCase())) return false;
+        }
+
+        // Woreda Filter
+        if (woredaFilter) {
+            const val = getAnswerValue(r.answers, 'woreda', 'woreda_name', 'woreda_no');
+            if (!val.toLowerCase().includes(woredaFilter.toLowerCase())) return false;
+        }
+
+        // Block Filter
+        if (blockFilter) {
+            const val = getAnswerValue(r.answers, 'block', 'block_no', 'block_number');
+            if (!val.toLowerCase().includes(blockFilter.toLowerCase())) return false;
+        }
+
+        // House No Filter
+        if (houseNoFilter) {
+            const val = getAnswerValue(r.answers, 'house', 'house_no', 'house_number', 'houseNo', 'premise');
+            if (!val.toLowerCase().includes(houseNoFilter.toLowerCase())) return false;
+        }
 
         const matchesBasic = (
             r.respondentMetadata?.fullName?.toLowerCase().includes(searchText) ||
@@ -255,7 +399,7 @@ const ResponseExplorerPage: React.FC = () => {
     // Reset to page 1 on search/filter
     useEffect(() => {
         setCurrentPage(1);
-    }, [search, statusFilter]);
+    }, [search, statusFilter, templateFilter, startDate, endDate, subcityFilter, woredaFilter, blockFilter, houseNoFilter]);
 
     const stats = {
         total: responses.length,
@@ -367,54 +511,234 @@ const ResponseExplorerPage: React.FC = () => {
                 {/* Data List Container */}
                 <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1 }} className="bg-white rounded-[40px] border border-slate-100 shadow-xl shadow-slate-100/50 overflow-hidden flex flex-col">
                     {/* Search & Tool Bar */}
-                    <div className="p-4 sm:p-8 border-b border-slate-50 flex flex-col xl:flex-row xl:items-center justify-between gap-6">
-                        <div className="relative w-full xl:w-[480px]">
-                            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                            <input
-                                type="text"
-                                placeholder="Search by ID, Enumerator, or House No..."
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                className="w-full pl-14 pr-6 py-3.5 sm:py-4 bg-slate-50/50 border border-slate-100 rounded-xl sm:rounded-2xl outline-none focus:bg-white focus:border-brand-300 focus:ring-4 focus:ring-brand-50 transition-all font-semibold text-sm sm:text-base text-slate-700 placeholder:text-slate-400"
-                            />
+                    <div className="px-5 py-4 border-b border-slate-100 flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-white">
+                        <div className="flex items-center gap-2.5 w-full lg:w-auto flex-1 max-w-xl">
+                            {/* Compact Search Input */}
+                            <div className="relative flex-1">
+                                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
+                                <input
+                                    type="text"
+                                    placeholder="Search by ID, Enumerator, or House No..."
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                    className="w-full pl-9 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:bg-white focus:border-brand-500 focus:ring-2 focus:ring-brand-50/50 transition-all font-medium text-xs text-slate-800 placeholder:text-slate-400 shadow-xs"
+                                />
+                                {search && (
+                                    <button
+                                        onClick={() => setSearch('')}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                    >
+                                        <X size={13} />
+                                    </button>
+                                )}
+                            </div>
+
+                            {/* Compact Filter Button */}
+                            <button
+                                onClick={() => setShowFilterPanel(!showFilterPanel)}
+                                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl border font-semibold text-xs transition-all cursor-pointer flex-shrink-0 shadow-xs ${
+                                    showFilterPanel || activeFilterCount > 0
+                                        ? 'bg-brand-600 text-white border-brand-600 shadow-sm shadow-brand-200'
+                                        : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 hover:text-slate-900'
+                                }`}
+                            >
+                                <Filter size={14} />
+                                <span>Filter</span>
+                                {activeFilterCount > 0 && (
+                                    <span className="w-4 h-4 rounded-full bg-white text-brand-700 font-black text-[9px] flex items-center justify-center shadow-xs ml-0.5">
+                                        {activeFilterCount}
+                                    </span>
+                                )}
+                            </button>
                         </div>
-                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-                            <div className="flex bg-slate-50 p-1 rounded-xl sm:rounded-2xl border border-slate-100 shadow-inner overflow-x-auto no-scrollbar">
+
+                        <div className="flex items-center justify-between sm:justify-end gap-3">
+                            {/* Compact Status Tabs */}
+                            <div className="flex bg-slate-100/80 p-1 rounded-xl border border-slate-200/60 overflow-x-auto no-scrollbar shadow-inner">
                                 {[
-                                    { label: 'All', value: 'ALL', color: 'bg-white text-slate-900 shadow-sm' },
-                                    { label: 'Synced', value: 'SYNCED', color: 'bg-emerald-50 text-emerald-700' },
-                                    { label: 'Unsynced', value: 'UNSYNCED', color: 'bg-amber-50 text-amber-700' },
-                                    { label: 'Updated', value: 'UPDATED', color: 'bg-brand-50 text-brand-700' },
+                                    { label: 'All', value: 'ALL', count: stats.total, activeColor: 'bg-white text-slate-900 shadow-xs' },
+                                    { label: 'Synced', value: 'SYNCED', count: stats.synced, activeColor: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200' },
+                                    { label: 'Unsynced', value: 'UNSYNCED', count: stats.unsynced, activeColor: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200' },
+                                    { label: 'Updated', value: 'UPDATED', count: stats.updated, activeColor: 'bg-blue-50 text-blue-700 ring-1 ring-blue-200' },
                                 ].map((tab) => (
                                     <button
                                         key={tab.value}
                                         onClick={() => setStatusFilter(tab.value as any)}
-                                        className={`px-4 sm:px-5 py-2 sm:py-2.5 text-[10px] sm:text-xs font-black uppercase tracking-widest rounded-lg sm:rounded-xl transition-all whitespace-nowrap ${statusFilter === tab.value
-                                                ? `${tab.color} ring-1 ring-slate-100`
-                                                : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100/50'
-                                            }`}
+                                        className={`px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+                                            statusFilter === tab.value
+                                                ? tab.activeColor
+                                                : 'text-slate-500 hover:text-slate-800 hover:bg-white/50'
+                                        }`}
                                     >
-                                        {tab.label}
+                                        <span>{tab.label}</span>
+                                        <span className={`text-[9px] px-1.5 py-0.2 rounded-full font-extrabold ${
+                                            statusFilter === tab.value
+                                                ? 'bg-slate-200/60 text-slate-900'
+                                                : 'bg-slate-200/50 text-slate-500'
+                                        }`}>
+                                            {tab.count}
+                                        </span>
                                     </button>
                                 ))}
                             </div>
-                            <div className="hidden sm:flex items-center gap-4 text-slate-400 text-[10px] font-bold uppercase tracking-widest px-4 border-l border-slate-100 ml-2">
-                                {filteredResponses.length} Entries
+
+                            <div className="hidden sm:flex items-center text-slate-400 text-[10px] font-bold uppercase tracking-widest pl-2">
+                                {filteredResponses.length} {filteredResponses.length === 1 ? 'Record' : 'Records'}
                             </div>
                         </div>
                     </div>
+
+                    {/* Expandable Filter Panel */}
+                    <AnimatePresence>
+                        {showFilterPanel && (
+                            <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                exit={{ opacity: 0, height: 0 }}
+                                transition={{ duration: 0.25 }}
+                                className="overflow-hidden border-b border-slate-100 bg-gradient-to-r from-slate-50/90 via-indigo-50/40 to-slate-50/90 p-6 sm:p-8"
+                            >
+                                <div className="flex items-center justify-between mb-5 pb-3 border-b border-slate-200/60">
+                                    <div className="flex items-center gap-2 text-slate-900 font-black text-xs uppercase tracking-widest">
+                                        <Filter size={15} className="text-brand-600" />
+                                        <span>Advanced Assessment Filters</span>
+                                    </div>
+                                    {activeFilterCount > 0 && (
+                                        <button
+                                            onClick={resetFilters}
+                                            className="flex items-center gap-1.5 text-xs font-bold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-xl transition-all cursor-pointer"
+                                        >
+                                            <RotateCcw size={12} /> Clear All Filters
+                                        </button>
+                                    )}
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
+                                    {/* Template Name */}
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1">
+                                            <FileText size={11} className="text-brand-500" /> Template Name
+                                        </label>
+                                        <select
+                                            value={templateFilter}
+                                            onChange={e => setTemplateFilter(e.target.value)}
+                                            className="w-full bg-white border border-slate-200 rounded-xl p-3 text-xs font-bold text-slate-800 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-50 shadow-sm cursor-pointer"
+                                        >
+                                            <option value="">All Templates</option>
+                                            {availableTemplates.map(t => (
+                                                <option key={t._id} value={t.name}>
+                                                    [{getTemplateAbbr(t.name)}] {t.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    {/* Start Date */}
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1">
+                                            <Calendar size={11} className="text-brand-500" /> Start Date
+                                        </label>
+                                        <input
+                                            type="date"
+                                            value={startDate}
+                                            onChange={e => setStartDate(e.target.value)}
+                                            className="w-full bg-white border border-slate-200 rounded-xl p-3 text-xs font-bold text-slate-800 outline-none focus:border-brand-500 shadow-sm cursor-pointer"
+                                        />
+                                    </div>
+
+                                    {/* End Date */}
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1">
+                                            <Calendar size={11} className="text-brand-500" /> End Date
+                                        </label>
+                                        <input
+                                            type="date"
+                                            value={endDate}
+                                            onChange={e => setEndDate(e.target.value)}
+                                            className="w-full bg-white border border-slate-200 rounded-xl p-3 text-xs font-bold text-slate-800 outline-none focus:border-brand-500 shadow-sm cursor-pointer"
+                                        />
+                                    </div>
+
+                                    {/* Subcity */}
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1">
+                                            <MapPin size={11} className="text-brand-500" /> Subcity
+                                        </label>
+                                        <select
+                                            value={subcityFilter}
+                                            onChange={e => {
+                                                setSubcityFilter(e.target.value);
+                                                setWoredaFilter('');
+                                            }}
+                                            className="w-full bg-white border border-slate-200 rounded-xl p-3 text-xs font-bold text-slate-800 outline-none focus:border-brand-500 shadow-sm cursor-pointer"
+                                        >
+                                            <option value="">All Subcities</option>
+                                            {locationHierarchy.map(s => (
+                                                <option key={s._id} value={s.name}>{s.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    {/* Woreda */}
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1">
+                                            <MapPin size={11} className="text-brand-500" /> Woreda
+                                        </label>
+                                        <select
+                                            value={woredaFilter}
+                                            onChange={e => setWoredaFilter(e.target.value)}
+                                            className="w-full bg-white border border-slate-200 rounded-xl p-3 text-xs font-bold text-slate-800 outline-none focus:border-brand-500 shadow-sm cursor-pointer disabled:opacity-50"
+                                        >
+                                            <option value="">All Woredas</option>
+                                            {availableWoredasForFilter.map((w: any) => (
+                                                <option key={w._id} value={w.name}>{w.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    {/* Block */}
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1">
+                                            <Layers size={11} className="text-brand-500" /> Block
+                                        </label>
+                                        <input
+                                            type="text"
+                                            placeholder="Block No..."
+                                            value={blockFilter}
+                                            onChange={e => setBlockFilter(e.target.value)}
+                                            className="w-full bg-white border border-slate-200 rounded-xl p-3 text-xs font-bold text-slate-800 outline-none focus:border-brand-500 shadow-sm"
+                                        />
+                                    </div>
+
+                                    {/* House No. */}
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1">
+                                            <Home size={11} className="text-brand-500" /> House No.
+                                        </label>
+                                        <input
+                                            type="text"
+                                            placeholder="House No..."
+                                            value={houseNoFilter}
+                                            onChange={e => setHouseNoFilter(e.target.value)}
+                                            className="w-full bg-white border border-slate-200 rounded-xl p-3 text-xs font-bold text-slate-800 outline-none focus:border-brand-500 shadow-sm"
+                                        />
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
 
                     {/* Clean Table / List */}
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="bg-slate-50/50 backdrop-blur-sm">
-                                    <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Record Track ID</th>
-                                    <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">House No</th>
-                                    <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Captured By</th>
-                                    <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Timestamp</th>
-                                    <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Verification</th>
-                                    <th className="px-8 py-5 text-right w-48 text-[10px] font-black text-slate-400 uppercase tracking-widest">Actions</th>
+                                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Template Name (Abbr)</th>
+                                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Location / House No.</th>
+                                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Captured By</th>
+                                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Timestamp</th>
+                                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Verification</th>
+                                    <th className="px-6 py-5 text-right w-48 text-[10px] font-black text-slate-400 uppercase tracking-widest">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-50 relative">
@@ -424,42 +748,56 @@ const ResponseExplorerPage: React.FC = () => {
                                             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-50 text-slate-300 mb-4">
                                                 <Search size={24} />
                                             </div>
-                                            <p className="text-slate-400 font-bold">No tracking records found.</p>
+                                            <p className="text-slate-400 font-bold">No tracking records matching criteria.</p>
                                         </td>
                                     </tr>
                                 ) : (
-                                    paginatedResponses.map((res: any) => (
-                                        <tr
-                                            key={res._id}
-                                            className={`group transition-all border-l-4 ${res.syncStatus === 'SYNCED' ? 'bg-emerald-50/20 hover:bg-emerald-50/40 border-emerald-500' :
-                                                    res.syncStatus === 'UPDATED' ? 'bg-blue-50/20 hover:bg-blue-50/40 border-blue-500' :
-                                                        'bg-amber-50/20 hover:bg-amber-50/40 border-amber-500'
-                                                }`}
-                                        >
-                                            <td className="px-8 py-5" onClick={() => setSelectedResponse(res)}>
-                                                <div className="flex items-center gap-4">
-                                                    <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-mono text-[10px] font-bold group-hover:scale-110 transition-all ${res.syncStatus === 'SYNCED' ? 'bg-emerald-100/50 text-emerald-700' :
-                                                            res.syncStatus === 'UPDATED' ? 'bg-blue-100/50 text-blue-700' :
-                                                                'bg-amber-100/50 text-amber-700'
+                                    paginatedResponses.map((res: any) => {
+                                        const tmplInfo = getResponseTemplateInfo(res);
+                                        return (
+                                            <tr
+                                                key={res._id}
+                                                className={`group transition-all border-l-4 ${res.syncStatus === 'SYNCED' ? 'bg-emerald-50/20 hover:bg-emerald-50/40 border-emerald-500' :
+                                                        res.syncStatus === 'UPDATED' ? 'bg-blue-50/20 hover:bg-blue-50/40 border-blue-500' :
+                                                            'bg-amber-50/20 hover:bg-amber-50/40 border-amber-500'
+                                                    }`}
+                                            >
+                                                <td className="px-6 py-5" onClick={() => setSelectedResponse(res)}>
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={`px-2.5 py-1.5 rounded-xl font-mono text-xs font-black tracking-wider flex items-center justify-center group-hover:scale-105 transition-all shadow-sm flex-shrink-0 ${
+                                                            res.syncStatus === 'SYNCED' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' :
+                                                            res.syncStatus === 'UPDATED' ? 'bg-blue-100 text-blue-800 border border-blue-200' :
+                                                            'bg-amber-100 text-amber-800 border border-amber-200'
                                                         }`}>
-                                                        #{res._id.slice(-4).toUpperCase()}
+                                                            {tmplInfo.abbr}
+                                                        </div>
+                                                        <div className="flex flex-col min-w-0">
+                                                            <span className="text-xs font-black text-slate-900 truncate max-w-[200px]" title={tmplInfo.name}>
+                                                                {tmplInfo.name}
+                                                            </span>
+                                                            <span
+                                                                className="text-[10px] font-mono text-slate-400 font-semibold cursor-pointer hover:text-brand-600 transition-colors"
+                                                                title="Click to copy full ID"
+                                                                onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(res._id); toast.success('ID Copied!'); }}
+                                                            >
+                                                                ID: #{res._id.slice(-6).toUpperCase()}
+                                                            </span>
+                                                        </div>
                                                     </div>
-                                                    <span className="text-[12px] font-mono text-slate-500 font-semibold cursor-pointer group-hover:text-brand-600 transition-colors" title="Copy Full ID" onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(res._id); toast.success('ID Copied!'); }}>{res._id}</span>
-                                                </div>
-                                            </td>
-                                            <td className="px-8 py-5" onClick={() => setSelectedResponse(res)}>
-                                                <div className="flex flex-col">
-                                                    <span className="text-sm font-black text-slate-800">
-                                                        {(() => {
-                                                            const houseEntry = Object.entries(res.answers || {}).find(([k]) => k.toLowerCase().includes('house'));
-                                                            const val = houseEntry?.[1] as any;
-                                                            return val?.value ?? val ?? 'N/A';
-                                                        })()}
+                                                </td>
+                                            <td className="px-6 py-5" onClick={() => setSelectedResponse(res)}>
+                                                <div className="flex flex-col gap-0.5">
+                                                    <span className="text-xs font-black text-slate-800">
+                                                        {getAnswerValue(res.answers, 'subcity', 'sub_city') || 'Addis Ababa'}
+                                                        {getAnswerValue(res.answers, 'woreda', 'woreda_name') ? ` · W. ${getAnswerValue(res.answers, 'woreda', 'woreda_name')}` : ''}
                                                     </span>
-                                                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Premise ID</span>
+                                                    <span className="text-[10px] text-slate-500 font-semibold">
+                                                        {getAnswerValue(res.answers, 'block', 'block_no') ? `Blk ${getAnswerValue(res.answers, 'block', 'block_no')}` : ''}
+                                                        {getAnswerValue(res.answers, 'house', 'house_no', 'house_number') ? ` · House #${getAnswerValue(res.answers, 'house', 'house_no', 'house_number')}` : 'Premise N/A'}
+                                                    </span>
                                                 </div>
                                             </td>
-                                            <td className="px-8 py-5" onClick={() => setSelectedResponse(res)}>
+                                            <td className="px-6 py-5" onClick={() => setSelectedResponse(res)}>
                                                 <div className="flex items-center gap-3">
                                                     <div className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors ${res.syncStatus === 'SYNCED' ? 'bg-emerald-100 text-emerald-600' :
                                                             res.syncStatus === 'UPDATED' ? 'bg-blue-100 text-blue-600' :
@@ -473,18 +811,18 @@ const ResponseExplorerPage: React.FC = () => {
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="px-8 py-5" onClick={() => setSelectedResponse(res)}>
+                                            <td className="px-6 py-5" onClick={() => setSelectedResponse(res)}>
                                                 <div className="flex flex-col gap-1">
                                                     <div className="flex items-center gap-2 text-slate-700 text-sm font-semibold">
-                                                        {new Date(res.submittedAt).toLocaleDateString()}
+                                                        {new Date(res.submittedAt || res.createdAt).toLocaleDateString()}
                                                     </div>
                                                     <div className="flex items-center gap-1.5 text-slate-400 text-[11px] font-bold">
                                                         <Clock size={12} />
-                                                        {new Date(res.submittedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                        {new Date(res.submittedAt || res.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="px-8 py-5" onClick={() => setSelectedResponse(res)}>
+                                            <td className="px-6 py-5" onClick={() => setSelectedResponse(res)}>
                                                 <div className="flex flex-col gap-1.5">
                                                     <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-[10px] text-[10px] font-bold tracking-widest uppercase ${res.syncStatus === 'SYNCED' ? 'bg-emerald-100/50 text-emerald-700' :
                                                             res.syncStatus === 'UPDATED' ? 'bg-blue-100/50 text-blue-700' :
@@ -500,7 +838,7 @@ const ResponseExplorerPage: React.FC = () => {
                                                     )}
                                                 </div>
                                             </td>
-                                            <td className="px-8 py-5 text-right relative z-10">
+                                            <td className="px-6 py-5 text-right relative z-10">
                                                 <div className="flex items-center justify-end gap-2" onClick={e => e.stopPropagation()}>
                                                     <Can resource="WoredaProfile" action="sync">
                                                         <button
@@ -539,8 +877,9 @@ const ResponseExplorerPage: React.FC = () => {
                                                 </div>
                                             </td>
                                         </tr>
-                                    ))
-                                )}
+                                    );
+                                })
+                            )}
                             </tbody>
                         </table>
                     </div>

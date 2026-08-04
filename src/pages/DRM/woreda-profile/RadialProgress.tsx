@@ -19,7 +19,7 @@ export const RadialProgress: React.FC<{
         <div className={`flex flex-col items-center justify-center p-4 rounded-3xl border transition-all duration-300 group hover:-translate-y-1 w-full ${
             dark 
                 ? 'bg-slate-900/60 border-slate-800 hover:bg-slate-800/80 hover:border-slate-700 shadow-md' 
-                : 'bg-white border-slate-100 hover:bg-white hover:border-brand-100 shadow-sm'
+                : 'bg-white border-slate-100 hover:bg-white hover:border-indigo-100 shadow-sm'
         }`}>
             <div className="relative" style={{ width: size, height: size }}>
                 <svg className="transform -rotate-90 w-full h-full">

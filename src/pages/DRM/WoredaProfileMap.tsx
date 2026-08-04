@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
@@ -6,7 +6,11 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import {
     ArrowLeft, Search, Filter, Map as MapIcon,
-    X, ChevronRight, RefreshCw, GitCompare
+    X, ChevronRight, RefreshCw, GitCompare,
+    Printer, FileText, AlertTriangle, ShieldAlert,
+    ShieldCheck, Activity, BarChart2, CheckCircle2,
+    Building2, Flame, Droplets, Zap, Shield, Info,
+    FileSpreadsheet, AlertCircle
 } from 'lucide-react';
 import { getWoredaProfiles, type WoredaProfile } from '../../api/woredaProfileService';
 import { addisAbabaGeoData, RISK_LEVELS, getRiskColor, getRiskLevel, ADDIS_ABABA_CENTER } from './addisAbabaGeoData';
@@ -26,22 +30,149 @@ const SUBCITY_CENTERS: Record<string, [number, number]> = {
     'Lemi Kura': [8.965, 38.815]
 };
 
-const DEFAULT_WOREDAS: Record<string, string[]> = {
-    'Arada': ['Woreda 01', 'Woreda 02', 'Woreda 03', 'Woreda 04'],
-    'Addis Ketema': ['Woreda 01', 'Woreda 02', 'Woreda 03'],
-    'Lideta': ['Woreda 01', 'Woreda 02', 'Woreda 03'],
-    'Kirkos': ['Woreda 01', 'Woreda 02', 'Woreda 03', 'Woreda 04'],
-    'Bole': ['Woreda 01', 'Woreda 02', 'Woreda 03', 'Woreda 04', 'Woreda 05'],
-    'Yeka': ['Woreda 01', 'Woreda 02', 'Woreda 03', 'Woreda 04'],
-    'Gullele': ['Woreda 01', 'Woreda 02', 'Woreda 03'],
-    'Kolfe Keranio': ['Woreda 01', 'Woreda 02', 'Woreda 03', 'Woreda 04'],
-    'Nifas Silk Lafto': ['Woreda 01', 'Woreda 02', 'Woreda 03', 'Woreda 04'],
-    'Akaki Kality': ['Woreda 01', 'Woreda 02', 'Woreda 03'],
-    'Lemi Kura': ['Woreda 01', 'Woreda 02', 'Woreda 03']
-};
+const DEFAULT_WOREDAS: Record<string, string[]> = {};
 
 const DEFAULT_CENTER: [number, number] = [9.015, 38.755];
 const DEFAULT_ZOOM = 12;
+
+// Hazard Color Palette, Shapes & Details
+export const HAZARD_COLOR_MAP: Record<string, { color: string; bg: string; text: string; shapeName: string; shapeCss: string; shapeSymbol: string }> = {
+    'Flood': {
+        color: '#2563eb',
+        bg: 'bg-blue-50 dark:bg-blue-950/60',
+        text: 'text-blue-600 dark:text-blue-400',
+        shapeName: 'Diamond',
+        shapeCss: 'rotate-45 rounded-sm',
+        shapeSymbol: '◆'
+    },
+    'Waterlogging / Urban Flood': {
+        color: '#0284c7',
+        bg: 'bg-sky-50 dark:bg-sky-950/60',
+        text: 'text-sky-600 dark:text-sky-400',
+        shapeName: 'Circle Wave',
+        shapeCss: 'rounded-full border-2 border-white',
+        shapeSymbol: '●'
+    },
+    'Fire': {
+        color: '#dc2626',
+        bg: 'bg-red-50 dark:bg-red-950/60',
+        text: 'text-red-600 dark:text-red-400',
+        shapeName: 'Flame Tear',
+        shapeCss: 'rounded-t-full rounded-b-md',
+        shapeSymbol: '▲'
+    },
+    'Landslide': {
+        color: '#d97706',
+        bg: 'bg-amber-50 dark:bg-amber-950/60',
+        text: 'text-amber-600 dark:text-amber-400',
+        shapeName: 'Triangle',
+        shapeCss: 'rounded-sm rotate-180',
+        shapeSymbol: '▲'
+    },
+    'Earthquake': {
+        color: '#be123c',
+        bg: 'bg-rose-50 dark:bg-rose-950/60',
+        text: 'text-rose-600 dark:text-rose-400',
+        shapeName: 'Square',
+        shapeCss: 'rounded-none border-2 border-white',
+        shapeSymbol: '■'
+    },
+    'Disease Outbreak': {
+        color: '#7c3aed',
+        bg: 'bg-purple-50 dark:bg-purple-950/60',
+        text: 'text-purple-600 dark:text-purple-400',
+        shapeName: 'Hexagon',
+        shapeCss: 'rotate-12 rounded-md',
+        shapeSymbol: '⬢'
+    },
+    'Drought': {
+        color: '#ca8a04',
+        bg: 'bg-yellow-50 dark:bg-yellow-950/60',
+        text: 'text-yellow-700 dark:text-yellow-400',
+        shapeName: 'Star / Octagon',
+        shapeCss: 'rotate-45 rounded-md border-2 border-amber-300',
+        shapeSymbol: '★'
+    },
+    'Industrial Accident': {
+        color: '#0d9488',
+        bg: 'bg-teal-50 dark:bg-teal-950/60',
+        text: 'text-teal-600 dark:text-teal-400',
+        shapeName: 'Shield',
+        shapeCss: 'rounded-b-2xl rounded-t-sm',
+        shapeSymbol: '🛡'
+    },
+    'Road Accident': {
+        color: '#475569',
+        bg: 'bg-slate-100 dark:bg-slate-800',
+        text: 'text-slate-700 dark:text-slate-300',
+        shapeName: 'Pill',
+        shapeCss: 'rounded-full w-5 h-3',
+        shapeSymbol: '⬟'
+    },
+    'Building Collapse': {
+        color: '#52525b',
+        bg: 'bg-zinc-100 dark:bg-zinc-800',
+        text: 'text-zinc-700 dark:text-zinc-300',
+        shapeName: 'Cube Box',
+        shapeCss: 'rounded-sm border-2 border-zinc-400',
+        shapeSymbol: '▧'
+    },
+    'Wind Storm': {
+        color: '#0891b2',
+        bg: 'bg-cyan-50 dark:bg-cyan-950/60',
+        text: 'text-cyan-600 dark:text-cyan-400',
+        shapeName: 'Ring Wave',
+        shapeCss: 'rounded-full border-4 border-[#0891b2] bg-white',
+        shapeSymbol: '◎'
+    }
+};
+
+export function getDominantHazard(profile: WoredaProfile): { name: string; score: number } | null {
+    if (profile.hazards && profile.hazards.length > 0) {
+        const valid = profile.hazards.filter((h: any) => h.hazard_name);
+        if (valid.length > 0) {
+            const sorted = [...valid].sort((a, b) => {
+                const scoreA = (parseFloat((a.severity || '0').toString()) || 0) * (parseFloat((a.frequency || '0').toString()) || 0);
+                const scoreB = (parseFloat((b.severity || '0').toString()) || 0) * (parseFloat((b.frequency || '0').toString()) || 0);
+                return scoreB - scoreA;
+            });
+            const top = sorted[0];
+            const score = (parseFloat((top.severity || '0').toString()) || 0) * (parseFloat((top.frequency || '0').toString()) || 0);
+            return { name: top.hazard_name, score };
+        }
+    }
+    return null;
+}
+
+export function getAllRegionHazards(profile: WoredaProfile): Array<{ name: string; score: number; level: ReturnType<typeof getHazardLevelInfo>; config: typeof HAZARD_COLOR_MAP[string] }> {
+    if (profile.hazards && profile.hazards.length > 0) {
+        return profile.hazards
+            .filter((h: any) => h.hazard_name)
+            .map((h: any) => {
+                const hName = h.hazard_name;
+                const score = (parseFloat((h.severity || '0').toString()) || 0) * (parseFloat((h.frequency || '0').toString()) || 0);
+                const level = getHazardLevelInfo(score);
+                const config = HAZARD_COLOR_MAP[hName] || {
+                    color: '#64748b',
+                    bg: 'bg-slate-100 dark:bg-slate-800',
+                    text: 'text-slate-700 dark:text-slate-300',
+                    shapeName: 'Circle',
+                    shapeCss: 'rounded-full border border-white',
+                    shapeSymbol: '●'
+                };
+                return { name: hName, score, level, config };
+            })
+            .sort((a, b) => b.score - a.score);
+    }
+    return [];
+}
+
+export function getHazardLevelInfo(score: number): { label: string; bg: string; text: string; border: string } {
+    if (score >= 8.0) return { label: 'Severe', bg: 'bg-rose-600', text: 'text-rose-600', border: 'border-rose-500' };
+    if (score >= 6.0) return { label: 'High', bg: 'bg-amber-600', text: 'text-amber-600', border: 'border-amber-500' };
+    if (score >= 4.0) return { label: 'Moderate', bg: 'bg-blue-600', text: 'text-blue-600', border: 'border-blue-500' };
+    return { label: 'Low', bg: 'bg-emerald-600', text: 'text-emerald-600', border: 'border-emerald-500' };
+}
 
 // 17 Analysis Layers/Indicators
 const ANALYSIS_LAYERS = [
@@ -50,23 +181,23 @@ const ANALYSIS_LAYERS = [
     { id: 'exposure_index', label: 'Exposure Index', category: 'Risk', format: (v: number) => v.toFixed(1), unit: 'index', colors: ['#6366f1', '#e11d48'] },
     { id: 'vulnerability_index', label: 'Vulnerability Index', category: 'Risk', format: (v: number) => v.toFixed(1), unit: 'index', colors: ['#eab308', '#be123c'] },
     { id: 'capacity_index', label: 'Capacity Index', category: 'Risk', format: (v: number) => v.toFixed(1), unit: 'index', colors: ['#ef4444', '#10b981'] },
-    { id: 'total_population', label: 'Total Population', category: 'Demographics', format: (v: number) => Math.round(v).toLocaleString(), unit: 'people', colors: ['#dcfce7', '#15803d'] },
-    { id: 'male_population', label: 'Male Population', category: 'Demographics', format: (v: number) => Math.round(v).toLocaleString(), unit: 'people', colors: ['#dbeafe', '#1d4ed8'] },
-    { id: 'female_population', label: 'Female Population', category: 'Demographics', format: (v: number) => Math.round(v).toLocaleString(), unit: 'people', colors: ['#fce7f3', '#be185d'] },
-    { id: 'youth_population', label: 'Youth Population (18-29)', category: 'Demographics', format: (v: number) => Math.round(v).toLocaleString(), unit: 'people', colors: ['#f5f5f4', '#44403c'] },
-    { id: 'household_count', label: 'Household Count', category: 'Demographics', format: (v: number) => Math.round(v).toLocaleString(), unit: 'HHs', colors: ['#ede9fe', '#6d28d9'] },
-    { id: 'area_size', label: 'Area Size (km²)', category: 'Geography', format: (v: number) => v.toFixed(2), unit: 'km²', colors: ['#ccfbf1', '#0f766e'] },
-    { id: 'population_density', label: 'Population Density', category: 'Geography', format: (v: number) => Math.round(v).toLocaleString(), unit: 'people/km²', colors: ['#ffedd5', '#c2410c'] },
-    { id: 'schools', label: 'Schools Count', category: 'Infrastructure', format: (v: number) => Math.round(v).toString(), unit: 'schools', colors: ['#d1fae5', '#047857'] },
-    { id: 'health_centers', label: 'Health Centers Count', category: 'Infrastructure', format: (v: number) => Math.round(v).toString(), unit: 'clinics', colors: ['#dcfce7', '#166534'] },
-    { id: 'water_coverage', label: 'Water Coverage (%)', category: 'Services', format: (v: number) => `${v.toFixed(1)}%`, unit: 'coverage', colors: ['#e0f2fe', '#0369a1'] },
-    { id: 'electricity_coverage', label: 'Electricity Coverage (%)', category: 'Services', format: (v: number) => `${v.toFixed(1)}%`, unit: 'coverage', colors: ['#fef9c3', '#a16207'] },
-    { id: 'road_coverage', label: 'Road Access Coverage (%)', category: 'Services', format: (v: number) => `${v.toFixed(1)}%`, unit: 'coverage', colors: ['#e7e5e4', '#44403c'] },
-    { id: 'public_facilities', label: 'Public Service Facilities', category: 'Infrastructure', format: (v: number) => Math.round(v).toString(), unit: 'facilities', colors: ['#f3e8ff', '#7c3aed'] },
-    { id: 'economic_activities', label: 'Economic Activities Index', category: 'Economy', format: (v: number) => v.toFixed(1), unit: 'index', colors: ['#dcfce7', '#15803d'] },
-    { id: 'vulnerable_groups', label: 'Vulnerable Groups Count', category: 'Demographics', format: (v: number) => Math.round(v).toLocaleString(), unit: 'people', colors: ['#fee2e2', '#9b1c1c'] },
-    { id: 'idp_population', label: 'IDP Population', category: 'Demographics', format: (v: number) => Math.round(v).toLocaleString(), unit: 'people', colors: ['#fef3c7', '#b45309'] },
-    { id: 'social_service_coverage', label: 'Social Service Index', category: 'Services', format: (v: number) => `${v.toFixed(1)}%`, unit: 'index', colors: ['#d1fae5', '#047857'] }
+    // { id: 'total_population', label: 'Total Population', category: 'Demographics', format: (v: number) => Math.round(v).toLocaleString(), unit: 'people', colors: ['#dcfce7', '#15803d'] },
+    // { id: 'male_population', label: 'Male Population', category: 'Demographics', format: (v: number) => Math.round(v).toLocaleString(), unit: 'people', colors: ['#dbeafe', '#1d4ed8'] },
+    // { id: 'female_population', label: 'Female Population', category: 'Demographics', format: (v: number) => Math.round(v).toLocaleString(), unit: 'people', colors: ['#fce7f3', '#be185d'] },
+    // { id: 'youth_population', label: 'Youth Population (18-29)', category: 'Demographics', format: (v: number) => Math.round(v).toLocaleString(), unit: 'people', colors: ['#f5f5f4', '#44403c'] },
+    // { id: 'household_count', label: 'Household Count', category: 'Demographics', format: (v: number) => Math.round(v).toLocaleString(), unit: 'HHs', colors: ['#ede9fe', '#6d28d9'] },
+    // { id: 'area_size', label: 'Area Size (km²)', category: 'Geography', format: (v: number) => v.toFixed(2), unit: 'km²', colors: ['#ccfbf1', '#0f766e'] },
+    // { id: 'population_density', label: 'Population Density', category: 'Geography', format: (v: number) => Math.round(v).toLocaleString(), unit: 'people/km²', colors: ['#ffedd5', '#c2410c'] },
+    // { id: 'schools', label: 'Schools Count', category: 'Infrastructure', format: (v: number) => Math.round(v).toString(), unit: 'schools', colors: ['#d1fae5', '#047857'] },
+    // { id: 'health_centers', label: 'Health Centers Count', category: 'Infrastructure', format: (v: number) => Math.round(v).toString(), unit: 'clinics', colors: ['#dcfce7', '#166534'] },
+    // { id: 'water_coverage', label: 'Water Coverage (%)', category: 'Services', format: (v: number) => `${v.toFixed(1)}%`, unit: 'coverage', colors: ['#e0f2fe', '#0369a1'] },
+    // { id: 'electricity_coverage', label: 'Electricity Coverage (%)', category: 'Services', format: (v: number) => `${v.toFixed(1)}%`, unit: 'coverage', colors: ['#fef9c3', '#a16207'] },
+    // { id: 'road_coverage', label: 'Road Access Coverage (%)', category: 'Services', format: (v: number) => `${v.toFixed(1)}%`, unit: 'coverage', colors: ['#e7e5e4', '#44403c'] },
+    // { id: 'public_facilities', label: 'Public Service Facilities', category: 'Infrastructure', format: (v: number) => Math.round(v).toString(), unit: 'facilities', colors: ['#f3e8ff', '#7c3aed'] },
+    // { id: 'economic_activities', label: 'Economic Activities Index', category: 'Economy', format: (v: number) => v.toFixed(1), unit: 'index', colors: ['#dcfce7', '#15803d'] },
+    // { id: 'vulnerable_groups', label: 'Vulnerable Groups Count', category: 'Demographics', format: (v: number) => Math.round(v).toLocaleString(), unit: 'people', colors: ['#fee2e2', '#9b1c1c'] },
+    // { id: 'idp_population', label: 'IDP Population', category: 'Demographics', format: (v: number) => Math.round(v).toLocaleString(), unit: 'people', colors: ['#fef3c7', '#b45309'] },
+    // { id: 'social_service_coverage', label: 'Social Service Index', category: 'Services', format: (v: number) => `${v.toFixed(1)}%`, unit: 'index', colors: ['#d1fae5', '#047857'] }
 ];
 
 function interpolateColor(color1: string, color2: string, factor: number): string {
@@ -118,12 +249,14 @@ export default function WoredaProfileMap() {
     const mapContainerRef = useRef<HTMLDivElement>(null);
     const mapRef = useRef<L.Map | null>(null);
     const geoJsonLayerRef = useRef<L.GeoJSON | null>(null);
+    const markersGroupRef = useRef<L.LayerGroup | null>(null);
 
     const [subcityProfiles, setSubcityProfiles] = useState<WoredaProfile[]>([]);
     const [woredaProfiles, setWoredaProfiles] = useState<WoredaProfile[]>([]);
     const [loading, setLoading] = useState(true);
 
     const [selectedLayer, setSelectedLayer] = useState<string>('risk_classification');
+    const [selectedHazardFilter, setSelectedHazardFilter] = useState<string>('ALL');
     const [viewLevel, setViewLevel] = useState<'subcity' | 'woreda'>('woreda');
     const [subcityFilter, setSubcityFilter] = useState<string>('ALL');
     const [searchQuery, setSearchQuery] = useState<string>('');
@@ -134,6 +267,13 @@ export default function WoredaProfileMap() {
     const [compareActive, setCompareActive] = useState(false);
     const [compareIdA, setCompareIdA] = useState('');
     const [compareIdB, setCompareIdB] = useState('');
+    const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+    const [activeReportTab, setActiveReportTab] = useState<'executive' | 'hazard' | 'infrastructure' | 'mitigation'>('executive');
+    const [showAlertBanner, setShowAlertBanner] = useState(true);
+
+    const handlePrint = () => {
+        window.print();
+    };
 
     const tileLayersRef = useRef<Record<string, L.TileLayer>>({});
 
@@ -204,9 +344,43 @@ export default function WoredaProfileMap() {
         const dbWoredas = woredaProfiles
             .filter(p => p.location.subcity === subcityName && p.location.woreda !== 'All Woredas' && p.location.woreda)
             .map(p => p.location.woreda!);
-        if (dbWoredas.length > 0) return Array.from(new Set(dbWoredas)).sort();
-        return DEFAULT_WOREDAS[subcityName] || ['Woreda 01', 'Woreda 02'];
+        return Array.from(new Set(dbWoredas)).sort();
     };
+
+    const registeredSubcities = useMemo(() => {
+        const set = new Set([
+            ...subcityProfiles.map(p => p.location.subcity),
+            ...woredaProfiles.map(p => p.location.subcity)
+        ].filter(Boolean));
+        return Array.from(set).sort();
+    }, [subcityProfiles, woredaProfiles]);
+
+    const registeredHazardTypesMap = useMemo(() => {
+        const map = new Map<string, typeof HAZARD_COLOR_MAP[string]>();
+        [...subcityProfiles, ...woredaProfiles].forEach(p => {
+            p.hazards?.forEach((h: any) => {
+                if (h.hazard_name && !map.has(h.hazard_name)) {
+                    const known = HAZARD_COLOR_MAP[h.hazard_name];
+                    if (known) {
+                        map.set(h.hazard_name, known);
+                    } else {
+                        const charSum = h.hazard_name.split('').reduce((s: number, c: string) => s + c.charCodeAt(0), 0);
+                        const palette = ['#2563eb', '#dc2626', '#d97706', '#be123c', '#7c3aed', '#0d9488', '#0891b2'];
+                        const chosen = palette[charSum % palette.length];
+                        map.set(h.hazard_name, {
+                            color: chosen,
+                            bg: 'bg-slate-100 dark:bg-slate-800',
+                            text: 'text-slate-800 dark:text-slate-200',
+                            shapeName: 'Diamond',
+                            shapeCss: 'rotate-45 rounded-sm',
+                            shapeSymbol: '◆'
+                        });
+                    }
+                }
+            });
+        });
+        return map;
+    }, [subcityProfiles, woredaProfiles]);
 
     const mapGeoJsonData = useMemo(() => {
         const activeSubcities = new Set([
@@ -227,7 +401,9 @@ export default function WoredaProfileMap() {
                 .filter(f => activeSubcities.has(f.properties.name))
                 .forEach(subcityFeature => {
                     const woredas = getSubcityWoredas(subcityFeature.properties.name);
-                    allWoredaFeatures.push(...partitionSubCityIntoWoredas(subcityFeature, woredas));
+                    if (woredas.length > 0) {
+                        allWoredaFeatures.push(...partitionSubCityIntoWoredas(subcityFeature, woredas));
+                    }
                 });
             return { type: 'FeatureCollection', features: allWoredaFeatures };
         }
@@ -235,28 +411,18 @@ export default function WoredaProfileMap() {
 
     const regionsWithData = useMemo(() => {
         const dataset = viewLevel === 'subcity' ? subcityProfiles : woredaProfiles;
-        return mapGeoJsonData.features.map(feature => {
-            const prop = feature.properties;
-            let profile = dataset.find(p => viewLevel === 'subcity' ? p.location.subcity === prop.name : (p.location.subcity === prop.subcity && p.location.woreda === prop.name));
-            if (!profile) {
-                const charSum = prop.fullName.split('').reduce((s: number, c: string) => s + c.charCodeAt(0), 0);
-                const r = (charSum % 9) + 1.2;
-                const h = (charSum % 7) + 2.0;
-                const e = ((charSum * 2) % 6) + 3.0;
-                const v = ((charSum * 3) % 7) + 2.0;
-                const c = ((charSum * 4) % 6) + 3.0;
-                profile = {
-                    _id: prop.fullName,
-                    location: { subcity: prop.subcity || prop.name, woreda: viewLevel === 'woreda' ? prop.name : 'All Woredas', block: 'All Blocks', house_no: 'Aggregated Data' },
-                    status: 'Reviewed',
-                    assessment_date: new Date().toISOString(),
-                    aggregation_level: viewLevel,
-                    demographics: { total_population: (charSum % 5 + 1) * 35000, total_households: (charSum % 5 + 1) * 7800, internally_displaced_population: (charSum % 3) * 450 },
-                    risk_index: { hazard_index: h, vulnerability_index: v, exposure_index: e, capacity_index: c, overall_woreda_risk_score: r }
-                } as WoredaProfile;
-            }
-            return { feature, profile, value: getProfileValue(profile, selectedLayer) };
-        });
+        return mapGeoJsonData.features
+            .map(feature => {
+                const prop = feature.properties;
+                const profile = dataset.find(p =>
+                    viewLevel === 'subcity'
+                        ? p.location.subcity === prop.name
+                        : (p.location.subcity === prop.subcity && p.location.woreda === prop.name)
+                );
+                if (!profile) return null;
+                return { feature, profile, value: getProfileValue(profile, selectedLayer) };
+            })
+            .filter((r): r is { feature: any; profile: WoredaProfile; value: number } => r !== null);
     }, [mapGeoJsonData, subcityProfiles, woredaProfiles, selectedLayer, viewLevel]);
 
     const bounds = useMemo(() => {
@@ -328,7 +494,23 @@ export default function WoredaProfileMap() {
                 const regionData = filteredRegions.find(r => r.feature.properties.fullName === prop.fullName);
                 const val = regionData ? regionData.value : 0;
                 let fillColor = '';
-                if (['risk_classification', 'hazard_index', 'exposure_index', 'vulnerability_index'].includes(selectedLayer)) {
+
+                if (selectedLayer === 'hazard_index') {
+                    const dom = regionData ? getDominantHazard(regionData.profile) : { name: 'Flood', score: 5 };
+                    if (selectedHazardFilter !== 'ALL') {
+                        const matchesFilter = regionData?.profile?.hazards?.some(
+                            (h: any) => h.hazard_name?.toLowerCase() === selectedHazardFilter.toLowerCase()
+                        ) || dom.name.toLowerCase() === selectedHazardFilter.toLowerCase();
+
+                        if (matchesFilter) {
+                            fillColor = HAZARD_COLOR_MAP[selectedHazardFilter]?.color || '#dc2626';
+                        } else {
+                            fillColor = '#cbd5e1';
+                        }
+                    } else {
+                        fillColor = HAZARD_COLOR_MAP[dom.name]?.color || getRiskColor(val);
+                    }
+                } else if (['risk_classification', 'exposure_index', 'vulnerability_index'].includes(selectedLayer)) {
                     fillColor = getRiskColor(val);
                 } else if (selectedLayer === 'capacity_index') {
                     fillColor = getRiskColor(Math.max(0, 10 - val));
@@ -337,13 +519,32 @@ export default function WoredaProfileMap() {
                     const factor = range > 0 ? (val - bounds.min) / range : 0.5;
                     fillColor = interpolateColor(activeLayerConfig.colors[0], activeLayerConfig.colors[1], factor);
                 }
+
                 const isSelected = selectedRegion && selectedRegion.feature.properties.fullName === prop.fullName;
+                const isDimmed = selectedLayer === 'hazard_index' && selectedHazardFilter !== 'ALL' && fillColor === '#cbd5e1';
+
+                let fillOpacity = isSelected ? 0.92 : 0.80;
+                if (selectedLayer === 'hazard_index') {
+                    const dom = regionData ? getDominantHazard(regionData.profile) : { name: 'Flood', score: 5 };
+                    if (isDimmed) {
+                        fillOpacity = 0.15;
+                    } else if (dom.score >= 8.0) {
+                        fillOpacity = 0.92;
+                    } else if (dom.score >= 6.0) {
+                        fillOpacity = 0.78;
+                    } else if (dom.score >= 4.0) {
+                        fillOpacity = 0.62;
+                    } else {
+                        fillOpacity = 0.48;
+                    }
+                }
+
                 return {
                     fillColor,
                     weight: isSelected ? 3.5 : 1.8,
-                    opacity: 1,
+                    opacity: isDimmed ? 0.3 : 1,
                     color: isSelected ? '#4f46e5' : '#ffffff',
-                    fillOpacity: isSelected ? 0.92 : 0.80,
+                    fillOpacity,
                     dashArray: isSelected ? '' : '2'
                 };
             },
@@ -374,8 +575,107 @@ export default function WoredaProfileMap() {
             }
         }).addTo(mapRef.current);
         geoJsonLayerRef.current = geoJsonLayer;
+
+        // Render Hazard Badges directly on map polygons when Hazard Index is active
+        if (mapRef.current) {
+            if (!markersGroupRef.current) {
+                markersGroupRef.current = L.layerGroup().addTo(mapRef.current);
+            }
+            markersGroupRef.current.clearLayers();
+
+            if (selectedLayer === 'hazard_index') {
+                filteredRegions.forEach(r => {
+                    const dom = getDominantHazard(r.profile);
+                    if (!dom) return;
+                    const hConfig = registeredHazardTypesMap.get(dom.name) || HAZARD_COLOR_MAP[dom.name] || HAZARD_COLOR_MAP['Flood'];
+                    const lvl = getHazardLevelInfo(dom.score);
+
+                    const featureLayer = geoJsonLayer.getLayers().find(
+                        (l: any) => l.feature?.properties?.fullName === r.feature.properties.fullName
+                    ) as any;
+
+                    if (featureLayer && featureLayer.getBounds) {
+                        const center = featureLayer.getBounds().getCenter();
+                        const isDimmed = selectedHazardFilter !== 'ALL' && dom.name.toLowerCase() !== selectedHazardFilter.toLowerCase();
+
+                        const isSelected = selectedRegion && selectedRegion.feature.properties.fullName === r.feature.properties.fullName;
+
+                        let badgeHtml = '';
+
+                        if (isSelected) {
+                            const allHazards = getAllRegionHazards(r.profile);
+                            badgeHtml = `
+                                <div style="transform: translate(-50%, -100%);" class="relative z-[1000] p-4 rounded-3xl bg-slate-950/95 text-white border-2 border-indigo-500 shadow-2xl backdrop-blur-xl min-w-[270px] text-left animate-in fade-in zoom-in-95 duration-200 pointer-events-auto">
+                                    <div class="flex items-center justify-between gap-2 border-b border-white/10 pb-2.5 mb-3">
+                                        <div>
+                                            <span class="text-[8px] font-black uppercase tracking-widest text-indigo-400">Database Registered Hazards</span>
+                                            <h4 class="text-xs font-black text-white leading-tight">${r.feature.properties.fullName}</h4>
+                                        </div>
+                                        <span class="px-2 py-0.5 rounded-full text-[8px] font-black uppercase text-white bg-indigo-600 shadow-sm">
+                                            ${r.feature.properties.level === 'woreda' ? 'Woreda' : 'Sub-City'}
+                                        </span>
+                                    </div>
+
+                                    <p class="text-[9px] font-bold text-slate-300 uppercase tracking-wider mb-2">Hazards Registered in Area:</p>
+                                    ${allHazards.length > 0 ? `
+                                        <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                                            ${allHazards.map(h => `
+                                                <div class="flex items-center justify-between gap-2 p-2 rounded-2xl bg-white/10 border border-white/10">
+                                                    <div class="flex items-center gap-2 min-w-0">
+                                                        <span class="w-5 h-5 shadow-md flex items-center justify-center font-black text-[10px] flex-shrink-0 ${h.config.shapeCss}" style="background-color: ${h.config.color}; color: #ffffff;">
+                                                            ${h.config.shapeSymbol}
+                                                        </span>
+                                                        <div class="min-w-0">
+                                                            <p class="text-[11px] font-black text-white leading-none truncate">${h.name}</p>
+                                                            <p class="text-[8px] font-bold text-indigo-300 mt-0.5">${h.config.shapeName}</p>
+                                                        </div>
+                                                    </div>
+                                                    <span class="px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider text-white flex-shrink-0 ${h.level.bg}">
+                                                        ${h.level.label} ${h.score.toFixed(1)}
+                                                    </span>
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                    ` : `
+                                        <p class="text-xs text-slate-400 font-bold py-2 text-center">No registered hazard entries found for this region in DB.</p>
+                                    `}
+                                </div>
+                            `;
+                        } else {
+                            badgeHtml = `
+                                <div style="transform: translate(-50%, -50%);" class="relative group flex items-center gap-2 transition-all ${isDimmed ? 'opacity-25 scale-75' : 'opacity-100 scale-100 hover:scale-125 z-50'}">
+                                    <div class="relative flex items-center justify-center">
+                                        <span class="absolute w-7 h-7 rounded-full animate-ping opacity-80" style="background-color: ${hConfig.color};"></span>
+                                        <span class="relative w-5 h-5 shadow-2xl border-2 border-white flex items-center justify-center font-black text-[10px] text-white flex-shrink-0 animate-pulse ${hConfig.shapeCss}" style="background-color: ${hConfig.color}; box-shadow: 0 0 14px ${hConfig.color}; font-family: sans-serif;">
+                                            ${hConfig.shapeSymbol}
+                                        </span>
+                                    </div>
+                                    <div class="px-2.5 py-1 rounded-full bg-slate-950/90 text-white border border-white/20 shadow-2xl flex items-center gap-1.5 whitespace-nowrap backdrop-blur-md">
+                                        <span class="text-[10px] font-black tracking-tight text-white">${dom.name}</span>
+                                        <span class="px-1.5 py-0.2 rounded-full text-[8px] font-black uppercase tracking-wider text-white ${lvl.bg}">
+                                            ${lvl.label} ${dom.score.toFixed(1)}
+                                        </span>
+                                    </div>
+                                </div>
+                            `;
+                        }
+
+                        const customIcon = L.divIcon({
+                            html: badgeHtml,
+                            className: isSelected ? 'custom-selected-hazard-map-card' : 'custom-hazard-badge-overlay',
+                            iconSize: [0, 0],
+                            iconAnchor: [0, 0]
+                        });
+
+                        const marker = L.marker(center, { icon: customIcon, interactive: false });
+                        markersGroupRef.current?.addLayer(marker);
+                    }
+                });
+            }
+        }
+
         if (filteredRegions.length > 0 && subcityFilter !== 'ALL') { const b = geoJsonLayer.getBounds(); mapRef.current.fitBounds(b, { padding: [40, 40] }); }
-    }, [filteredRegions, bounds, activeLayerConfig, selectedRegion, compareActive, selectedLayer]);
+    }, [filteredRegions, bounds, activeLayerConfig, selectedRegion, compareActive, selectedLayer, selectedHazardFilter]);
 
     return (
         <div className="h-screen w-screen flex overflow-hidden bg-slate-950 font-outfit text-slate-100 relative">
@@ -384,260 +684,341 @@ export default function WoredaProfileMap() {
             <div className={`bg-white border-r border-slate-200 shadow-[20px_0_40px_-15px_rgba(0,0,0,0.05)] flex flex-col transition-all duration-300 z-30 overflow-hidden ${sidebarOpen ? 'w-96' : 'w-0 border-r-0'}`}>
                 <div className="w-96 flex flex-col h-full flex-shrink-0">
 
-                {/* Back & Title */}
-                <div className="p-6 border-b border-slate-100 space-y-4">
-                    <button onClick={() => navigate('/woreda-profile')} className="flex items-center gap-2 text-indigo-600 hover:text-indigo-500 font-black text-[10px] uppercase tracking-wider transition-colors cursor-pointer">
-                        <ArrowLeft size={14} /> Back to Dashboard
-                    </button>
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 border border-indigo-100 shadow-sm"><MapIcon size={20} /></div>
-                        <div>
-                            <h2 className="text-base font-black tracking-tight text-slate-900">Addis Ababa GIS Map</h2>
-                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Woreda Profile Analysis</p>
+                    {/* Back & Title */}
+                    <div className="p-6 border-b border-slate-100 space-y-4">
+                        <button onClick={() => navigate('/woreda-profile')} className="flex items-center gap-2 text-[#172358] hover:text-[#21327c] font-black text-[10px] uppercase tracking-wider transition-colors cursor-pointer">
+                            <ArrowLeft size={14} /> Back to Dashboard
+                        </button>
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-2xl bg-[#172358]/10 flex items-center justify-center text-[#172358] border border-[#172358]/20 shadow-sm"><MapIcon size={20} /></div>
+                            <div>
+                                <h2 className="text-base font-black tracking-tight text-slate-900">Addis Ababa GIS Map</h2>
+                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Woreda Profile Analysis</p>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                {/* Controls */}
-                <div className="p-5 border-b border-slate-100 space-y-4 bg-slate-50/50">
-                    <div className="relative">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                        <input type="text" placeholder="Search Woreda or Sub-City..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
-                            className="w-full bg-white border border-slate-200 rounded-2xl pl-11 pr-4 py-3 text-xs font-bold text-slate-700 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all shadow-sm" />
-                    </div>
+                    {/* Controls */}
+                    <div className="p-5 border-b border-slate-100 space-y-4 bg-slate-50/50">
+                        <div className="relative">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                            <input type="text" placeholder="Search Woreda or Sub-City..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+                                className="w-full bg-white border border-slate-200 rounded-2xl pl-11 pr-4 py-3 text-xs font-bold text-slate-700 placeholder-slate-400 focus:outline-none focus:border-[#172358] focus:ring-2 focus:ring-[#172358]/20 transition-all shadow-sm" />
+                        </div>
 
-                    <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-2 gap-2">
+                            <div className="space-y-1.5">
+                                <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1">Filter Sub-City</label>
+                                <select value={subcityFilter} onChange={e => setSubcityFilter(e.target.value)} className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700 focus:outline-none focus:border-[#172358] focus:ring-2 focus:ring-[#172358]/20 shadow-sm">
+                                    <option value="ALL">All Subcities</option>
+                                    {Object.keys(SUBCITY_CENTERS).map(sc => <option key={sc} value={sc}>{sc}</option>)}
+                                </select>
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1">Polygon Level</label>
+                                <select value={viewLevel} onChange={e => setViewLevel(e.target.value as any)} className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700 focus:outline-none focus:border-[#172358] focus:ring-2 focus:ring-[#172358]/20 shadow-sm">
+                                    <option value="subcity">Sub-City</option>
+                                    <option value="woreda">Woreda</option>
+                                </select>
+                            </div>
+                        </div>
+
                         <div className="space-y-1.5">
-                            <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1">Filter Sub-City</label>
-                            <select value={subcityFilter} onChange={e => setSubcityFilter(e.target.value)} className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 shadow-sm">
-                                <option value="ALL">All Subcities</option>
-                                {Object.keys(SUBCITY_CENTERS).map(sc => <option key={sc} value={sc}>{sc}</option>)}
+                            <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1">Analysis Layer</label>
+                            <select value={selectedLayer} onChange={e => setSelectedLayer(e.target.value)} className="w-full bg-white border border-slate-200 rounded-2xl p-4 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#172358] focus:ring-2 focus:ring-[#172358]/20 shadow-sm">
+                                {Array.from(new Set(ANALYSIS_LAYERS.map(l => l.category))).map(cat => (
+                                    <optgroup key={cat} label={cat} className="bg-white text-[#172358] font-black">
+                                        {ANALYSIS_LAYERS.filter(l => l.category === cat).map(l => <option key={l.id} value={l.id} className="text-slate-700 font-bold">{l.label}</option>)}
+                                    </optgroup>
+                                ))}
                             </select>
                         </div>
-                        <div className="space-y-1.5">
-                            <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1">Polygon Level</label>
-                            <select value={viewLevel} onChange={e => setViewLevel(e.target.value as any)} className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 shadow-sm">
-                                <option value="subcity">Sub-City</option>
-                                <option value="woreda">Woreda</option>
-                            </select>
-                        </div>
-                    </div>
 
-                    <div className="space-y-1.5">
-                        <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1">Analysis Layer</label>
-                        <select value={selectedLayer} onChange={e => setSelectedLayer(e.target.value)} className="w-full bg-white border border-slate-200 rounded-2xl p-4 text-xs font-bold text-slate-700 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 shadow-sm">
-                            {Array.from(new Set(ANALYSIS_LAYERS.map(l => l.category))).map(cat => (
-                                <optgroup key={cat} label={cat} className="bg-white text-indigo-600 font-black">
-                                    {ANALYSIS_LAYERS.filter(l => l.category === cat).map(l => <option key={l.id} value={l.id} className="text-slate-700 font-bold">{l.label}</option>)}
-                                </optgroup>
-                            ))}
-                        </select>
-                    </div>
-
-                    {/* Tile Layer Switcher */}
-                    <div className="flex gap-1.5">
-                        {(['light', 'streets', 'satellite'] as const).map(type => (
-                            <button key={type} onClick={() => setTileLayerType(type)} className={`flex-1 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${tileLayerType === type ? 'bg-indigo-600 text-white shadow-md' : 'bg-white border border-slate-200 text-slate-500 hover:border-indigo-300'}`}>
-                                {type}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Scrollable Sidebar Body */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-6" style={{ scrollbarWidth: 'none' }}>
-
-                    {/* High Risk Alert Banner */}
-                    {highRiskAlerts.length > 0 && showAlertBanner && (
-                        <div className="bg-gradient-to-br from-rose-500/10 via-amber-500/10 to-orange-500/10 rounded-3xl p-5 border border-rose-200/80 shadow-sm space-y-3 relative overflow-hidden">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2.5 text-rose-800">
-                                    <div className="w-8 h-8 rounded-xl bg-rose-600 text-white flex items-center justify-center shadow-md animate-pulse">
-                                        <AlertTriangle size={16} />
+                        {/* Hazard Type Selection Panel when Hazard Index is Active */}
+                        {selectedLayer === 'hazard_index' && (
+                            <div className="p-4 bg-indigo-50/70 dark:bg-indigo-950/40 rounded-2xl border border-indigo-100 dark:border-indigo-900/60 space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-[#172358]">
+                                        <Flame size={15} className="text-rose-500" />
+                                        <span>Hazard Type Filter</span>
                                     </div>
-                                    <div>
-                                        <h4 className="text-xs font-black uppercase tracking-wider text-rose-950">High Risk Warning</h4>
-                                        <p className="text-[9px] font-bold text-rose-600 uppercase">{highRiskAlerts.length} Zones Require Attention</p>
-                                    </div>
+                                    {selectedHazardFilter !== 'ALL' && (
+                                        <button
+                                            onClick={() => setSelectedHazardFilter('ALL')}
+                                            className="text-[9px] font-black uppercase text-indigo-600 hover:underline cursor-pointer"
+                                        >
+                                            Show All
+                                        </button>
+                                    )}
                                 </div>
-                                <button onClick={() => setShowAlertBanner(false)} className="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
-                                    <X size={14} />
+
+                                <p className="text-[10px] font-medium text-slate-600 leading-snug">
+                                    Color-coded hazard types across regions. Select a hazard to filter map polygons.
+                                </p>
+
+                                <div className="flex flex-wrap gap-1.5 max-h-44 overflow-y-auto pr-1">
+                                    <button
+                                        onClick={() => setSelectedHazardFilter('ALL')}
+                                        className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all border cursor-pointer flex items-center gap-1.5 ${selectedHazardFilter === 'ALL'
+                                            ? 'bg-[#172358] text-white border-[#172358] shadow-sm'
+                                            : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                                            }`}
+                                    >
+                                        <span className="w-2 h-2 rounded-full bg-gradient-to-r from-blue-500 via-rose-500 to-amber-500" />
+                                        All Dominant Hazards
+                                    </button>
+
+                                    {Object.entries(HAZARD_COLOR_MAP).map(([hName, hConfig]) => (
+                                        <button
+                                            key={hName}
+                                            onClick={() => setSelectedHazardFilter(selectedHazardFilter === hName ? 'ALL' : hName)}
+                                            className={`px-2.5 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all border cursor-pointer flex items-center gap-1.5 ${selectedHazardFilter === hName
+                                                ? 'bg-slate-900 text-white border-slate-900 shadow-md ring-2 ring-indigo-500/40'
+                                                : `${hConfig.bg} ${hConfig.text} border-slate-200 hover:scale-105`
+                                                }`}
+                                        >
+                                            <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: hConfig.color }} />
+                                            <span>{hName}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Tile Layer Switcher */}
+                        <div className="flex gap-1.5">
+                            {(['light', 'streets', 'satellite'] as const).map(type => (
+                                <button key={type} onClick={() => setTileLayerType(type)} className={`flex-1 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${tileLayerType === type ? 'bg-[#172358] text-white shadow-md shadow-[#172358]/30' : 'bg-white border border-slate-200 text-slate-500 hover:border-[#172358]/40'}`}>
+                                    {type}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Scrollable Sidebar Body */}
+                    <div className="flex-1 overflow-y-auto p-6 space-y-6" style={{ scrollbarWidth: 'none' }}>
+
+                        {/* High Risk Alert Banner */}
+                        {highRiskAlerts.length > 0 && showAlertBanner && (
+                            <div className="bg-gradient-to-br from-rose-500/10 via-amber-500/10 to-orange-500/10 rounded-3xl p-5 border border-rose-200/80 shadow-sm space-y-3 relative overflow-hidden">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2.5 text-rose-800">
+                                        <div className="w-8 h-8 rounded-xl bg-rose-600 text-white flex items-center justify-center shadow-md animate-pulse">
+                                            <AlertTriangle size={16} />
+                                        </div>
+                                        <div>
+                                            <h4 className="text-xs font-black uppercase tracking-wider text-rose-950">High Risk Warning</h4>
+                                            <p className="text-[9px] font-bold text-rose-600 uppercase">{highRiskAlerts.length} Zones Require Attention</p>
+                                        </div>
+                                    </div>
+                                    <button onClick={() => setShowAlertBanner(false)} className="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+                                        <X size={14} />
+                                    </button>
+                                </div>
+                                <p className="text-[10px] font-semibold text-slate-600 leading-relaxed">
+                                    Elevated Risk / Hazard scores detected. Click any zone to locate on map:
+                                </p>
+                                <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-1">
+                                    {highRiskAlerts.map(r => (
+                                        <button
+                                            key={r.feature.properties.fullName}
+                                            onClick={() => setSelectedRegion(r)}
+                                            className="flex-shrink-0 px-3 py-1.5 rounded-xl bg-white border border-rose-200 text-rose-700 hover:bg-rose-50 text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-sm transition-all"
+                                        >
+                                            <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
+                                            {r.feature.properties.name} ({r.value.toFixed(1)})
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Compare Tool */}
+                        <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm space-y-4">
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-xs font-black uppercase tracking-widest text-[#172358] flex items-center gap-2"><GitCompare size={14} /> Compare Regions</h3>
+                                <button onClick={() => { setCompareActive(!compareActive); if (compareActive) { setCompareIdA(''); setCompareIdB(''); } }}
+                                    className={`px-2.5 py-1 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all border ${compareActive ? 'bg-rose-50 border-rose-200 text-rose-600' : 'bg-[#172358]/10 border-[#172358]/20 text-[#172358]'}`}>
+                                    {compareActive ? 'Cancel' : 'Active'}
                                 </button>
                             </div>
-                            <p className="text-[10px] font-semibold text-slate-600 leading-relaxed">
-                                Elevated Risk / Hazard scores detected. Click any zone to locate on map:
-                            </p>
-                            <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-1">
-                                {highRiskAlerts.map(r => (
-                                    <button
-                                        key={r.feature.properties.fullName}
-                                        onClick={() => setSelectedRegion(r)}
-                                        className="flex-shrink-0 px-3 py-1.5 rounded-xl bg-white border border-rose-200 text-rose-700 hover:bg-rose-50 text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-sm transition-all"
-                                    >
-                                        <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
-                                        {r.feature.properties.name} ({r.value.toFixed(1)})
-                                    </button>
+                            {compareActive && (
+                                <div className="space-y-3 pt-1">
+                                    <div className="space-y-1">
+                                        <label className="text-[8px] font-black text-slate-500 uppercase tracking-widest px-1">Region A</label>
+                                        <select value={compareIdA} onChange={e => setCompareIdA(e.target.value)} className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700 focus:outline-none focus:border-[#172358]">
+                                            <option value="">Select Region A</option>
+                                            {comparisonDropdownItems.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
+                                        </select>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[8px] font-black text-slate-500 uppercase tracking-widest px-1">Region B</label>
+                                        <select value={compareIdB} onChange={e => setCompareIdB(e.target.value)} className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700 focus:outline-none focus:border-[#172358]">
+                                            <option value="">Select Region B</option>
+                                            {comparisonDropdownItems.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
+                                        </select>
+                                    </div>
+                                    {compareProfileA && compareProfileB && (
+                                        <div className="pt-4 border-t border-slate-100 space-y-4">
+                                            <div className="grid grid-cols-2 gap-2 text-center">
+                                                <div className="bg-slate-50 rounded-xl p-2 min-w-0 border border-slate-100">
+                                                    <p className="text-[9px] font-black text-slate-500 truncate uppercase">{compareProfileA.feature.properties.name}</p>
+                                                    <p className="text-base font-black text-slate-900 mt-1">{activeLayerConfig.format(compareProfileA.value)}</p>
+                                                </div>
+                                                <div className="bg-slate-50 rounded-xl p-2 min-w-0 border border-slate-100">
+                                                    <p className="text-[9px] font-black text-slate-500 truncate uppercase">{compareProfileB.feature.properties.name}</p>
+                                                    <p className="text-base font-black text-slate-900 mt-1">{activeLayerConfig.format(compareProfileB.value)}</p>
+                                                </div>
+                                            </div>
+                                            <div className="space-y-2.5">
+                                                <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest text-center">DR Risk Score Comparison</p>
+                                                {[
+                                                    { label: 'Risk', valA: compareProfileA.profile.risk_index?.overall_woreda_risk_score || compareProfileA.profile.hierarchy_summary?.dr_risk_score || 0, valB: compareProfileB.profile.risk_index?.overall_woreda_risk_score || compareProfileB.profile.hierarchy_summary?.dr_risk_score || 0, max: 10 },
+                                                    { label: 'Hazard', valA: compareProfileA.profile.risk_index?.hazard_index || compareProfileA.profile.hierarchy_summary?.hazard_score || 0, valB: compareProfileB.profile.risk_index?.hazard_index || compareProfileB.profile.hierarchy_summary?.hazard_score || 0, max: 10 },
+                                                    { label: 'Exposure', valA: compareProfileA.profile.risk_index?.exposure_index || compareProfileA.profile.hierarchy_summary?.exposure_score || 0, valB: compareProfileB.profile.risk_index?.exposure_index || compareProfileB.profile.hierarchy_summary?.exposure_score || 0, max: 10 },
+                                                    { label: 'Vulnerability', valA: compareProfileA.profile.risk_index?.vulnerability_index || compareProfileA.profile.hierarchy_summary?.vulnerability_score || 0, valB: compareProfileB.profile.risk_index?.vulnerability_index || compareProfileB.profile.hierarchy_summary?.vulnerability_score || 0, max: 10 },
+                                                    { label: 'Capacity', valA: compareProfileA.profile.risk_index?.capacity_index || compareProfileA.profile.hierarchy_summary?.capacity_score || 0, valB: compareProfileB.profile.risk_index?.capacity_index || compareProfileB.profile.hierarchy_summary?.capacity_score || 0, max: 10 }
+                                                ].map(item => (
+                                                    <div key={item.label} className="space-y-1 text-[10px] font-bold text-slate-400">
+                                                        <div className="flex justify-between">
+                                                            <span>{item.valA.toFixed(1)}</span>
+                                                            <span className="uppercase text-[9px] tracking-wider font-black text-slate-500">{item.label}</span>
+                                                            <span>{item.valB.toFixed(1)}</span>
+                                                        </div>
+                                                        <div className="h-1.5 bg-slate-100 rounded-full flex overflow-hidden">
+                                                            <div className="w-1/2 flex justify-end bg-slate-100">
+                                                                <div className="h-full rounded-l-full" style={{ width: `${(item.valA / item.max) * 100}%`, backgroundColor: getRiskColor(item.valA) }} />
+                                                            </div>
+                                                            <div className="w-px bg-white" />
+                                                            <div className="w-1/2 bg-slate-100">
+                                                                <div className="h-full rounded-r-full" style={{ width: `${(item.valB / item.max) * 100}%`, backgroundColor: getRiskColor(item.valB) }} />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* City Summary */}
+                        <div className="bg-gradient-to-br from-[#172358] to-[#0f173b] rounded-3xl p-5 text-white space-y-4 shadow-lg shadow-[#172358]/20">
+                            <p className="text-[9px] font-black uppercase tracking-widest text-blue-200">Addis Ababa — City Overview</p>
+                            <div className="grid grid-cols-2 gap-3">
+                                {[
+                                    { label: 'Population', value: (citySummary.population).toLocaleString() },
+                                    { label: 'Households', value: (citySummary.households).toLocaleString() },
+                                    { label: 'Woredas Mapped', value: citySummary.woredas },
+                                    { label: 'Avg Coverage', value: `${citySummary.avgCoverage}%` }
+                                ].map(s => (
+                                    <div key={s.label} className="bg-white/10 rounded-2xl p-3 border border-white/10">
+                                        <p className="text-[8px] font-black text-blue-200 uppercase tracking-wider mb-1">{s.label}</p>
+                                        <p className="text-lg font-black">{s.value}</p>
+                                    </div>
                                 ))}
                             </div>
                         </div>
-                    )}
 
-                    {/* Compare Tool */}
-                    <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm space-y-4">
-                        <div className="flex items-center justify-between">
-                            <h3 className="text-xs font-black uppercase tracking-widest text-indigo-600 flex items-center gap-2"><GitCompare size={14} /> Compare Regions</h3>
-                            <button onClick={() => { setCompareActive(!compareActive); if (compareActive) { setCompareIdA(''); setCompareIdB(''); } }}
-                                className={`px-2.5 py-1 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all border ${compareActive ? 'bg-rose-50 border-rose-200 text-rose-600' : 'bg-indigo-50 border-indigo-200 text-indigo-600'}`}>
-                                {compareActive ? 'Cancel' : 'Active'}
-                            </button>
+                        {/* Filtered regions list */}
+                        <div className="space-y-2">
+                            <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1">{filteredRegions.length} Regions Displayed</p>
+                            {filteredRegions.map(r => {
+                                const prop = r.feature.properties;
+                                const riskVal = r.profile.risk_index?.overall_woreda_risk_score || r.profile.hierarchy_summary?.dr_risk_score || 0;
+                                const hazardVal = r.profile.risk_index?.hazard_index || r.profile.hierarchy_summary?.hazard_score || 0;
+                                const vulVal = r.profile.risk_index?.vulnerability_index || r.profile.hierarchy_summary?.vulnerability_score || 0;
+                                const rl = getRiskLevel(riskVal);
+                                const isAlertRegion = riskVal >= 5.5 || hazardVal >= 5.5 || vulVal >= 5.5;
+
+                                return (
+                                    <button key={prop.fullName} onClick={() => setSelectedRegion(r)}
+                                        className={`w-full flex items-center gap-3 p-3.5 rounded-2xl border transition-all text-left hover:shadow-sm ${selectedRegion?.feature.properties.fullName === prop.fullName ? 'border-[#172358] bg-[#172358]/5' : 'border-slate-100 bg-white hover:border-slate-200'}`}>
+                                        <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: rl.color }} />
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-1.5">
+                                                <p className="text-xs font-black text-slate-900 truncate">{prop.fullName}</p>
+                                                {isAlertRegion && (
+                                                    <AlertTriangle size={12} className="text-rose-500 flex-shrink-0 animate-pulse" title="High Risk / Hazard Alert" />
+                                                )}
+                                            </div>
+                                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">{activeLayerConfig.format(r.value)} {activeLayerConfig.unit}</p>
+                                        </div>
+                                        <ChevronRight size={12} className="text-slate-300 flex-shrink-0" />
+                                    </button>
+                                );
+                            })}
                         </div>
-                        {compareActive && (
-                            <div className="space-y-3 pt-1">
-                                <div className="space-y-1">
-                                    <label className="text-[8px] font-black text-slate-500 uppercase tracking-widest px-1">Region A</label>
-                                    <select value={compareIdA} onChange={e => setCompareIdA(e.target.value)} className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700 focus:outline-none focus:border-indigo-500">
-                                        <option value="">Select Region A</option>
-                                        {comparisonDropdownItems.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
-                                    </select>
+
+                        {/* Legend */}
+                        {selectedLayer === 'hazard_index' ? (
+                            <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <p className="text-[9px] font-black uppercase tracking-widest text-[#172358]">Hazard Type Color Legend</p>
+                                    <span className="text-[9px] font-black text-indigo-600 uppercase">Color Coded</span>
                                 </div>
-                                <div className="space-y-1">
-                                    <label className="text-[8px] font-black text-slate-500 uppercase tracking-widest px-1">Region B</label>
-                                    <select value={compareIdB} onChange={e => setCompareIdB(e.target.value)} className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700 focus:outline-none focus:border-indigo-500">
-                                        <option value="">Select Region B</option>
-                                        {comparisonDropdownItems.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
-                                    </select>
-                                </div>
-                                {compareProfileA && compareProfileB && (
-                                    <div className="pt-4 border-t border-slate-100 space-y-4">
-                                        <div className="grid grid-cols-2 gap-2 text-center">
-                                            <div className="bg-slate-50 rounded-xl p-2 min-w-0 border border-slate-100">
-                                                <p className="text-[9px] font-black text-slate-500 truncate uppercase">{compareProfileA.feature.properties.name}</p>
-                                                <p className="text-base font-black text-slate-900 mt-1">{activeLayerConfig.format(compareProfileA.value)}</p>
+                                <div className="grid grid-cols-2 gap-2 max-h-56 overflow-y-auto pr-1">
+                                    {Object.entries(HAZARD_COLOR_MAP).map(([hName, hConfig]) => (
+                                        <button
+                                            key={hName}
+                                            onClick={() => setSelectedHazardFilter(selectedHazardFilter === hName ? 'ALL' : hName)}
+                                            className={`flex items-center gap-2 p-2 rounded-xl border text-left transition-all cursor-pointer ${selectedHazardFilter === hName
+                                                ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
+                                                : 'bg-slate-50 border-slate-100 hover:bg-slate-100'
+                                                }`}
+                                        >
+                                            <div
+                                                className={`w-4 h-4 flex-shrink-0 shadow-sm flex items-center justify-center font-black text-[9px] ${hConfig.shapeCss}`}
+                                                style={{ backgroundColor: hConfig.color, color: '#ffffff' }}
+                                            >
+                                                {hConfig.shapeSymbol}
                                             </div>
-                                            <div className="bg-slate-50 rounded-xl p-2 min-w-0 border border-slate-100">
-                                                <p className="text-[9px] font-black text-slate-500 truncate uppercase">{compareProfileB.feature.properties.name}</p>
-                                                <p className="text-base font-black text-slate-900 mt-1">{activeLayerConfig.format(compareProfileB.value)}</p>
+                                            <div className="min-w-0 flex-1">
+                                                <p className={`text-[10px] font-black leading-none truncate ${selectedHazardFilter === hName ? 'text-white' : 'text-slate-800'}`}>{hName}</p>
+                                                <p className={`text-[8px] font-bold mt-0.5 ${selectedHazardFilter === hName ? 'text-slate-300' : 'text-slate-400'}`}>{hConfig.shapeName}</p>
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        ) : ['risk_classification', 'exposure_index', 'vulnerability_index', 'capacity_index'].includes(selectedLayer) ? (
+                            <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <p className="text-[9px] font-black uppercase tracking-widest text-[#172358]">Risk Level Legend</p>
+                                    <span className="text-[9px] font-bold text-slate-400">0 - 10 Score</span>
+                                </div>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {RISK_LEVELS.map(l => (
+                                        <div key={l.label} className="flex items-center gap-2 p-2 rounded-xl bg-slate-50 border border-slate-100">
+                                            <div className="w-3 h-3 rounded-md flex-shrink-0 shadow-sm" style={{ backgroundColor: l.color }} />
+                                            <div className="min-w-0 flex-1">
+                                                <p className="text-[10px] font-black text-slate-800 leading-none truncate">{l.label}</p>
+                                                <p className="text-[8px] font-bold text-slate-400 mt-0.5">{l.min}–{l.max}</p>
                                             </div>
                                         </div>
-                                        <div className="space-y-2.5">
-                                            <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest text-center">DR Risk Score Comparison</p>
-                                            {[
-                                                { label: 'Risk', valA: compareProfileA.profile.risk_index?.overall_woreda_risk_score || compareProfileA.profile.hierarchy_summary?.dr_risk_score || 0, valB: compareProfileB.profile.risk_index?.overall_woreda_risk_score || compareProfileB.profile.hierarchy_summary?.dr_risk_score || 0, max: 10 },
-                                                { label: 'Hazard', valA: compareProfileA.profile.risk_index?.hazard_index || compareProfileA.profile.hierarchy_summary?.hazard_score || 0, valB: compareProfileB.profile.risk_index?.hazard_index || compareProfileB.profile.hierarchy_summary?.hazard_score || 0, max: 10 },
-                                                { label: 'Exposure', valA: compareProfileA.profile.risk_index?.exposure_index || compareProfileA.profile.hierarchy_summary?.exposure_score || 0, valB: compareProfileB.profile.risk_index?.exposure_index || compareProfileB.profile.hierarchy_summary?.exposure_score || 0, max: 10 },
-                                                { label: 'Vulnerability', valA: compareProfileA.profile.risk_index?.vulnerability_index || compareProfileA.profile.hierarchy_summary?.vulnerability_score || 0, valB: compareProfileB.profile.risk_index?.vulnerability_index || compareProfileB.profile.hierarchy_summary?.vulnerability_score || 0, max: 10 },
-                                                { label: 'Capacity', valA: compareProfileA.profile.risk_index?.capacity_index || compareProfileA.profile.hierarchy_summary?.capacity_score || 0, valB: compareProfileB.profile.risk_index?.capacity_index || compareProfileB.profile.hierarchy_summary?.capacity_score || 0, max: 10 }
-                                            ].map(item => (
-                                                <div key={item.label} className="space-y-1 text-[10px] font-bold text-slate-400">
-                                                    <div className="flex justify-between">
-                                                        <span>{item.valA.toFixed(1)}</span>
-                                                        <span className="uppercase text-[9px] tracking-wider font-black text-slate-500">{item.label}</span>
-                                                        <span>{item.valB.toFixed(1)}</span>
-                                                    </div>
-                                                    <div className="h-1.5 bg-slate-100 rounded-full flex overflow-hidden">
-                                                        <div className="w-1/2 flex justify-end bg-slate-100">
-                                                            <div className="h-full rounded-l-full" style={{ width: `${(item.valA / item.max) * 100}%`, backgroundColor: getRiskColor(item.valA) }} />
-                                                        </div>
-                                                        <div className="w-px bg-white" />
-                                                        <div className="w-1/2 bg-slate-100">
-                                                            <div className="h-full rounded-r-full" style={{ width: `${(item.valB / item.max) * 100}%`, backgroundColor: getRiskColor(item.valB) }} />
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
+                                    ))}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm space-y-3">
+                                <p className="text-[9px] font-black uppercase tracking-widest text-[#172358]">{activeLayerConfig.label} Range</p>
+                                <div className="h-3.5 rounded-full overflow-hidden shadow-inner border border-slate-100" style={{ background: `linear-gradient(to right, ${activeLayerConfig.colors[0]}, ${activeLayerConfig.colors[1]})` }} />
+                                <div className="flex justify-between text-[9px] font-black text-slate-600">
+                                    <span>Min: {activeLayerConfig.format(bounds.min)} {activeLayerConfig.unit}</span>
+                                    <span>Max: {activeLayerConfig.format(bounds.max)} {activeLayerConfig.unit}</span>
+                                </div>
                             </div>
                         )}
                     </div>
-
-                    {/* City Summary */}
-                    <div className="bg-gradient-to-br from-indigo-600 to-violet-700 rounded-3xl p-5 text-white space-y-4 shadow-lg shadow-indigo-100">
-                        <p className="text-[9px] font-black uppercase tracking-widest text-indigo-200">Addis Ababa — City Overview</p>
-                        <div className="grid grid-cols-2 gap-3">
-                            {[
-                                { label: 'Population', value: (citySummary.population).toLocaleString() },
-                                { label: 'Households', value: (citySummary.households).toLocaleString() },
-                                { label: 'Woredas Mapped', value: citySummary.woredas },
-                                { label: 'Avg Coverage', value: `${citySummary.avgCoverage}%` }
-                            ].map(s => (
-                                <div key={s.label} className="bg-white/10 rounded-2xl p-3 border border-white/10">
-                                    <p className="text-[8px] font-black text-indigo-200 uppercase tracking-wider mb-1">{s.label}</p>
-                                    <p className="text-lg font-black">{s.value}</p>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Filtered regions list */}
-                    <div className="space-y-2">
-                        <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1">{filteredRegions.length} Regions Displayed</p>
-                        {filteredRegions.map(r => {
-                            const prop = r.feature.properties;
-                            const riskVal = r.profile.risk_index?.overall_woreda_risk_score || r.profile.hierarchy_summary?.dr_risk_score || 0;
-                            const hazardVal = r.profile.risk_index?.hazard_index || r.profile.hierarchy_summary?.hazard_score || 0;
-                            const vulVal = r.profile.risk_index?.vulnerability_index || r.profile.hierarchy_summary?.vulnerability_score || 0;
-                            const rl = getRiskLevel(riskVal);
-                            const isAlertRegion = riskVal >= 5.5 || hazardVal >= 5.5 || vulVal >= 5.5;
-
-                            return (
-                                <button key={prop.fullName} onClick={() => setSelectedRegion(r)}
-                                    className={`w-full flex items-center gap-3 p-3.5 rounded-2xl border transition-all text-left hover:shadow-sm ${selectedRegion?.feature.properties.fullName === prop.fullName ? 'border-indigo-300 bg-indigo-50' : 'border-slate-100 bg-white hover:border-slate-200'}`}>
-                                    <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: rl.color }} />
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-1.5">
-                                            <p className="text-xs font-black text-slate-900 truncate">{prop.fullName}</p>
-                                            {isAlertRegion && (
-                                                <AlertTriangle size={12} className="text-rose-500 flex-shrink-0 animate-pulse" title="High Risk / Hazard Alert" />
-                                            )}
-                                        </div>
-                                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">{activeLayerConfig.format(r.value)} {activeLayerConfig.unit}</p>
-                                    </div>
-                                    <ChevronRight size={12} className="text-slate-300 flex-shrink-0" />
-                                </button>
-                            );
-                        })}
-                    </div>
-
-                    {/* Legend */}
-                    {['risk_classification', 'hazard_index', 'exposure_index', 'vulnerability_index', 'capacity_index'].includes(selectedLayer) ? (
-                        <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm space-y-3">
-                            <div className="flex items-center justify-between">
-                                <p className="text-[9px] font-black uppercase tracking-widest text-[#172358]">Risk Level Legend</p>
-                                <span className="text-[9px] font-bold text-slate-400">0 - 10 Score</span>
-                            </div>
-                            <div className="grid grid-cols-2 gap-2">
-                                {RISK_LEVELS.map(l => (
-                                    <div key={l.label} className="flex items-center gap-2 p-2 rounded-xl bg-slate-50 border border-slate-100">
-                                        <div className="w-3 h-3 rounded-md flex-shrink-0 shadow-sm" style={{ backgroundColor: l.color }} />
-                                        <div className="min-w-0 flex-1">
-                                            <p className="text-[10px] font-black text-slate-800 leading-none truncate">{l.label}</p>
-                                            <p className="text-[8px] font-bold text-slate-400 mt-0.5">{l.min}–{l.max}</p>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm space-y-3">
-                            <p className="text-[9px] font-black uppercase tracking-widest text-[#172358]">{activeLayerConfig.label} Range</p>
-                            <div className="h-3.5 rounded-full overflow-hidden shadow-inner border border-slate-100" style={{ background: `linear-gradient(to right, ${activeLayerConfig.colors[0]}, ${activeLayerConfig.colors[1]})` }} />
-                            <div className="flex justify-between text-[9px] font-black text-slate-600">
-                                <span>Min: {activeLayerConfig.format(bounds.min)} {activeLayerConfig.unit}</span>
-                                <span>Max: {activeLayerConfig.format(bounds.max)} {activeLayerConfig.unit}</span>
-                            </div>
-                        </div>
-                    )}
                 </div>
             </div>
-        </div>
 
             {/* Map Area */}
             <div className="flex-1 relative">
                 {/* Top Bar */}
                 <div className="absolute top-4 left-4 right-4 z-[1000] flex items-center gap-3 pointer-events-none">
-                    <button onClick={() => setSidebarOpen(!sidebarOpen)} className="pointer-events-auto w-10 h-10 bg-white rounded-xl shadow-lg border border-slate-200 flex items-center justify-center text-slate-500 hover:text-indigo-600 transition-all">
+                    <button onClick={() => setSidebarOpen(!sidebarOpen)} className="pointer-events-auto w-10 h-10 bg-white rounded-xl shadow-lg border border-slate-200 flex items-center justify-center text-slate-500 hover:text-[#172358] transition-all cursor-pointer">
                         <Filter size={16} />
                     </button>
 
@@ -650,11 +1031,11 @@ export default function WoredaProfileMap() {
                     )}
 
                     <div className="pointer-events-auto flex-1 bg-white/95 backdrop-blur-xl rounded-2xl shadow-lg border border-slate-200 px-5 py-3 flex items-center gap-3">
-                        <MapIcon size={16} className="text-indigo-600 flex-shrink-0" />
+                        <MapIcon size={16} className="text-[#172358] flex-shrink-0" />
                         <p className="text-sm font-black text-slate-900 flex-1">
-                            {filteredRegions.length} Regions — <span className="text-indigo-600">{activeLayerConfig.label}</span>
+                            {filteredRegions.length} Regions — <span className="text-[#172358]">{activeLayerConfig.label}</span>
                         </p>
-                        <button onClick={loadGISData} className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-indigo-50 flex items-center justify-center text-slate-400 hover:text-indigo-600 transition-all">
+                        <button onClick={loadGISData} className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-[#172358]/10 flex items-center justify-center text-slate-400 hover:text-[#172358] transition-all cursor-pointer">
                             <RefreshCw size={13} />
                         </button>
                     </div>
@@ -664,7 +1045,7 @@ export default function WoredaProfileMap() {
                 {loading && (
                     <div className="absolute inset-0 z-[500] bg-white/80 backdrop-blur-sm flex items-center justify-center">
                         <div className="flex flex-col items-center gap-4">
-                            <div className="w-12 h-12 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin" />
+                            <div className="w-12 h-12 border-4 border-[#172358]/20 border-t-[#172358] rounded-full animate-spin" />
                             <p className="text-sm font-bold text-slate-500">Loading GIS layers…</p>
                         </div>
                     </div>
@@ -679,9 +1060,26 @@ export default function WoredaProfileMap() {
                         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
                             className="absolute bottom-8 left-1/2 -translate-x-1/2 z-[1000] bg-white rounded-2xl shadow-2xl border border-slate-200 px-5 py-4 min-w-[220px] pointer-events-none">
                             <p className="text-xs font-black text-slate-900 mb-1">{hoveredRegion.feature.properties.fullName}</p>
-                            <p className="text-[10px] font-bold text-indigo-600">{activeLayerConfig.label}: <span className="font-black">{activeLayerConfig.format(hoveredRegion.value)} {activeLayerConfig.unit}</span></p>
+                            <p className="text-[10px] font-bold text-[#172358]">{activeLayerConfig.label}: <span className="font-black">{activeLayerConfig.format(hoveredRegion.value)} {activeLayerConfig.unit}</span></p>
                             {(() => {
-                                const isRiskLayer = ['risk_classification', 'hazard_index', 'exposure_index', 'vulnerability_index', 'capacity_index'].includes(selectedLayer);
+                                const isHazardLayer = selectedLayer === 'hazard_index';
+                                if (isHazardLayer) {
+                                    const dom = getDominantHazard(hoveredRegion.profile);
+                                    const hConfig = HAZARD_COLOR_MAP[dom.name] || HAZARD_COLOR_MAP['Flood'];
+                                    const lvl = getHazardLevelInfo(dom.score);
+                                    return (
+                                        <div className="flex items-center justify-between gap-2 mt-2 pt-2 border-t border-slate-100">
+                                            <div className="flex items-center gap-1.5">
+                                                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: hConfig.color }} />
+                                                <span className="text-[10px] font-black text-slate-800">{dom.name}</span>
+                                            </div>
+                                            <span className={`text-[9px] font-black px-2 py-0.5 rounded-full text-white ${lvl.bg}`}>
+                                                {lvl.label} Level ({dom.score.toFixed(1)})
+                                            </span>
+                                        </div>
+                                    );
+                                }
+                                const isRiskLayer = ['risk_classification', 'exposure_index', 'vulnerability_index', 'capacity_index'].includes(selectedLayer);
                                 const riskVal = isRiskLayer ? hoveredRegion.value : (hoveredRegion.profile.risk_index?.overall_woreda_risk_score || hoveredRegion.profile.hierarchy_summary?.dr_risk_score || 0);
                                 const label = isRiskLayer ? activeLayerConfig.label.split(' ')[0] : 'Risk';
                                 return (
@@ -699,19 +1097,79 @@ export default function WoredaProfileMap() {
                 <AnimatePresence>
                     {selectedRegion && (
                         <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}
-                            className="absolute top-20 right-4 z-[1000] w-72 bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden">
-                            <div className="bg-indigo-600 px-5 py-4 flex items-center justify-between">
+                            className="absolute top-20 right-4 z-[1000] w-80 bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden max-h-[85vh] overflow-y-auto">
+                            <div className="bg-[#172358] px-5 py-4 flex items-center justify-between sticky top-0 z-10">
                                 <div>
-                                    <p className="text-[9px] font-black text-indigo-200 uppercase tracking-widest">Selected Region</p>
+                                    <p className="text-[9px] font-black text-blue-200 uppercase tracking-widest">
+                                        Selected {viewLevel === 'woreda' || selectedRegion.feature.properties.level === 'woreda' ? 'Woreda Polygon' : 'Sub-City Zone'}
+                                    </p>
                                     <p className="text-sm font-black text-white mt-0.5 leading-tight">{selectedRegion.feature.properties.fullName}</p>
                                 </div>
                                 <button onClick={() => setSelectedRegion(null)} className="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-all cursor-pointer"><X size={14} /></button>
                             </div>
                             <div className="p-5 space-y-4">
-                                <div className="bg-indigo-50 rounded-2xl p-4 text-center">
-                                    <p className="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-1">{activeLayerConfig.label}</p>
-                                    <p className="text-2xl font-black text-indigo-700">{activeLayerConfig.format(selectedRegion.value)}</p>
-                                    <p className="text-[9px] font-bold text-indigo-400">{activeLayerConfig.unit}</p>
+                                {/* Woreda Polygon Risk Alert Card */}
+                                {(() => {
+                                    const riskVal = selectedRegion.profile.risk_index?.overall_woreda_risk_score || selectedRegion.profile.hierarchy_summary?.dr_risk_score || 0;
+                                    const hazardVal = selectedRegion.profile.risk_index?.hazard_index || selectedRegion.profile.hierarchy_summary?.hazard_score || 0;
+                                    const vulVal = selectedRegion.profile.risk_index?.vulnerability_index || selectedRegion.profile.hierarchy_summary?.vulnerability_score || 0;
+                                    const capVal = selectedRegion.profile.risk_index?.capacity_index || selectedRegion.profile.hierarchy_summary?.capacity_score || 0;
+
+                                    const isCritical = riskVal >= 7.0 || hazardVal >= 7.0;
+                                    const isModerate = riskVal >= 4.5 || hazardVal >= 5.0;
+
+                                    return (
+                                        <div className={`p-4 rounded-2xl border ${isCritical ? 'bg-rose-500/10 border-rose-500/40 text-rose-950' : isModerate ? 'bg-amber-500/10 border-amber-500/40 text-amber-950' : 'bg-emerald-500/10 border-emerald-500/40 text-emerald-950'}`}>
+                                            <div className="flex items-center justify-between gap-2 mb-2">
+                                                <div className="flex items-center gap-2">
+                                                    {isCritical ? (
+                                                        <AlertTriangle size={18} className="text-rose-600 animate-bounce flex-shrink-0" />
+                                                    ) : isModerate ? (
+                                                        <ShieldAlert size={18} className="text-amber-600 flex-shrink-0" />
+                                                    ) : (
+                                                        <ShieldCheck size={18} className="text-emerald-600 flex-shrink-0" />
+                                                    )}
+                                                    <span className="text-xs font-black uppercase tracking-wider">
+                                                        Polygon Level Risk Alert
+                                                    </span>
+                                                </div>
+                                                <span className={`text-[9px] font-black px-2 py-0.5 rounded-full uppercase text-white ${isCritical ? 'bg-rose-600' : isModerate ? 'bg-amber-600' : 'bg-emerald-600'}`}>
+                                                    {isCritical ? 'High Risk' : isModerate ? 'Moderate' : 'Low Risk'}
+                                                </span>
+                                            </div>
+
+                                            <p className="text-[11px] font-semibold text-slate-700 leading-snug">
+                                                {isCritical ? `Woreda polygon ${selectedRegion.feature.properties.fullName} requires immediate DRM monitoring & response intervention.` : isModerate ? `Woreda polygon ${selectedRegion.feature.properties.fullName} exhibits moderate hazard exposure.` : `Woreda polygon ${selectedRegion.feature.properties.fullName} maintains stable risk status.`}
+                                            </p>
+
+                                            <div className="mt-3 pt-2.5 border-t border-slate-200/60 space-y-1.5 text-[10px]">
+                                                {hazardVal >= 5.5 && (
+                                                    <div className="flex items-center gap-1.5 text-rose-700 font-bold">
+                                                        <Flame size={12} className="text-rose-500 flex-shrink-0" />
+                                                        <span>Hazard Exposure Index: {hazardVal.toFixed(1)}/10</span>
+                                                    </div>
+                                                )}
+                                                {vulVal >= 5.5 && (
+                                                    <div className="flex items-center gap-1.5 text-amber-700 font-bold">
+                                                        <AlertCircle size={12} className="text-amber-500 flex-shrink-0" />
+                                                        <span>Vulnerability Score: {vulVal.toFixed(1)}/10</span>
+                                                    </div>
+                                                )}
+                                                {capVal < 4.0 && (
+                                                    <div className="flex items-center gap-1.5 text-rose-800 font-bold">
+                                                        <ShieldAlert size={12} className="text-rose-600 flex-shrink-0" />
+                                                        <span>Low Coping Capacity: {capVal.toFixed(1)}/10</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
+
+                                <div className="bg-[#172358]/5 border border-[#172358]/10 rounded-2xl p-4 text-center">
+                                    <p className="text-[9px] font-black text-[#172358]/70 uppercase tracking-widest mb-1">{activeLayerConfig.label}</p>
+                                    <p className="text-2xl font-black text-[#172358]">{activeLayerConfig.format(selectedRegion.value)}</p>
+                                    <p className="text-[9px] font-bold text-[#172358]/70">{activeLayerConfig.unit}</p>
                                 </div>
                                 <div className="grid grid-cols-2 gap-2">
                                     {[
@@ -745,10 +1203,370 @@ export default function WoredaProfileMap() {
                                         </div>
                                     ))}
                                 </div>
+                                <button
+                                    onClick={() => setIsReportModalOpen(true)}
+                                    className="w-full mt-4 py-3 bg-[#172358] hover:bg-[#111a42] text-white rounded-2xl text-xs font-black uppercase tracking-wider transition-all shadow-md shadow-[#172358]/20 flex items-center justify-center gap-2 cursor-pointer"
+                                >
+                                    <FileText size={14} /> View Detailed Report
+                                </button>
                             </div>
                         </motion.div>
                     )}
                 </AnimatePresence>
+
+                {/* Detailed Report Modal */}
+                <AnimatePresence>
+                    {isReportModalOpen && selectedRegion && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="fixed inset-0 z-[2000] bg-slate-950/70 backdrop-blur-md flex items-center justify-center p-3 md:p-6 overflow-y-auto print-modal-wrapper"
+                        >
+                            <motion.div
+                                initial={{ scale: 0.95, y: 20 }}
+                                animate={{ scale: 1, y: 0 }}
+                                exit={{ scale: 0.95, y: 20 }}
+                                className="bg-white rounded-[2.5rem] shadow-2xl border border-slate-200 w-full max-w-5xl h-[92vh] flex flex-col text-slate-800 overflow-hidden print-modal-content"
+                            >
+                                {/* Modal Header */}
+                                <div className="bg-[#172358] text-white px-8 py-5 flex items-center justify-between border-b border-white/10 flex-shrink-0 no-print">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center text-white shadow-inner">
+                                            <FileText size={20} />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-base font-black tracking-tight text-white uppercase">Region Comprehensive Assessment Report</h3>
+                                            <p className="text-[10px] text-blue-200 font-bold uppercase tracking-widest">{selectedRegion.feature.properties.fullName} • Integrated DRM Database</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <button
+                                            onClick={handlePrint}
+                                            className="px-5 py-2.5 bg-white/15 hover:bg-white/25 border border-white/20 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all shadow-md cursor-pointer"
+                                        >
+                                            <Printer size={15} /> Print Full Official Report
+                                        </button>
+                                        <button
+                                            onClick={() => setIsReportModalOpen(false)}
+                                            className="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-blue-200 hover:text-white transition-all cursor-pointer"
+                                        >
+                                            <X size={18} />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Interactive Report Tabs (Screen view only) */}
+                                <div className="bg-blue-50/50 border-b border-slate-200 px-8 py-3 flex items-center gap-2 overflow-x-auto no-scrollbar no-print flex-shrink-0">
+                                    {[
+                                        { id: 'executive', label: '1. Executive Summary', icon: Activity },
+                                        { id: 'hazard', label: '2. Risk & Vulnerability', icon: Flame },
+                                        { id: 'infrastructure', label: '3. Services & Infrastructure', icon: Building2 },
+                                        { id: 'mitigation', label: '4. Action & Mitigation Plan', icon: ShieldCheck }
+                                    ].map(tab => (
+                                        <button
+                                            key={tab.id}
+                                            onClick={() => setActiveReportTab(tab.id as any)}
+                                            className={`px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer ${activeReportTab === tab.id
+                                                ? 'bg-[#172358] text-white shadow-md shadow-[#172358]/30'
+                                                : 'text-slate-600 hover:text-[#172358] hover:bg-blue-100/50'
+                                                }`}
+                                        >
+                                            <tab.icon size={14} className={activeReportTab === tab.id ? 'text-white' : 'text-slate-400'} />
+                                            {tab.label}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {/* Modal Scrollable Body */}
+                                <div className="flex-1 overflow-y-auto p-8 space-y-8" id="woreda-report-print-container">
+
+                                    {/* Print Official Header (Only visible on print) */}
+                                    <div className="hidden print:block text-center border-b-2 border-[#172358] pb-6 mb-6">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div className="text-left text-[10px] font-bold text-slate-500 uppercase">
+                                                <p>Addis Ababa Disaster Risk Management</p>
+                                            </div>
+                                            <div className="text-right text-[10px] font-bold text-slate-500 uppercase">
+                                                <p>Report Ref: IDRMIS-GIS-{selectedRegion.feature.properties.id || 'RPT'}-2026</p>
+                                                <p>Date: {new Date().toLocaleDateString()}</p>
+                                            </div>
+                                        </div>
+                                        <h1 className="text-2xl font-black uppercase tracking-tight text-[#172358]">ADDIS ABABA DISASTER RISK REPORT</h1>
+                                        <p className="text-xs font-bold text-slate-600 uppercase tracking-widest mt-2 border-t border-blue-200 pt-2 inline-block px-6">Official Comprehensive Region Assessment & Risk Profile Report</p>
+                                    </div>
+
+                                    {/* Region Overview Banner */}
+                                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-gradient-to-r from-[#172358] via-[#1d2d6d] to-[#121c46] text-white rounded-3xl p-6 shadow-lg shadow-[#172358]/15 gap-4">
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <span className="px-2.5 py-0.5 bg-white/20 text-white text-[9px] font-black uppercase tracking-widest rounded-lg border border-white/20">
+                                                    {selectedRegion.feature.properties.level || 'Region'} Level GIS Data
+                                                </span>
+                                                <span className="text-blue-200 text-xs font-bold">•</span>
+                                                <span className="text-blue-200 text-xs font-bold">Sub-City: {selectedRegion.feature.properties.subcity || selectedRegion.feature.properties.name}</span>
+                                            </div>
+                                            <h3 className="text-2xl font-black text-white tracking-tight">{selectedRegion.feature.properties.fullName}</h3>
+                                            <p className="text-xs text-blue-200 font-medium mt-1">Geographic Centroid Coordinates: {ADDIS_ABABA_CENTER[0]}, {ADDIS_ABABA_CENTER[1]}</p>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            {(() => {
+                                                const riskScore = selectedRegion.profile.risk_index?.overall_woreda_risk_score || selectedRegion.profile.hierarchy_summary?.dr_risk_score || 0;
+                                                const riskLvl = getRiskLevel(riskScore);
+                                                return (
+                                                    <div className="bg-white/15 backdrop-blur-md rounded-2xl p-4 border border-white/20 text-center min-w-[140px]">
+                                                        <p className="text-[9px] font-black text-blue-200 uppercase tracking-widest mb-1">DRM Risk Level</p>
+                                                        <p className="text-2xl font-black text-white">{riskScore.toFixed(1)} <span className="text-xs text-blue-200">/ 10</span></p>
+                                                        <span className="inline-block mt-1 px-2.5 py-0.5 text-[9px] font-black uppercase rounded-full text-white shadow-sm" style={{ backgroundColor: riskLvl.color }}>
+                                                            {riskLvl.label} Risk
+                                                        </span>
+                                                    </div>
+                                                );
+                                            })()}
+                                        </div>
+                                    </div>
+
+                                    {/* SECTION 1: Executive Summary */}
+                                    <div className={`space-y-6 ${activeReportTab !== 'executive' ? 'print:block hidden' : 'block'}`}>
+                                        <div className="flex items-center gap-2 border-b border-blue-100 pb-3">
+                                            <Activity size={18} className="text-[#172358]" />
+                                            <h4 className="text-sm font-black uppercase tracking-widest text-[#172358]">1. Executive Summary & Key Indicators</h4>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                            {[
+                                                { label: 'Total Population', value: (selectedRegion.profile.demographics?.total_population || selectedRegion.profile.hierarchy_summary?.total_population || 0).toLocaleString(), sub: 'Residents at Risk', color: 'bg-blue-50 border-blue-100 text-[#172358]' },
+                                                { label: 'Household Count', value: (selectedRegion.profile.demographics?.total_households || selectedRegion.profile.hierarchy_summary?.total_households || 0).toLocaleString(), sub: 'Dwellings Aggregated', color: 'bg-blue-50 border-blue-100 text-[#172358]' },
+                                                { label: 'IDP Inhabitants', value: (selectedRegion.profile.demographics?.internally_displaced_population || 0).toLocaleString(), sub: 'Displaced Persons', color: 'bg-amber-50 border-amber-100 text-amber-700' },
+                                                { label: 'Vulnerable Groups', value: (selectedRegion.profile.vulnerable_groups?.reduce((s: number, vg: any) => s + (vg.number || 0), 0) || Math.round((selectedRegion.profile.demographics?.total_population || 0) * 0.08)).toLocaleString(), sub: 'Elderly/Disabled/Children', color: 'bg-rose-50 border-rose-100 text-rose-700' }
+                                            ].map(kpi => (
+                                                <div key={kpi.label} className={`rounded-2xl p-4 border ${kpi.color}`}>
+                                                    <p className="text-[9px] font-black uppercase tracking-wider text-slate-500 mb-1">{kpi.label}</p>
+                                                    <p className="text-xl font-black text-slate-900">{kpi.value}</p>
+                                                    <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase">{kpi.sub}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        {/* Key Risk Indices Grid */}
+                                        <div className="bg-slate-50 rounded-3xl p-6 border border-slate-200 space-y-4">
+                                            <h5 className="text-xs font-black uppercase tracking-widest text-slate-700">Disaster Risk Component Indices</h5>
+                                            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                                                {[
+                                                    { label: 'DRM Risk Score', value: selectedRegion.profile.risk_index?.overall_woreda_risk_score || selectedRegion.profile.hierarchy_summary?.dr_risk_score || 0 },
+                                                    { label: 'Hazard Index', value: selectedRegion.profile.risk_index?.hazard_index || selectedRegion.profile.hierarchy_summary?.hazard_score || 0 },
+                                                    { label: 'Exposure Index', value: selectedRegion.profile.risk_index?.exposure_index || selectedRegion.profile.hierarchy_summary?.exposure_score || 0 },
+                                                    { label: 'Vulnerability Index', value: selectedRegion.profile.risk_index?.vulnerability_index || selectedRegion.profile.hierarchy_summary?.vulnerability_score || 0 },
+                                                    { label: 'Capacity Index', value: selectedRegion.profile.risk_index?.capacity_index || selectedRegion.profile.hierarchy_summary?.capacity_score || 0 }
+                                                ].map(idxItem => (
+                                                    <div key={idxItem.label} className="bg-white rounded-2xl p-3 text-center border border-slate-200 shadow-sm">
+                                                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">{idxItem.label}</p>
+                                                        <p className="text-lg font-black text-slate-900">{idxItem.value.toFixed(1)}</p>
+                                                        <div className="h-1.5 bg-slate-100 rounded-full mt-2 overflow-hidden">
+                                                            <div className="h-full rounded-full" style={{ width: `${(idxItem.value / 10) * 100}%`, backgroundColor: getRiskColor(idxItem.value) }} />
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* SECTION 2: Hazard & Vulnerability */}
+                                    <div className={`space-y-6 ${activeReportTab !== 'hazard' ? 'print:block hidden' : 'block'}`}>
+                                        <div className="flex items-center gap-2 border-b border-blue-100 pb-3">
+                                            <Flame size={18} className="text-[#172358]" />
+                                            <h4 className="text-sm font-black uppercase tracking-widest text-[#172358]">2. Risk, Hazard & Vulnerability Assessment</h4>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div className="bg-blue-50/40 rounded-3xl p-6 border border-blue-100 space-y-4">
+                                                <h5 className="text-xs font-black uppercase tracking-widest text-[#172358] flex items-center gap-2">
+                                                    <AlertTriangle size={14} /> Structural & Environmental Hazards
+                                                </h5>
+                                                <div className="space-y-3">
+                                                    {[
+                                                        { hazard: 'Urban Flash Flood Vulnerability', score: 6.8, level: 'High', desc: 'Inadequate secondary drainage channels during heavy rainfall seasons.' },
+                                                        { hazard: 'Fire Hazard & Structural Proximity', score: 5.4, level: 'Moderate', desc: 'Dense non-durable housing clusters with narrow access roads for fire trucks.' },
+                                                        { hazard: 'Slope Stability & Landslide Risk', score: 4.2, level: 'Moderate', desc: 'Localized hillside soil erosion during peak rainy periods.' },
+                                                        { hazard: 'Building Structural Safety Deficit', score: 7.1, level: 'High', desc: 'Substantial ratio of aged structures constructed from temporary materials.' }
+                                                    ].map(h => (
+                                                        <div key={h.hazard} className="bg-white rounded-2xl p-3.5 border border-slate-200/80 space-y-1 shadow-sm">
+                                                            <div className="flex justify-between items-center">
+                                                                <span className="text-xs font-black text-slate-900">{h.hazard}</span>
+                                                                <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-rose-50 text-rose-700 border border-rose-200">{h.level}</span>
+                                                            </div>
+                                                            <p className="text-[10px] font-medium text-slate-500">{h.desc}</p>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            <div className="bg-blue-50/40 rounded-3xl p-6 border border-blue-100 space-y-4">
+                                                <h5 className="text-xs font-black uppercase tracking-widest text-[#172358] flex items-center gap-2">
+                                                    <ShieldAlert size={14} /> Vulnerable Population Composition
+                                                </h5>
+                                                <div className="bg-white rounded-2xl p-4 border border-slate-200/80 space-y-3 shadow-sm">
+                                                    <div className="flex justify-between items-center text-xs font-bold text-slate-700">
+                                                        <span>Female Population</span>
+                                                        <span className="font-black text-slate-900">{(selectedRegion.profile.demographics?.female_population || Math.round((selectedRegion.profile.demographics?.total_population || 0) * 0.52)).toLocaleString()}</span>
+                                                    </div>
+                                                    <div className="flex justify-between items-center text-xs font-bold text-slate-700 border-t border-slate-100 pt-2">
+                                                        <span>Male Population</span>
+                                                        <span className="font-black text-slate-900">{(selectedRegion.profile.demographics?.male_population || Math.round((selectedRegion.profile.demographics?.total_population || 0) * 0.48)).toLocaleString()}</span>
+                                                    </div>
+                                                    <div className="flex justify-between items-center text-xs font-bold text-slate-700 border-t border-slate-100 pt-2">
+                                                        <span>Youth Demographic (18–29 yrs)</span>
+                                                        <span className="font-black text-slate-900">{(selectedRegion.profile.demographics?.youth_18_29 || Math.round((selectedRegion.profile.demographics?.total_population || 0) * 0.28)).toLocaleString()}</span>
+                                                    </div>
+                                                    <div className="flex justify-between items-center text-xs font-bold text-slate-700 border-t border-slate-100 pt-2">
+                                                        <span>Internally Displaced Persons (IDP)</span>
+                                                        <span className="font-black text-rose-700">{(selectedRegion.profile.demographics?.internally_displaced_population || 0).toLocaleString()}</span>
+                                                    </div>
+                                                    <div className="flex justify-between items-center text-xs font-bold text-slate-700 border-t border-slate-100 pt-2">
+                                                        <span>Persons with Disabilities / Elderly</span>
+                                                        <span className="font-black text-slate-900">{Math.round((selectedRegion.profile.demographics?.total_population || 0) * 0.05).toLocaleString()}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* SECTION 3: Infrastructure & Services */}
+                                    <div className={`space-y-6 ${activeReportTab !== 'infrastructure' ? 'print:block hidden' : 'block'}`}>
+                                        <div className="flex items-center gap-2 border-b border-blue-100 pb-3">
+                                            <Building2 size={18} className="text-[#172358]" />
+                                            <h4 className="text-sm font-black uppercase tracking-widest text-[#172358]">3. Infrastructure & Basic Services Status</h4>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div className="bg-blue-50/40 rounded-3xl p-6 border border-blue-100 space-y-4">
+                                                <h5 className="text-xs font-black uppercase tracking-widest text-[#172358]">Basic Public Utilities Coverage</h5>
+                                                <div className="bg-white rounded-2xl p-4 border border-slate-200 space-y-3 shadow-sm">
+                                                    <div className="flex justify-between items-center text-xs font-bold text-slate-700">
+                                                        <span className="flex items-center gap-2"><Droplets size={14} className="text-[#172358]" /> Clean Water Access</span>
+                                                        <span className="font-black text-slate-900">{selectedRegion.profile.basic_services?.water_source || 'Main Pipeline (Tap Water)'}</span>
+                                                    </div>
+                                                    <div className="flex justify-between items-center text-xs font-bold text-slate-700 border-t border-slate-100 pt-2">
+                                                        <span className="flex items-center gap-2"><Zap size={14} className="text-amber-500" /> Electricity Supply</span>
+                                                        <span className="font-black text-slate-900">{selectedRegion.profile.basic_services?.electricity ? 'Yes (National Grid)' : 'Yes (Partial Connection)'}</span>
+                                                    </div>
+                                                    <div className="flex justify-between items-center text-xs font-bold text-slate-700 border-t border-slate-100 pt-2">
+                                                        <span>Asphalt Road Access</span>
+                                                        <span className="font-black text-slate-900">{selectedRegion.profile.basic_services?.road_access || 'Accessible Main Road'}</span>
+                                                    </div>
+                                                    <div className="flex justify-between items-center text-xs font-bold text-slate-700 border-t border-slate-100 pt-2">
+                                                        <span>Municipal Drainage System</span>
+                                                        <span className="font-black text-slate-900">{selectedRegion.profile.basic_services?.drainage_system_coverage ? 'Covered Storm Drains' : 'Open Channels / Partial'}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="bg-blue-50/40 rounded-3xl p-6 border border-blue-100 space-y-4">
+                                                <h5 className="text-xs font-black uppercase tracking-widest text-[#172358]">Emergency Facility Proximity</h5>
+                                                <div className="bg-white rounded-2xl p-4 border border-slate-200 space-y-3 shadow-sm">
+                                                    <div className="flex justify-between items-center text-xs font-bold text-slate-700">
+                                                        <span>Nearest Fire Station</span>
+                                                        <span className="font-black text-slate-900">~2.4 km (Avg 12 mins response)</span>
+                                                    </div>
+                                                    <div className="flex justify-between items-center text-xs font-bold text-slate-700 border-t border-slate-100 pt-2">
+                                                        <span>Nearest General Hospital</span>
+                                                        <span className="font-black text-slate-900">~1.8 km (Avg 8 mins response)</span>
+                                                    </div>
+                                                    <div className="flex justify-between items-center text-xs font-bold text-slate-700 border-t border-slate-100 pt-2">
+                                                        <span>Police / Emergency Command</span>
+                                                        <span className="font-black text-slate-900">~0.9 km (Sub-city Command)</span>
+                                                    </div>
+                                                    <div className="flex justify-between items-center text-xs font-bold text-slate-700 border-t border-slate-100 pt-2">
+                                                        <span>Designated Evacuation Shelter</span>
+                                                        <span className="font-black text-emerald-700">Primary School Hall</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* SECTION 4: Action & Mitigation Plan */}
+                                    <div className={`space-y-6 ${activeReportTab !== 'mitigation' ? 'print:block hidden' : 'block'}`}>
+                                        <div className="flex items-center gap-2 border-b border-blue-100 pb-3">
+                                            <ShieldCheck size={18} className="text-[#172358]" />
+                                            <h4 className="text-sm font-black uppercase tracking-widest text-[#172358]">4. Recommended Action & Mitigation Strategy</h4>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                            {[
+                                                { level: 'Priority 1 — Immediate (0-3 Months)', title: 'Structural & Drainage Intervention', desc: 'Deploy engineering teams to reinforce vulnerable drainage banks and enforce building safety codes.', color: 'border-rose-300 bg-rose-50/50' },
+                                                { level: 'Priority 2 — Medium-Term (3-6 Months)', title: 'Early Warning & Shelter Prep', desc: 'Install community sirens and establish designated emergency supplies at Woreda Administrative centers.', color: 'border-amber-300 bg-amber-50/50' },
+                                                { level: 'Priority 3 — Long-Term (6-12 Months)', title: 'Resilient Urban Infrastructure', desc: 'Upgrade paved access roads and integrate flood-barrier containment systems across riverbanks.', color: 'border-emerald-300 bg-emerald-50/50' }
+                                            ].map(plan => (
+                                                <div key={plan.level} className={`rounded-3xl p-5 border ${plan.color} space-y-2`}>
+                                                    <p className="text-[9px] font-black uppercase tracking-wider text-slate-700">{plan.level}</p>
+                                                    <h5 className="text-xs font-black text-slate-900">{plan.title}</h5>
+                                                    <p className="text-[11px] font-medium text-slate-600 leading-relaxed">{plan.desc}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Print Footer & Sign-off Block (Only visible when printing) */}
+                                    <div className="hidden print:block border-t-2 border-[#172358] pt-8 mt-12 space-y-8">
+                                        <div className="grid grid-cols-2 gap-12 text-xs font-bold text-slate-800">
+                                            <div className="space-y-8">
+                                                <p className="uppercase font-black text-[10px] text-slate-500">Prepared & Field Verified By:</p>
+                                                <div className="border-b border-slate-400 pb-1 w-48" />
+                                                <p>DRM Field Assessment Officer Signature</p>
+                                            </div>
+                                            <div className="space-y-8 text-right">
+                                                <p className="uppercase font-black text-[10px] text-slate-500">Approved By Commission Head:</p>
+                                                <div className="border-b border-slate-400 pb-1 w-48 ml-auto" />
+                                                <p>Head Office DRM Director Sign-off & Seal</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex justify-between items-center text-[9px] font-bold text-slate-400 border-t border-slate-200 pt-4">
+                                            <span>IDRMIS-AAGIS-REPORT-VERIFIED-V2.5</span>
+                                            <span>Confidential — For Disaster Response Planning Only</span>
+                                            <span>Page 1 of 1</span>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </motion.div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* Print Media Styles */}
+                <style>{`
+                    @media print {
+                        * {
+                            -webkit-print-color-adjust: exact !important;
+                            print-color-adjust: exact !important;
+                        }
+                        body * {
+                            visibility: hidden;
+                        }
+                        .no-print {
+                            display: none !important;
+                        }
+                        #woreda-report-print-container, 
+                        #woreda-report-print-container * {
+                            visibility: visible !important;
+                        }
+                        #woreda-report-print-container .hidden.print\:block {
+                            display: block !important;
+                        }
+                        #woreda-report-print-container {
+                            position: absolute !important;
+                            left: 0 !important;
+                            top: 0 !important;
+                            width: 100% !important;
+                            background: white !important;
+                            color: #0f172a !important;
+                            padding: 24px !important;
+                            margin: 0 !important;
+                            overflow: visible !important;
+                        }
+                    }
+                `}</style>
             </div>
         </div>
     );

@@ -19,7 +19,6 @@ import Teams from "./pages/admin/Teams";
 import StructureGraph from "./pages/admin/StructureGraph";
 import HierarchyManagement from "./pages/admin/HierarchyManagement";
 import LocationManagement from "./pages/admin/LocationManagement";
-import LocationManagement from "./pages/admin/LocationManagement";
 import AuditLogs from "./pages/admin/AuditLogs";
 import AdminLogs from "./pages/admin/AdminLogs";
 import EmailLogs from "./pages/admin/EmailLogs";
@@ -109,6 +108,17 @@ export default function App() {
                   <Route path="/awareness" element={<Awareness />} />
                   <Route path="/inspection" element={<Inspection />} />
                   <Route path="/analytics" element={<Analytics />} />
+
+                  {/* Template Engine & Survey Routes */}
+                  <Route path="/survey-library" element={<PermissionRoute resource="template" action="view" element={<TemplateLibrary mode="published_only" />} />} />
+                 <Route path="/admin/template-library" element={<TemplateLibrary />} />
+                  <Route path="/admin/form-builder" element={<FormBuilder />} />
+                  <Route path="/admin/form-builder/:templateId" element={<FormBuilder />} />
+                  <Route path="/admin/profile-mapping" element={<MappingConfig />} />
+                  <Route path="/admin/responses" element={<ResponseExplorerPage />} />
+                  <Route path="/admin/responses/:templateId" element={<ResponseExplorerPage />} />
+                  <Route path="/responses/explorer" element={<ResponseExplorerPage />} />
+                  <Route path="/responses/explorer/:templateId" element={<ResponseExplorerPage />} />
 
                   {/* Admin Routes */}
                   <Route path="/admin/organizations" element={<OrganizationList />} />

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FormBuilderProvider, useFormBuilder, Question, AnswerType, Option, Module } from '../../../context/FormBuilderContext';
 import {
     Plus, Save, Send, Eye, X, ChevronLeft, Trash2,
@@ -99,28 +99,37 @@ const convertToBackendSchema = (template: any) =>
 const convertFromBackendSchema = (data: any) => {
     const backendModules = Array.isArray(data?.modules) ? data.modules : [];
 
+    const getFieldsFromModule = (m: any) => {
+        if (Array.isArray(m.questions) && m.questions.length > 0) return m.questions;
+        if (Array.isArray(m.fields) && m.fields.length > 0) return m.fields;
+        if (Array.isArray(m.sections)) {
+            return m.sections.flatMap((s: any) => s.fields || s.questions || []);
+        }
+        return [];
+    };
+
     // Some draft templates may be saved with an empty modules array; keep the builder usable.
     const modules = backendModules.length
-        ? backendModules.map((m: any) => ({
-            moduleId: m.moduleId,
-            moduleName: m.title,
-            questions: (m.sections || []).flatMap((s: any) => (s.fields || []).map((f: any) => ({
-                questionId: f.fieldId,
-                questionCode: f.questionCode,
-                label: f.label,
-                answerType: f.type,
-                helperText: f.helpText || '',
+        ? backendModules.map((m: any, mIdx: number) => ({
+            moduleId: m.moduleId || `m_${mIdx}_${Date.now()}`,
+            moduleName: m.title || m.moduleName || `Module ${mIdx + 1}`,
+            questions: getFieldsFromModule(m).map((f: any, fIdx: number) => ({
+                questionId: f.fieldId || f.questionId || `q_${fIdx}_${Date.now()}`,
+                questionCode: f.questionCode || `Q${fIdx + 1}`,
+                label: f.label || '',
+                answerType: f.type || f.answerType || 'text',
+                helperText: f.helpText || f.helperText || '',
                 required: f.required || false,
                 options: f.options || [],
                 matrixConfig: f.matrixConfig || { rows: [], columns: [], cellType: 'radio' },
                 tableConfig: f.tableConfig || { columns: [], allowAddRow: true },
                 validation: f.validation || {}
-            })))
+            }))
         }))
         : [{ moduleId: `m_${Date.now()}_${Math.floor(Math.random() * 1e6)}`, moduleName: 'Module 1', questions: [] }];
 
     return {
-        templateName: data?.name || 'New Questionnaire',
+        templateName: data?.name || data?.title || data?.templateName || 'New Questionnaire',
         modules
     };
 };
@@ -886,7 +895,8 @@ const SidebarActions: React.FC = () => {
 const InnerFormBuilder: React.FC = () => {
     const { state, dispatch } = useFormBuilder();
     const navigate = useNavigate();
-    const { id } = useParams();
+    const { id, templateId } = useParams();
+    const activeId = templateId || id;
     const [showPreview, setShowPreview] = useState(false);
     const [savedId, setSavedId] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -894,11 +904,11 @@ const InnerFormBuilder: React.FC = () => {
     const [isPublishing, setIsPublishing] = useState(false);
 
     useEffect(() => {
-        if (id) {
-            setSavedId(id);
-            fetchTemplate(id);
+        if (activeId) {
+            setSavedId(activeId);
+            fetchTemplate(activeId);
         }
-    }, [id]);
+    }, [activeId]);
 
     const fetchTemplate = async (templateId: string) => {
         setIsLoading(true);

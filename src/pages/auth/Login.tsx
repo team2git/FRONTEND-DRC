@@ -1,9 +1,22 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api/axios';
-import { Mail, Lock, Eye, EyeOff, CheckCircle2, AlertCircle, ArrowLeft, RefreshCw, ShieldCheck } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { 
+    Mail, 
+    Lock, 
+    Eye, 
+    EyeOff, 
+    CheckCircle2, 
+    AlertCircle, 
+    ArrowLeft, 
+    RefreshCw, 
+    ShieldCheck, 
+    Sparkles, 
+    KeyRound, 
+    ChevronRight
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { usePortalContent } from "../../hooks/usePortalContent";
 import { resolvePortalAssetUrl } from "../../utils/resolvePortalAssetUrl";
 
@@ -54,7 +67,7 @@ const Login: React.FC = () => {
 
     // Generate Captcha Code
     const generateCaptcha = () => {
-        const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ'; // Avoid confusing chars like 0, O, I, 1
+        const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
         let code = '';
         for (let i = 0; i < 6; i++) {
             code += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -69,17 +82,15 @@ const Login: React.FC = () => {
             const canvas = canvasRef.current;
             const ctx = canvas.getContext('2d');
             if (ctx) {
-                // Clear canvas
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 
-                // Draw background color
                 const isDark = document.documentElement.classList.contains('dark');
-                ctx.fillStyle = isDark ? '#1e293b' : '#f1f5f9';
+                ctx.fillStyle = isDark ? '#0f172a' : '#f8fafc';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 
                 // Noise lines
                 for (let i = 0; i < 6; i++) {
-                    ctx.strokeStyle = `rgba(200, 16, 46, ${Math.random() * 0.4 + 0.15})`; // Deep red tones
+                    ctx.strokeStyle = `rgba(225, 29, 72, ${Math.random() * 0.4 + 0.15})`;
                     ctx.lineWidth = 1.5;
                     ctx.beginPath();
                     ctx.moveTo(Math.random() * canvas.width, Math.random() * canvas.height);
@@ -89,7 +100,7 @@ const Login: React.FC = () => {
                 
                 // Noise dots
                 for (let i = 0; i < 35; i++) {
-                    ctx.fillStyle = `rgba(30, 58, 138, ${Math.random() * 0.4})`; // Navy blue tones
+                    ctx.fillStyle = `rgba(30, 58, 138, ${Math.random() * 0.4})`;
                     ctx.beginPath();
                     ctx.arc(Math.random() * canvas.width, Math.random() * canvas.height, Math.random() * 2, 0, Math.PI * 2);
                     ctx.fill();
@@ -140,7 +151,7 @@ const Login: React.FC = () => {
 
     const strength = getPasswordStrength();
     const strengthLabels = ['Weak', 'Fair', 'Good', 'Strong'];
-    const strengthColors = ['bg-red-500', 'bg-yellow-500', 'bg-brand-500', 'bg-green-500'];
+    const strengthColors = ['bg-red-500', 'bg-amber-500', 'bg-blue-500', 'bg-emerald-500'];
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -180,7 +191,6 @@ const Login: React.FC = () => {
             } else {
                 setError('Login failed: ' + (err.message || 'Unknown error'));
             }
-            // Regenerate captcha on failed submit
             generateCaptcha();
         } finally {
             setLoading(false);
@@ -188,266 +198,360 @@ const Login: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen w-full flex bg-slate-50 dark:bg-slate-900 font-sans overflow-hidden">
-            {/* Left Side - Visual/Branding (Deep Red and Navy Blue theme) */}
-            <div className="hidden lg:flex lg:w-1/2 relative bg-[#0a1128] overflow-hidden items-center justify-center">
-                {/* Animated gradient background and shapes */}
-                <div className="absolute inset-0 bg-gradient-to-br from-[#0a1128] via-[#111827] to-[#800000] opacity-90" />
+        <div className="min-h-screen w-full flex bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans selection:bg-red-500 selection:text-white overflow-hidden relative">
+            
+            {/* Left Side Visual Hero Banner (Desktop) */}
+            <div className="hidden lg:flex lg:w-1/2 relative bg-[#070d1e] overflow-hidden items-center justify-center p-12">
                 
-                {/* Floating Red Accents */}
-                <motion.div 
-                    animate={{ y: [0, -20, 0], rotate: [0, 5, 0] }} 
-                    transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute top-1/4 left-1/4 w-64 h-64 bg-[#e11d2d] rounded-full mix-blend-multiply filter blur-[80px] opacity-40"
-                />
-                {/* Floating Navy/Blue Accents */}
-                <motion.div 
-                    animate={{ y: [0, 30, 0], rotate: [0, -5, 0] }} 
-                    transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-[#1e3a8a] rounded-full mix-blend-multiply filter blur-[80px] opacity-40"
-                />
+                {/* Layered Animated Background Mesh */}
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-slate-900 via-[#0b132b] to-[#1c080d] opacity-95" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,_var(--tw-gradient-stops))] from-red-950/40 via-transparent to-indigo-950/40" />
                 
-                <div className="relative z-10 p-12 text-white max-w-xl text-center">
+                {/* Subtle Geometric Grid overlay */}
+                <div className="absolute inset-0 bg-[radial-gradient(#ffffff0a_1px,transparent_1px)] [background-size:24px_24px] opacity-60" />
+
+                {/* Animated Floating Light Orbs */}
+                <motion.div 
+                    animate={{ y: [0, -25, 0], scale: [1, 1.08, 1], opacity: [0.35, 0.55, 0.35] }} 
+                    transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+                    className="absolute top-1/6 left-1/5 w-96 h-96 bg-gradient-to-tr from-red-600/30 to-rose-600/20 rounded-full mix-blend-screen filter blur-[100px]"
+                />
+                <motion.div 
+                    animate={{ y: [0, 35, 0], scale: [1, 1.12, 1], opacity: [0.3, 0.5, 0.3] }} 
+                    transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                    className="absolute bottom-1/5 right-1/6 w-[28rem] h-[28rem] bg-gradient-to-bl from-blue-700/25 to-indigo-800/20 rounded-full mix-blend-screen filter blur-[110px]"
+                />
+
+                {/* Hero Card Container */}
+                <div className="relative z-10 max-w-lg w-full text-center">
                     <motion.div 
-                        initial={{ opacity: 0, y: 20 }}
+                        initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8 }}
+                        transition={{ duration: 0.9, ease: "easeOut" }}
                         className="flex flex-col items-center"
                     >
-                        {/* Dynamic Logo from DB */}
-                        <div className="w-32 h-32 bg-white rounded-full p-2 mb-8 shadow-2xl flex items-center justify-center shadow-black/50 ring-4 ring-white/10">
-                            <img src={logoUrl} alt={`${portalName} Logo`} className="w-full h-full object-contain" />
+                        {/* Dynamic Logo with Glowing Backdrop */}
+                        <div className="relative mb-8 group">
+                            <div className="absolute -inset-1 bg-gradient-to-r from-red-600 via-rose-500 to-amber-500 rounded-full blur-xl opacity-60 group-hover:opacity-100 transition duration-1000 animate-pulse" />
+                            <div className="relative w-32 h-32 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-full p-4 shadow-2xl flex items-center justify-center ring-4 ring-white/20 dark:ring-slate-800/80">
+                                <img src={logoUrl} alt={`${portalName} Logo`} className="w-full h-full object-contain drop-shadow-md" />
+                            </div>
                         </div>
-                        
-                        <h2 className="text-4xl font-bold mb-6 tracking-tight text-white">{portalName}</h2>
-                        <p className="text-lg text-slate-300 mb-8 leading-relaxed">
-                            Access your {portalName} dashboard securely. We employ the highest standards of data protection and privacy to keep your information safe.
+
+                        {/* Title & Tagline */}
+                        <div className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-white/10 dark:bg-slate-800/60 border border-white/15 dark:border-slate-700/50 backdrop-blur-md mb-4 text-xs font-semibold tracking-wider text-red-300 uppercase">
+                            <Sparkles className="w-3.5 h-3.5 text-red-400" />
+                            <span>Enterprise Security Portal</span>
+                        </div>
+
+                        <h2 className="text-4xl xl:text-5xl font-extrabold text-white mb-6 tracking-tight leading-tight">
+                            {portalName}
+                        </h2>
+
+                        <p className="text-base xl:text-lg text-slate-300 mb-10 leading-relaxed max-w-md font-normal">
+                            Access your disaster risk management portal securely with real-time encrypted data synchronization.
                         </p>
-                        <div className="flex items-center justify-center space-x-6 text-sm font-medium text-slate-300">
-                            <span className="flex items-center"><CheckCircle2 className="w-5 h-5 mr-2 text-[#e11d2d]" /> End-to-end Encryption</span>
-                            <span className="flex items-center"><CheckCircle2 className="w-5 h-5 mr-2 text-[#e11d2d]" /> WCAG Compliant</span>
+
+                        {/* Feature Badges Grid */}
+                        <div className="grid grid-cols-2 gap-3 w-full max-w-md text-left">
+                            <div className="flex items-center p-3.5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md hover:bg-white/10 transition-colors">
+                                <div className="p-2 rounded-xl bg-red-500/20 text-red-400 mr-3">
+                                    <ShieldCheck className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <h4 className="text-xs font-semibold text-white">Encrypted Data</h4>
+                                    <p className="text-[11px] text-slate-400">256-bit AES Shield</p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center p-3.5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md hover:bg-white/10 transition-colors">
+                                <div className="p-2 rounded-xl bg-blue-500/20 text-blue-400 mr-3">
+                                    <CheckCircle2 className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <h4 className="text-xs font-semibold text-white">Compliance</h4>
+                                    <p className="text-[11px] text-slate-400">WCAG & ISO 27001</p>
+                                </div>
+                            </div>
                         </div>
+
                     </motion.div>
                 </div>
             </div>
 
-            {/* Right Side - Form */}
-            <div className="w-full lg:w-1/2 flex flex-col justify-between p-8 sm:p-12 md:p-16 relative overflow-y-auto">
-                {/* Mobile Background Elements */}
-                <div className="absolute inset-0 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 -z-10" />
-                <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-[#e11d2d]/10 dark:bg-[#e11d2d]/20 rounded-full mix-blend-multiply dark:mix-blend-lighten filter blur-3xl opacity-50 -z-10" />
-
-                {/* Header Logo (Mobile mostly, visible on desktop too as requested) */}
-                <div className="flex items-center space-x-3 mb-8">
-                    <img src={logoUrl} alt={`${portalName} Logo`} className="w-10 h-10 object-contain" />
-                    <span className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">{portalName}</span>
-                </div>
-
-                {/* Main Form Container */}
-                <motion.div 
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.5, delay: 0.1 }}
-                    className="w-full max-w-md mx-auto"
-                >
-                    <div className="mb-6">
-                        <Link to="/" className="inline-flex items-center text-sm font-medium text-[#e11d2d] hover:text-[#bf1124] dark:text-[#e11d2d] hover:underline mb-4 transition-colors">
-                            <ArrowLeft className="w-4 h-4 mr-2" />
-                            Back to Home
-                        </Link>
-                        <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Welcome Back</h1>
-                        <p className="text-slate-500 dark:text-slate-400">Sign in to access your account</p>
+            {/* Right Side Form Section */}
+            <div className="w-full lg:w-1/2 flex flex-col justify-between p-6 sm:p-10 md:p-14 lg:p-16 relative overflow-y-auto z-10">
+                
+                {/* Mobile Ambient Glow */}
+                <div className="lg:hidden absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-red-600/15 rounded-full filter blur-3xl opacity-70 pointer-events-none" />
+                
+                {/* Header Logo Bar */}
+                <div className="flex items-center justify-between mb-8">
+                    <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 rounded-xl bg-slate-900/5 dark:bg-white/10 p-1.5 backdrop-blur-md border border-slate-200 dark:border-slate-800 flex items-center justify-center shadow-sm">
+                            <img src={logoUrl} alt={`${portalName} Logo`} className="w-full h-full object-contain" />
+                        </div>
+                        <span className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">{portalName}</span>
                     </div>
 
-                    {error && (
-                        <motion.div 
-                            initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
-                            className="mb-6 flex items-start p-4 text-sm text-[#e11d2d] bg-red-50 dark:bg-red-500/10 dark:text-red-400 rounded-xl border border-red-100 dark:border-red-500/20"
-                        >
-                            <AlertCircle className="w-5 h-5 mr-3 flex-shrink-0 mt-0.5" />
-                            <span>{error}</span>
-                        </motion.div>
-                    )}
+                    <Link to="/" className="inline-flex items-center text-xs font-semibold text-slate-600 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400 transition-colors px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:border-red-200 dark:hover:border-red-900/50 bg-white/50 dark:bg-slate-900/50">
+                        <ArrowLeft className="w-3.5 h-3.5 mr-1.5" />
+                        Home
+                    </Link>
+                </div>
 
+                {/* Form Card Container */}
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.15 }}
+                    className="w-full max-w-md mx-auto my-auto"
+                >
+                    <div className="mb-8">
+                        <div className="flex items-center space-x-2 text-xs font-bold text-red-600 dark:text-red-400 uppercase tracking-widest mb-1.5">
+                            <KeyRound className="w-3.5 h-3.5" />
+                            <span>Authentication</span>
+                        </div>
+                        <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-2">Welcome back</h1>
+                        <p className="text-sm text-slate-600 dark:text-slate-400">Enter your operational credentials to continue</p>
+                    </div>
+
+                    {/* Error Alert Box */}
+                    <AnimatePresence mode="wait">
+                        {error && (
+                            <motion.div 
+                                initial={{ opacity: 0, scale: 0.95, y: -10 }} 
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                                className="mb-6 flex items-start p-4 text-xs sm:text-sm text-red-700 dark:text-red-300 bg-red-50/90 dark:bg-red-950/40 rounded-2xl border border-red-200 dark:border-red-900/60 shadow-sm backdrop-blur-md"
+                            >
+                                <AlertCircle className="w-5 h-5 mr-3 flex-shrink-0 text-red-600 dark:text-red-400 mt-0.5" />
+                                <span className="font-medium leading-snug">{error}</span>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    {/* Main Auth Form */}
                     <form onSubmit={handleSubmit} className="space-y-5">
+                        
+                        {/* Email Input */}
                         <div className="space-y-1.5">
-                            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Email Address</label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <Mail className="h-5 w-5 text-slate-400" />
+                            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                                Email Address
+                            </label>
+                            <div className="relative group">
+                                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-red-500 transition-colors">
+                                    <Mail className="h-5 w-5" />
                                 </div>
                                 <input
                                     type="email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     required
-                                    className="block w-full pl-10 pr-3 py-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm focus:ring-2 focus:ring-[#e11d2d] focus:border-transparent dark:text-white transition-all shadow-sm"
-                                    placeholder="you@example.com"
+                                    className="block w-full pl-11 pr-4 py-3.5 border border-slate-200 dark:border-slate-800 rounded-2xl bg-white/70 dark:bg-slate-900/60 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-500 dark:focus:border-red-500 text-slate-900 dark:text-white placeholder-slate-400 text-sm font-medium transition-all shadow-sm"
+                                    placeholder="name@organization.gov.et"
                                 />
                             </div>
                         </div>
 
+                        {/* Password Input */}
                         <div className="space-y-1.5">
                             <div className="flex justify-between items-center">
-                                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Password</label>
-                                <Link to="/forgot-password" className="text-sm font-medium text-[#e11d2d] hover:text-[#bf1124] dark:text-[#e11d2d] hover:underline">
+                                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                                    Password
+                                </label>
+                                <Link to="/forgot-password" className="text-xs font-semibold text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 transition-colors">
                                     Forgot Password?
                                 </Link>
                             </div>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <Lock className="h-5 w-5 text-slate-400" />
+                            <div className="relative group">
+                                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-red-500 transition-colors">
+                                    <Lock className="h-5 w-5" />
                                 </div>
                                 <input
                                     type={showPassword ? 'text' : 'password'}
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
-                                    className="block w-full pl-10 pr-10 py-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm focus:ring-2 focus:ring-[#e11d2d] focus:border-transparent dark:text-white transition-all shadow-sm"
+                                    className="block w-full pl-11 pr-11 py-3.5 border border-slate-200 dark:border-slate-800 rounded-2xl bg-white/70 dark:bg-slate-900/60 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-500 dark:focus:border-red-500 text-slate-900 dark:text-white placeholder-slate-400 text-sm font-medium transition-all shadow-sm"
                                     placeholder="••••••••"
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                                    title={showPassword ? "Hide password" : "Show password"}
                                 >
                                     {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                                 </button>
                             </div>
-                            {/* Password Strength Indicator */}
+
+                            {/* Password Strength Meter */}
                             {password.length > 0 && (
-                                <div className="mt-2 flex items-center space-x-2">
-                                    <div className="flex-1 flex space-x-1">
-                                        {[1, 2, 3, 4].map((level) => (
-                                            <div 
-                                                key={level} 
-                                                className={`h-1.5 w-full rounded-full transition-colors duration-300 ${strength >= level ? strengthColors[strength - 1] : 'bg-slate-200 dark:bg-slate-700'}`}
-                                            />
-                                        ))}
+                                <motion.div 
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    className="pt-1.5 space-y-1"
+                                >
+                                    <div className="flex items-center space-x-2">
+                                        <div className="flex-1 flex space-x-1.5">
+                                            {[1, 2, 3, 4].map((level) => (
+                                                <div 
+                                                    key={level} 
+                                                    className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
+                                                        strength >= level ? strengthColors[strength - 1] : 'bg-slate-200 dark:bg-slate-800'
+                                                    }`}
+                                                />
+                                            ))}
+                                        </div>
+                                        <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 min-w-[45px] text-right">
+                                            {strength > 0 ? strengthLabels[strength - 1] : ''}
+                                        </span>
                                     </div>
-                                    <span className="text-xs text-slate-500 dark:text-slate-400 w-12 text-right">
-                                        {strength > 0 ? strengthLabels[strength - 1] : ''}
-                                    </span>
-                                </div>
+                                </motion.div>
                             )}
                         </div>
 
-                        {/* CAPTCHA Field */}
-                        <div className="space-y-1.5">
-                            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Human Verification</label>
+                        {/* Security CAPTCHA Card */}
+                        <div className="space-y-1.5 p-3.5 rounded-2xl bg-slate-100/60 dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800/80 backdrop-blur-md">
+                            <div className="flex justify-between items-center mb-1">
+                                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center">
+                                    <ShieldCheck className="w-3.5 h-3.5 mr-1 text-red-500" />
+                                    Human Verification
+                                </label>
+                                <span className="text-[10px] text-slate-400 font-medium">Click code to refresh</span>
+                            </div>
+
                             <div className="flex items-center space-x-2">
-                                {/* Captcha Canvas */}
-                                <div className="relative border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-sm h-12 w-32 flex-shrink-0 bg-slate-100 dark:bg-slate-800">
+                                {/* Captcha Display Canvas */}
+                                <div 
+                                    onClick={generateCaptcha}
+                                    className="relative border border-slate-300 dark:border-slate-700 rounded-xl overflow-hidden shadow-inner h-12 w-32 flex-shrink-0 bg-slate-200 dark:bg-slate-900 cursor-pointer group"
+                                    title="Click to generate new code"
+                                >
                                     <canvas 
                                         ref={canvasRef} 
                                         width={128} 
                                         height={48} 
-                                        className="w-full h-full block cursor-pointer" 
-                                        title="Click to refresh captcha"
-                                        onClick={generateCaptcha}
+                                        className="w-full h-full block" 
                                         data-captcha={captchaCode}
                                     />
+                                    <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity" />
                                 </div>
-                                {/* Refresh button */}
+
+                                {/* Refresh Button */}
                                 <button
                                     type="button"
                                     onClick={generateCaptcha}
-                                    className="p-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors shadow-sm"
-                                    title="Refresh captcha"
+                                    className="p-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-700/60 transition-all shadow-sm active:scale-95"
+                                    title="Refresh verification code"
                                 >
                                     <RefreshCw className="w-5 h-5" />
                                 </button>
-                                {/* Verification code input */}
+
+                                {/* Verification Input */}
                                 <div className="relative flex-1">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <ShieldCheck className="h-5 w-5 text-slate-400" />
-                                    </div>
                                     <input
                                         type="text"
                                         value={captchaInput}
                                         onChange={(e) => setCaptchaInput(e.target.value)}
                                         required
-                                        className="block w-full pl-10 pr-3 py-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm focus:ring-2 focus:ring-[#e11d2d] focus:border-transparent dark:text-white transition-all shadow-sm text-center uppercase tracking-widest font-mono text-lg"
-                                        placeholder="Code"
+                                        className="block w-full px-3 py-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-500 text-center uppercase tracking-widest font-mono text-base font-bold shadow-sm"
+                                        placeholder="CODE"
                                         maxLength={6}
                                     />
                                 </div>
                             </div>
                         </div>
 
-                        <div className="flex items-center">
-                            <input
-                                id="remember-me"
-                                type="checkbox"
-                                checked={rememberMe}
-                                onChange={(e) => setRememberMe(e.target.checked)}
-                                className="h-4 w-4 text-[#e11d2d] focus:ring-[#e11d2d] border-slate-300 rounded cursor-pointer"
-                            />
-                            <label htmlFor="remember-me" className="ml-2 block text-sm text-slate-700 dark:text-slate-300 cursor-pointer">
-                                Remember me
+                        {/* Remember Me Checkbox */}
+                        <div className="flex items-center justify-between pt-1">
+                            <label className="flex items-center cursor-pointer group">
+                                <input
+                                    id="remember-me"
+                                    type="checkbox"
+                                    checked={rememberMe}
+                                    onChange={(e) => setRememberMe(e.target.checked)}
+                                    className="h-4 w-4 text-red-600 focus:ring-red-500 border-slate-300 rounded dark:bg-slate-900 dark:border-slate-700 cursor-pointer accent-red-600 transition-colors"
+                                />
+                                <span className="ml-2.5 text-xs font-medium text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
+                                    Remember my email
+                                </span>
                             </label>
                         </div>
 
+                        {/* Submit Button */}
                         <button
                             type="submit"
                             disabled={loading}
-                            className={`relative w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-[#e11d2d]/20 text-sm font-semibold text-white bg-[#e11d2d] hover:bg-[#bf1124] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#e11d2d] transition-all duration-200 overflow-hidden ${loading ? 'opacity-90 cursor-not-allowed' : 'hover:-translate-y-0.5'}`}
+                            className={`group relative w-full flex justify-center py-4 px-4 rounded-2xl shadow-xl shadow-red-600/25 text-sm font-bold text-white bg-gradient-to-r from-red-600 via-rose-600 to-red-700 hover:from-red-500 hover:to-rose-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 dark:focus:ring-offset-slate-950 transition-all duration-300 overflow-hidden ${
+                                loading ? 'opacity-90 cursor-not-allowed' : 'hover:-translate-y-0.5 hover:shadow-2xl hover:shadow-red-600/35 active:translate-y-0'
+                            }`}
                         >
+                            {/* Shimmer line effect on hover */}
+                            <div className="absolute inset-0 w-1/2 h-full bg-white/20 skew-x-12 -translate-x-full group-hover:translate-x-[300%] transition-transform duration-1000 ease-in-out" />
+                            
                             {loading ? (
-                                <div className="flex items-center">
-                                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <div className="flex items-center space-x-2">
+                                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
-                                    Signing in...
+                                    <span>Verifying Credentials...</span>
                                 </div>
                             ) : (
-                                'Sign In'
+                                <div className="flex items-center space-x-2">
+                                    <span>Sign In to Dashboard</span>
+                                    <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                </div>
                             )}
                         </button>
                     </form>
 
-                    <div className="mt-6 relative">
+                    {/* Social Auth Divider */}
+                    <div className="mt-8 relative">
                         <div className="absolute inset-0 flex items-center">
-                            <div className="w-full border-t border-slate-200 dark:border-slate-700" />
+                            <div className="w-full border-t border-slate-200 dark:border-slate-800" />
                         </div>
-                        <div className="relative flex justify-center text-sm">
-                            <span className="px-4 bg-slate-50 dark:bg-slate-900 text-slate-500">OR Continue With</span>
+                        <div className="relative flex justify-center text-xs uppercase tracking-widest font-semibold">
+                            <span className="px-4 bg-slate-50 dark:bg-slate-950 text-slate-400">Or continue with</span>
                         </div>
                     </div>
 
+                    {/* Social Logins */}
                     <div className="mt-6 grid grid-cols-3 gap-3">
-                        <button type="button" className="flex justify-center items-center py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm">
+                        <button type="button" className="flex justify-center items-center py-3 border border-slate-200 dark:border-slate-800 rounded-2xl bg-white/80 dark:bg-slate-900/80 hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-all shadow-sm hover:-translate-y-0.5">
                             <span className="sr-only">Sign in with Google</span>
                             <GoogleIcon />
                         </button>
-                        <button type="button" className="flex justify-center items-center py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm">
+                        <button type="button" className="flex justify-center items-center py-3 border border-slate-200 dark:border-slate-800 rounded-2xl bg-white/80 dark:bg-slate-900/80 hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-all shadow-sm hover:-translate-y-0.5">
                             <span className="sr-only">Sign in with Microsoft</span>
                             <MicrosoftIcon />
                         </button>
-                        <button type="button" className="flex justify-center items-center py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm">
+                        <button type="button" className="flex justify-center items-center py-3 border border-slate-200 dark:border-slate-800 rounded-2xl bg-white/80 dark:bg-slate-900/80 hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-all shadow-sm hover:-translate-y-0.5">
                             <span className="sr-only">Sign in with LinkedIn</span>
                             <LinkedInIcon />
                         </button>
                     </div>
 
-                    <div className="mt-6 text-center text-sm">
+                    {/* Registration Link */}
+                    <div className="mt-8 text-center text-sm font-medium">
                         <p className="text-slate-600 dark:text-slate-400">
                             Don't have an account?{' '}
-                            <Link to="/register" className="font-semibold text-[#e11d2d] hover:text-[#bf1124] dark:text-[#e11d2d] hover:underline transition-colors">
-                                Sign Up
+                            <Link to="/register" className="font-bold text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:underline transition-colors ml-1">
+                                Create Account
                             </Link>
                         </p>
                     </div>
                 </motion.div>
 
-                {/* Footer Links */}
-                <div className="mt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-6 border-t border-slate-200 dark:border-slate-800">
+                {/* Footer Bar */}
+                <div className="mt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-6 border-t border-slate-200/80 dark:border-slate-800/80">
                     <p>© {new Date().getFullYear()} {portalName}. All rights reserved.</p>
-                    <div className="flex space-x-4 mt-4 sm:mt-0">
+                    <div className="flex space-x-5 mt-3 sm:mt-0 font-medium">
                         <a href="#" className="hover:text-slate-900 dark:hover:text-white transition-colors">Privacy Policy</a>
                         <a href="#" className="hover:text-slate-900 dark:hover:text-white transition-colors">Terms of Service</a>
-                        <a href="#" className="hover:text-slate-900 dark:hover:text-white transition-colors">Help Center</a>
+                        <a href="#" className="hover:text-slate-900 dark:hover:text-white transition-colors">Help Desk</a>
                     </div>
                 </div>
             </div>
@@ -456,3 +560,4 @@ const Login: React.FC = () => {
 };
 
 export default Login;
+

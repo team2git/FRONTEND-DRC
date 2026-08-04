@@ -3,8 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     MapPin, AlertTriangle, ChevronLeft, ChevronRight, Loader2,
     ShieldCheck, Shield, Leaf, Activity, MessageSquare, X,
-    CheckCircle2, Sparkles, BarChart3, Zap
+    CheckCircle2, Sparkles, BarChart3, Zap, Plus, Trash2, RotateCcw,
+    Pencil, Check
 } from 'lucide-react';
+import { toast } from 'react-toastify';
 import {
     type WoredaAssessmentInput,
     createWoredaAssessment, updateWoredaAssessment, getWoredaAssessments
@@ -30,7 +32,27 @@ const emptyAssessment = (): WoredaAssessmentInput => ({
     status: 'Draft',
 });
 
-const ScoreSlider: React.FC<{ label: string; value: number; onChange: (v: number) => void }> = ({ label, value, onChange }) => {
+const ScoreSlider: React.FC<{
+    label: string;
+    value: number;
+    onChange: (v: number) => void;
+    onDelete?: () => void;
+    onRename?: (newLabel: string) => void;
+}> = ({ label, value, onChange, onDelete, onRename }) => {
+    const [isEditing, setIsEditing] = useState(false);
+    const [editedLabel, setEditedLabel] = useState(label);
+
+    useEffect(() => {
+        setEditedLabel(label);
+    }, [label]);
+
+    const handleSaveRename = () => {
+        if (editedLabel.trim() && editedLabel.trim() !== label) {
+            onRename?.(editedLabel.trim());
+        }
+        setIsEditing(false);
+    };
+
     const scoreConfig = value <= 2
         ? { bg: 'bg-emerald-100', text: 'text-emerald-700', bar: 'bg-emerald-500', label: 'Low' }
         : value === 3
@@ -38,10 +60,63 @@ const ScoreSlider: React.FC<{ label: string; value: number; onChange: (v: number
         : { bg: 'bg-rose-100', text: 'text-rose-700', bar: 'bg-rose-500', label: 'High' };
 
     return (
-        <div className="space-y-2 bg-white/60 rounded-2xl p-3.5 border border-slate-100 hover:border-[#465FFF]/20 hover:bg-white transition-all duration-200">
+        <div className="space-y-2 bg-white/60 rounded-2xl p-3.5 border border-slate-100 hover:border-[#465FFF]/20 hover:bg-white transition-all duration-200 group">
             <div className="flex justify-between items-center">
-                <label className="text-[10px] font-black text-slate-600 uppercase tracking-widest">{label}</label>
-                <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg ${scoreConfig.bg} ${scoreConfig.text}`}>{value}/5 · {scoreConfig.label}</span>
+                <div className="flex items-center gap-2 flex-1 mr-2 min-w-0">
+                    {isEditing ? (
+                        <div className="flex items-center gap-1.5 flex-1">
+                            <input
+                                type="text"
+                                value={editedLabel}
+                                onChange={e => setEditedLabel(e.target.value)}
+                                onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleSaveRename())}
+                                className="bg-white border-2 border-[#465FFF] rounded-lg px-2 py-0.5 text-xs font-bold text-slate-800 outline-none w-full"
+                                autoFocus
+                            />
+                            <button
+                                type="button"
+                                onClick={handleSaveRename}
+                                className="p-1 rounded-md bg-[#465FFF] text-white cursor-pointer"
+                                title="Save Name"
+                            >
+                                <Check size={12} />
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => { setIsEditing(false); setEditedLabel(label); }}
+                                className="p-1 rounded-md bg-slate-200 text-slate-600 cursor-pointer"
+                                title="Cancel"
+                            >
+                                <X size={12} />
+                            </button>
+                        </div>
+                    ) : (
+                        <>
+                            <label className="text-[10px] font-black text-slate-600 uppercase tracking-widest truncate">{label}</label>
+                            {onRename && (
+                                <button
+                                    type="button"
+                                    onClick={() => setIsEditing(true)}
+                                    className="p-1 rounded-lg text-slate-400 hover:text-[#465FFF] hover:bg-indigo-50 opacity-0 group-hover:opacity-100 transition-all cursor-pointer flex-shrink-0"
+                                    title="Edit Indicator Name"
+                                >
+                                    <Pencil size={12} />
+                                </button>
+                            )}
+                            {onDelete && (
+                                <button
+                                    type="button"
+                                    onClick={onDelete}
+                                    className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 opacity-0 group-hover:opacity-100 transition-all cursor-pointer flex-shrink-0"
+                                    title="Remove Indicator"
+                                >
+                                    <Trash2 size={12} />
+                                </button>
+                            )}
+                        </>
+                    )}
+                </div>
+                <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg flex-shrink-0 ${scoreConfig.bg} ${scoreConfig.text}`}>{value}/5 · {scoreConfig.label}</span>
             </div>
             <div className="relative">
                 <input
@@ -151,6 +226,165 @@ export const WoredaAssessmentForm: React.FC<{
             }
             cur[keys[keys.length - 1]] = val;
             return next;
+        });
+    };
+
+    const [selectedHazardToAdd, setSelectedHazardToAdd] = useState('');
+    const [customHazardName, setCustomHazardName] = useState('');
+    const [showCustomHazardInput, setShowCustomHazardInput] = useState(false);
+
+    const [newCapacityName, setNewCapacityName] = useState('');
+    const [newInfraName, setNewInfraName] = useState('');
+    const [newEnvName, setNewEnvName] = useState('');
+
+    const formatKeyToLabel = (key: string) => {
+        const knownLabels: Record<string, string> = {
+            ews: 'Early Warning System (EWS)',
+            drm_committee: 'DRM Committee',
+            focal_persons: 'Trained Focal Persons',
+            training_freq: 'Training Frequency',
+            shelters: 'Emergency Shelters',
+            community_structures: 'Community Structures',
+            emergency_services: 'Emergency Response Services',
+            inter_sector_coordination: 'Inter-sector Coordination',
+            institutional_strength: 'Institutional Strength',
+            recovery_plan: 'Post-Disaster Recovery Plan',
+            budget: 'DRM Budget Allocation',
+            drm_mainstreaming: 'DRM Mainstreaming',
+            health: 'Health Facilities Exposure',
+            water: 'Water Supply Exposure',
+            energy: 'Energy & Utilities Exposure',
+            emergency: 'Emergency Services Exposure',
+            communications: 'Communications Infrastructure Exposure',
+            drainage: 'Drainage System Condition',
+            green_cover: 'Green Cover / Urban Forests',
+            waste_mgmt: 'Waste Management',
+            pollution: 'Pollution Levels'
+        };
+        if (knownLabels[key]) return knownLabels[key];
+        return key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    };
+
+    const handleAddHazard = (name: string) => {
+        const trimmed = name.trim();
+        if (!trimmed) return;
+        if (formData.hazards?.some(h => h.hazard_name.toLowerCase() === trimmed.toLowerCase())) {
+            toast.info('Hazard already exists in table');
+            return;
+        }
+        setFormData(prev => ({
+            ...prev,
+            hazards: [
+                ...(prev.hazards || []),
+                { hazard_name: trimmed, frequency: '3', severity: '3', duration: '3', spatial_extent: '3', seasonality: '', historical_events: '' }
+            ]
+        }));
+    };
+
+    const handleRemoveHazard = (idx: number) => {
+        setFormData(prev => ({
+            ...prev,
+            hazards: prev.hazards?.filter((_, i) => i !== idx)
+        }));
+    };
+
+    const handleAddCapacity = (label: string) => {
+        const trimmed = label.trim();
+        if (!trimmed) return;
+        const key = trimmed.toLowerCase().replace(/\s+/g, '_');
+        setFormData(prev => ({
+            ...prev,
+            kii_capacity_indicators: {
+                ...(prev.kii_capacity_indicators || {}),
+                [key]: 3
+            }
+        }));
+        setNewCapacityName('');
+    };
+
+    const handleRemoveCapacity = (key: string) => {
+        setFormData(prev => {
+            const next = { ...(prev.kii_capacity_indicators || {}) };
+            delete next[key];
+            return { ...prev, kii_capacity_indicators: next };
+        });
+    };
+
+    const handleAddInfra = (label: string) => {
+        const trimmed = label.trim();
+        if (!trimmed) return;
+        const key = trimmed.toLowerCase().replace(/\s+/g, '_');
+        setFormData(prev => ({
+            ...prev,
+            kii_infrastructure_exposure: {
+                ...(prev.kii_infrastructure_exposure || {}),
+                [key]: 3
+            }
+        }));
+        setNewInfraName('');
+    };
+
+    const handleRemoveInfra = (key: string) => {
+        setFormData(prev => {
+            const next = { ...(prev.kii_infrastructure_exposure || {}) };
+            delete next[key];
+            return { ...prev, kii_infrastructure_exposure: next };
+        });
+    };
+
+    const handleAddEnv = (label: string) => {
+        const trimmed = label.trim();
+        if (!trimmed) return;
+        const key = trimmed.toLowerCase().replace(/\s+/g, '_');
+        setFormData(prev => ({
+            ...prev,
+            kii_environmental_indicators: {
+                ...(prev.kii_environmental_indicators || {}),
+                [key]: 3
+            }
+        }));
+        setNewEnvName('');
+    };
+
+    const [editingHazardIdx, setEditingHazardIdx] = useState<number | null>(null);
+    const [editingHazardName, setEditingHazardName] = useState('');
+
+    const handleRenameCapacity = (oldKey: string, newLabel: string) => {
+        const trimmed = newLabel.trim();
+        if (!trimmed) return;
+        const newKey = trimmed.toLowerCase().replace(/\s+/g, '_');
+        setFormData(prev => {
+            const next = { ...(prev.kii_capacity_indicators || {}) };
+            const val = next[oldKey] ?? 3;
+            delete next[oldKey];
+            next[newKey] = val;
+            return { ...prev, kii_capacity_indicators: next };
+        });
+    };
+
+    const handleRenameInfra = (oldKey: string, newLabel: string) => {
+        const trimmed = newLabel.trim();
+        if (!trimmed) return;
+        const newKey = trimmed.toLowerCase().replace(/\s+/g, '_');
+        setFormData(prev => {
+            const next = { ...(prev.kii_infrastructure_exposure || {}) };
+            const val = next[oldKey] ?? 3;
+            delete next[oldKey];
+            next[newKey] = val;
+            return { ...prev, kii_infrastructure_exposure: next };
+        });
+    };
+
+    const handleRenameEnv = (oldKey: string, newLabel: string) => {
+        const trimmed = newLabel.trim();
+        if (!trimmed) return;
+        const newKey = trimmed.toLowerCase().replace(/\s+/g, '_');
+        setFormData(prev => {
+            const next = { ...(prev.kii_environmental_indicators || {}) };
+            const val = next[oldKey] ?? 3;
+            delete next[oldKey];
+            next[newKey] = val;
+            return { ...prev, kii_environmental_indicators: next };
         });
     };
 
@@ -443,62 +677,221 @@ export const WoredaAssessmentForm: React.FC<{
                                         ))}
                                     </div>
 
-                                    {/* CGD: Hazards */}
-                                    <AnimatePresence mode="wait">
-                                        {subStep === 'cgd_hazards' && (
-                                            <motion.div key="cgd_hazards" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-3">
-                                                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-rose-50 text-rose-600 text-[9px] font-black uppercase tracking-widest border border-rose-100">
-                                                    <AlertTriangle size={10} />
-                                                    Score each hazard on 4 dimensions (1–5) — drives Hazard Index H
-                                                </div>
-                                                <div className="overflow-auto rounded-[1.5rem] border-2 border-slate-200 bg-white shadow-sm">
-                                                    <table className="w-full text-left">
-                                                        <thead>
-                                                            <tr style={{ background: 'linear-gradient(135deg, #f7f8fc, #eef2ff)' }}>
-                                                                <th className="px-5 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest w-44 border-b border-slate-200">Hazard</th>
-                                                                <th className="px-3 py-4 text-[9px] font-black uppercase tracking-widest text-center border-b border-slate-200" style={{ color: '#465FFF' }}>Frequency<br /><span className="text-slate-400 font-normal normal-case tracking-normal text-[8px]">35%</span></th>
-                                                                <th className="px-3 py-4 text-[9px] font-black uppercase tracking-widest text-center border-b border-slate-200" style={{ color: '#465FFF' }}>Severity<br /><span className="text-slate-400 font-normal normal-case tracking-normal text-[8px]">35%</span></th>
-                                                                <th className="px-3 py-4 text-[9px] font-black text-blue-600 uppercase tracking-widest text-center border-b border-slate-200">Duration<br /><span className="text-slate-400 font-normal normal-case tracking-normal text-[8px]">15%</span></th>
-                                                                <th className="px-3 py-4 text-[9px] font-black text-blue-600 uppercase tracking-widest text-center border-b border-slate-200">Spatial Ext.<br /><span className="text-slate-400 font-normal normal-case tracking-normal text-[8px]">15%</span></th>
-                                                                <th className="px-3 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center border-b border-slate-200">H Score</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody className="divide-y divide-slate-100">
-                                                            {(formData.hazards || []).map((hazard, idx) => {
-                                                                const f = Number(hazard.frequency) || 0;
-                                                                const s = Number(hazard.severity) || 0;
-                                                                const d = Number(hazard.duration) || 0;
-                                                                const x = Number(hazard.spatial_extent) || 0;
-                                                                const h = (f * 0.35 + s * 0.35 + d * 0.15 + x * 0.15).toFixed(2);
-                                                                const numH = parseFloat(h);
-                                                                const scoreColor = numH >= 4 ? 'bg-rose-100 text-rose-700' : numH >= 3 ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700';
-                                                                return (
-                                                                    <tr key={idx} className="hover:bg-[#465FFF]/3 transition-colors">
-                                                                        <td className="px-5 py-3">
-                                                                            <span className="text-xs font-bold text-slate-800">{hazard.hazard_name}</span>
-                                                                        </td>
-                                                                        {(['frequency', 'severity', 'duration', 'spatial_extent'] as const).map(field => (
-                                                                            <td key={field} className="px-3 py-2 text-center">
-                                                                                <select
-                                                                                    value={(hazard as any)[field] || '3'}
-                                                                                    onChange={e => updateHazard(idx, field, e.target.value)}
-                                                                                    className="w-16 bg-[#f7f8fc] border-2 border-slate-200 rounded-xl p-2 text-xs font-bold text-center outline-none focus:border-[#465FFF] focus:ring-2 focus:ring-[#465FFF]/15 transition-all cursor-pointer"
-                                                                                >
-                                                                                    {[1, 2, 3, 4, 5].map(v => <option key={v} value={v}>{v}</option>)}
-                                                                                </select>
+                                        {/* CGD: Hazards */}
+                                        <AnimatePresence mode="wait">
+                                            {subStep === 'cgd_hazards' && (
+                                                <motion.div key="cgd_hazards" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-3">
+                                                    <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-3 rounded-2xl border-2 border-slate-200 shadow-sm">
+                                                        <div className="flex items-center gap-2 flex-wrap">
+                                                            <select
+                                                                value={selectedHazardToAdd}
+                                                                onChange={e => {
+                                                                    if (e.target.value === 'CUSTOM') {
+                                                                        setShowCustomHazardInput(true);
+                                                                    } else if (e.target.value) {
+                                                                        handleAddHazard(e.target.value);
+                                                                        setSelectedHazardToAdd('');
+                                                                    }
+                                                                }}
+                                                                className="bg-[#f7f8fc] border-2 border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 outline-none cursor-pointer focus:border-[#465FFF]"
+                                                            >
+                                                                <option value="">+ Add Hazard to Assessment...</option>
+                                                                {HAZARD_TYPES.filter(h => !formData.hazards?.some(existing => existing.hazard_name.toLowerCase() === h.toLowerCase())).map(h => (
+                                                                    <option key={h} value={h}>{h}</option>
+                                                                ))}
+                                                                <option value="CUSTOM">+ Add Custom Hazard Name...</option>
+                                                            </select>
+
+                                                            {showCustomHazardInput && (
+                                                                <div className="flex items-center gap-2">
+                                                                    <input
+                                                                        type="text"
+                                                                        placeholder="Enter hazard name..."
+                                                                        value={customHazardName}
+                                                                        onChange={e => setCustomHazardName(e.target.value)}
+                                                                        onKeyDown={e => {
+                                                                            if (e.key === 'Enter') {
+                                                                                e.preventDefault();
+                                                                                if (customHazardName.trim()) {
+                                                                                    handleAddHazard(customHazardName);
+                                                                                    setCustomHazardName('');
+                                                                                    setShowCustomHazardInput(false);
+                                                                                    setSelectedHazardToAdd('');
+                                                                                }
+                                                                            }
+                                                                        }}
+                                                                        className="bg-white border-2 border-[#465FFF] rounded-xl px-3 py-1.5 text-xs font-bold outline-none"
+                                                                    />
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                            if (customHazardName.trim()) {
+                                                                                handleAddHazard(customHazardName);
+                                                                                setCustomHazardName('');
+                                                                                setShowCustomHazardInput(false);
+                                                                                setSelectedHazardToAdd('');
+                                                                            }
+                                                                        }}
+                                                                        className="px-3 py-1.5 bg-[#465FFF] text-white rounded-xl text-xs font-black shadow-sm cursor-pointer"
+                                                                    >
+                                                                        Add
+                                                                    </button>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                            setShowCustomHazardInput(false);
+                                                                            setSelectedHazardToAdd('');
+                                                                        }}
+                                                                        className="p-1 text-slate-400 hover:text-slate-600 cursor-pointer"
+                                                                    >
+                                                                        <X size={14} />
+                                                                    </button>
+                                                                </div>
+                                                            )}
+                                                        </div>
+
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setFormData(prev => ({
+                                                                    ...prev,
+                                                                    hazards: HAZARD_TYPES.map(h => ({ hazard_name: h, frequency: '3', severity: '3', duration: '3', spatial_extent: '3', seasonality: '', historical_events: '' }))
+                                                                }));
+                                                                toast.info('Restored default hazard list');
+                                                            }}
+                                                            className="px-3 py-1.5 rounded-xl border border-slate-200 text-slate-500 hover:text-slate-800 text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 cursor-pointer hover:bg-slate-50 transition-all"
+                                                        >
+                                                            <RotateCcw size={12} /> Restore Defaults
+                                                        </button>
+                                                    </div>
+
+                                                    <div className="overflow-auto rounded-[1.5rem] border-2 border-slate-200 bg-white shadow-sm">
+                                                        <table className="w-full text-left">
+                                                            <thead>
+                                                                <tr style={{ background: 'linear-gradient(135deg, #f7f8fc, #eef2ff)' }}>
+                                                                    <th className="px-5 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest w-44 border-b border-slate-200">Hazard</th>
+                                                                    <th className="px-3 py-4 text-[9px] font-black uppercase tracking-widest text-center border-b border-slate-200" style={{ color: '#465FFF' }}>Frequency<br /><span className="text-slate-400 font-normal normal-case tracking-normal text-[8px]">35%</span></th>
+                                                                    <th className="px-3 py-4 text-[9px] font-black uppercase tracking-widest text-center border-b border-slate-200" style={{ color: '#465FFF' }}>Severity<br /><span className="text-slate-400 font-normal normal-case tracking-normal text-[8px]">35%</span></th>
+                                                                    <th className="px-3 py-4 text-[9px] font-black text-blue-600 uppercase tracking-widest text-center border-b border-slate-200">Duration<br /><span className="text-slate-400 font-normal normal-case tracking-normal text-[8px]">15%</span></th>
+                                                                    <th className="px-3 py-4 text-[9px] font-black text-blue-600 uppercase tracking-widest text-center border-b border-slate-200">Spatial Ext.<br /><span className="text-slate-400 font-normal normal-case tracking-normal text-[8px]">15%</span></th>
+                                                                    <th className="px-3 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center border-b border-slate-200">H Score</th>
+                                                                    <th className="px-3 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center border-b border-slate-200">Actions</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody className="divide-y divide-slate-100">
+                                                                {(formData.hazards || []).map((hazard, idx) => {
+                                                                    const f = Number(hazard.frequency) || 0;
+                                                                    const s = Number(hazard.severity) || 0;
+                                                                    const d = Number(hazard.duration) || 0;
+                                                                    const x = Number(hazard.spatial_extent) || 0;
+                                                                    const h = (f * 0.35 + s * 0.35 + d * 0.15 + x * 0.15).toFixed(2);
+                                                                    const numH = parseFloat(h);
+                                                                    const scoreColor = numH >= 4 ? 'bg-rose-100 text-rose-700' : numH >= 3 ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700';
+                                                                    return (
+                                                                        <tr key={idx} className="hover:bg-[#465FFF]/3 transition-colors">
+                                                                            <td className="px-5 py-3">
+                                                                                {editingHazardIdx === idx ? (
+                                                                                    <div className="flex items-center gap-1.5">
+                                                                                        <input
+                                                                                            type="text"
+                                                                                            value={editingHazardName}
+                                                                                            onChange={e => setEditingHazardName(e.target.value)}
+                                                                                            onKeyDown={e => {
+                                                                                                if (e.key === 'Enter') {
+                                                                                                    e.preventDefault();
+                                                                                                    if (editingHazardName.trim()) {
+                                                                                                        updateHazard(idx, 'hazard_name', editingHazardName.trim());
+                                                                                                        setEditingHazardIdx(null);
+                                                                                                    }
+                                                                                                }
+                                                                                            }}
+                                                                                            className="bg-white border-2 border-[#465FFF] rounded-xl px-2.5 py-1 text-xs font-bold text-slate-800 outline-none"
+                                                                                            autoFocus
+                                                                                        />
+                                                                                        <button
+                                                                                            type="button"
+                                                                                            onClick={() => {
+                                                                                                if (editingHazardName.trim()) {
+                                                                                                    updateHazard(idx, 'hazard_name', editingHazardName.trim());
+                                                                                                    setEditingHazardIdx(null);
+                                                                                                }
+                                                                                            }}
+                                                                                            className="p-1.5 rounded-lg bg-[#465FFF] text-white cursor-pointer"
+                                                                                            title="Save Hazard Name"
+                                                                                        >
+                                                                                            <Check size={13} />
+                                                                                        </button>
+                                                                                        <button
+                                                                                            type="button"
+                                                                                            onClick={() => setEditingHazardIdx(null)}
+                                                                                            className="p-1.5 rounded-lg bg-slate-200 text-slate-600 cursor-pointer"
+                                                                                            title="Cancel"
+                                                                                        >
+                                                                                            <X size={13} />
+                                                                                        </button>
+                                                                                    </div>
+                                                                                ) : (
+                                                                                    <div className="flex items-center gap-2 group/hName">
+                                                                                        <span className="text-xs font-bold text-slate-800">{hazard.hazard_name}</span>
+                                                                                        <button
+                                                                                            type="button"
+                                                                                            onClick={() => {
+                                                                                                setEditingHazardIdx(idx);
+                                                                                                setEditingHazardName(hazard.hazard_name);
+                                                                                            }}
+                                                                                            className="p-1 rounded text-slate-300 hover:text-[#465FFF] hover:bg-indigo-50 opacity-0 group-hover/hName:opacity-100 transition-all cursor-pointer"
+                                                                                            title="Edit Hazard Name"
+                                                                                        >
+                                                                                            <Pencil size={12} />
+                                                                                        </button>
+                                                                                    </div>
+                                                                                )}
                                                                             </td>
-                                                                        ))}
-                                                                        <td className="px-3 py-2 text-center">
-                                                                            <span className={`inline-flex items-center px-2.5 py-1 rounded-xl text-[11px] font-black ${scoreColor}`}>{h}</span>
-                                                                        </td>
-                                                                    </tr>
-                                                                );
-                                                            })}
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </motion.div>
-                                        )}
+                                                                            {(['frequency', 'severity', 'duration', 'spatial_extent'] as const).map(field => (
+                                                                                <td key={field} className="px-3 py-2 text-center">
+                                                                                    <select
+                                                                                        value={(hazard as any)[field] || '3'}
+                                                                                        onChange={e => updateHazard(idx, field, e.target.value)}
+                                                                                        className="w-16 bg-[#f7f8fc] border-2 border-slate-200 rounded-xl p-2 text-xs font-bold text-center outline-none focus:border-[#465FFF] focus:ring-2 focus:ring-[#465FFF]/15 transition-all cursor-pointer"
+                                                                                    >
+                                                                                        {[1, 2, 3, 4, 5].map(v => <option key={v} value={v}>{v}</option>)}
+                                                                                    </select>
+                                                                                </td>
+                                                                            ))}
+                                                                            <td className="px-3 py-2 text-center">
+                                                                                <span className={`inline-flex items-center px-2.5 py-1 rounded-xl text-[11px] font-black ${scoreColor}`}>{h}</span>
+                                                                            </td>
+                                                                            <td className="px-3 py-2 text-center">
+                                                                                <div className="flex items-center justify-center gap-1">
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        onClick={() => {
+                                                                                            setEditingHazardIdx(idx);
+                                                                                            setEditingHazardName(hazard.hazard_name);
+                                                                                        }}
+                                                                                        className="p-1.5 rounded-xl text-slate-400 hover:text-[#465FFF] hover:bg-indigo-50 transition-all cursor-pointer"
+                                                                                        title="Edit Hazard Name"
+                                                                                    >
+                                                                                        <Pencil size={14} />
+                                                                                    </button>
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        onClick={() => handleRemoveHazard(idx)}
+                                                                                        className="p-1.5 rounded-xl text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition-all cursor-pointer"
+                                                                                        title="Remove Hazard"
+                                                                                    >
+                                                                                        <Trash2 size={14} />
+                                                                                    </button>
+                                                                                </div>
+                                                                            </td>
+                                                                        </tr>
+                                                                    );
+                                                                })}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </motion.div>
+                                            )}
 
                                         {/* CGD: Community Voice */}
                                         {subStep === 'cgd_voice' && (
@@ -535,72 +928,47 @@ export const WoredaAssessmentForm: React.FC<{
                                         {subStep === 'kii_capacity' && (
                                             <motion.div key="kii_capacity" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-4">
                                                 <div className="bg-white rounded-[1.5rem] p-6 border-2 border-[#465FFF]/15 shadow-sm space-y-4">
-                                                    <div className="flex items-center gap-2.5 mb-1">
-                                                        <div className="w-7 h-7 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #465FFF, #6B7FF5)' }}>
-                                                            <Shield size={13} className="text-white" />
-                                                        </div>
-                                                        <div>
-                                                            <h4 className="text-[10px] font-black uppercase tracking-widest" style={{ color: '#465FFF' }}>Preparedness (40%)</h4>
-                                                            <p className="text-[9px] text-slate-400 font-medium">EWS, DRM committee, focal persons, training frequency, shelters, community structures</p>
+                                                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                                                        <div className="flex items-center gap-2.5">
+                                                            <div className="w-7 h-7 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #465FFF, #6B7FF5)' }}>
+                                                                <Shield size={13} className="text-white" />
+                                                            </div>
+                                                            <div>
+                                                                <h4 className="text-[10px] font-black uppercase tracking-widest" style={{ color: '#465FFF' }}>Capacity & Preparedness Indicators</h4>
+                                                                <p className="text-[9px] text-slate-400 font-medium">Add, edit, score, or remove DRM capacity indicators</p>
+                                                            </div>
                                                         </div>
                                                     </div>
+
                                                     <div className="space-y-2">
-                                                        {[
-                                                            { key: 'ews', label: 'Early Warning System (EWS)' },
-                                                            { key: 'drm_committee', label: 'DRM Committee' },
-                                                            { key: 'focal_persons', label: 'Trained Focal Persons' },
-                                                            { key: 'training_freq', label: 'Training Frequency' },
-                                                            { key: 'shelters', label: 'Emergency Shelters' },
-                                                            { key: 'community_structures', label: 'Community Structures' },
-                                                        ].map(item => (
-                                                            <ScoreSlider key={item.key} label={item.label}
-                                                                value={(formData.kii_capacity_indicators as any)?.[item.key] || 3}
-                                                                onChange={v => updateNested(`kii_capacity_indicators.${item.key}`, v)} />
+                                                        {Object.entries(formData.kii_capacity_indicators || {}).map(([key, value]) => (
+                                                            <ScoreSlider
+                                                                key={key}
+                                                                label={formatKeyToLabel(key)}
+                                                                value={value as number}
+                                                                onChange={v => updateNested(`kii_capacity_indicators.${key}`, v)}
+                                                                onDelete={() => handleRemoveCapacity(key)}
+                                                                onRename={newLabel => handleRenameCapacity(key, newLabel)}
+                                                            />
                                                         ))}
                                                     </div>
-                                                </div>
-                                                <div className="bg-white rounded-[1.5rem] p-6 border-2 border-amber-100 shadow-sm space-y-4">
-                                                    <div className="flex items-center gap-2.5 mb-1">
-                                                        <div className="w-7 h-7 rounded-xl bg-amber-500 flex items-center justify-center">
-                                                            <Activity size={13} className="text-white" />
-                                                        </div>
-                                                        <div>
-                                                            <h4 className="text-[10px] font-black text-amber-700 uppercase tracking-widest">Response (35%)</h4>
-                                                            <p className="text-[9px] text-slate-400 font-medium">Emergency services, inter-sector coordination, institutional strength</p>
-                                                        </div>
-                                                    </div>
-                                                    <div className="space-y-2">
-                                                        {[
-                                                            { key: 'emergency_services', label: 'Emergency Response Services' },
-                                                            { key: 'inter_sector_coordination', label: 'Inter-sector Coordination' },
-                                                            { key: 'institutional_strength', label: 'Institutional Strength' },
-                                                        ].map(item => (
-                                                            <ScoreSlider key={item.key} label={item.label}
-                                                                value={(formData.kii_capacity_indicators as any)?.[item.key] || 3}
-                                                                onChange={v => updateNested(`kii_capacity_indicators.${item.key}`, v)} />
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                                <div className="bg-white rounded-[1.5rem] p-6 border-2 border-slate-100 shadow-sm space-y-4">
-                                                    <div className="flex items-center gap-2.5 mb-1">
-                                                        <div className="w-7 h-7 rounded-xl bg-slate-700 flex items-center justify-center">
-                                                            <ShieldCheck size={13} className="text-white" />
-                                                        </div>
-                                                        <div>
-                                                            <h4 className="text-[10px] font-black text-slate-700 uppercase tracking-widest">Recovery (25%)</h4>
-                                                            <p className="text-[9px] text-slate-400 font-medium">Recovery plan, budget availability, DRM mainstreaming</p>
-                                                        </div>
-                                                    </div>
-                                                    <div className="space-y-2">
-                                                        {[
-                                                            { key: 'recovery_plan', label: 'Post-Disaster Recovery Plan' },
-                                                            { key: 'budget', label: 'DRM Budget Allocation' },
-                                                            { key: 'drm_mainstreaming', label: 'DRM Mainstreaming' },
-                                                        ].map(item => (
-                                                            <ScoreSlider key={item.key} label={item.label}
-                                                                value={(formData.kii_capacity_indicators as any)?.[item.key] || 3}
-                                                                onChange={v => updateNested(`kii_capacity_indicators.${item.key}`, v)} />
-                                                        ))}
+
+                                                    <div className="flex items-center gap-2 pt-3 border-t border-slate-100">
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Add custom capacity indicator..."
+                                                            value={newCapacityName}
+                                                            onChange={e => setNewCapacityName(e.target.value)}
+                                                            onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleAddCapacity(newCapacityName))}
+                                                            className="flex-1 bg-[#f7f8fc] border-2 border-slate-200 rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-[#465FFF]"
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleAddCapacity(newCapacityName)}
+                                                            className="px-4 py-2 bg-[#465FFF] text-white rounded-xl text-xs font-black flex items-center gap-1.5 cursor-pointer shadow-sm hover:bg-[#364ecc]"
+                                                        >
+                                                            <Plus size={14} /> Add Indicator
+                                                        </button>
                                                     </div>
                                                 </div>
                                             </motion.div>
@@ -610,27 +978,47 @@ export const WoredaAssessmentForm: React.FC<{
                                         {subStep === 'kii_infrastructure' && (
                                             <motion.div key="kii_infrastructure" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
                                                 <div className="bg-white rounded-[1.5rem] p-6 border-2 border-amber-100 shadow-sm space-y-4">
-                                                    <div className="flex items-center gap-2.5 mb-1">
-                                                        <div className="w-7 h-7 rounded-xl bg-amber-500 flex items-center justify-center">
-                                                            <Zap size={13} className="text-white" />
-                                                        </div>
-                                                        <div>
-                                                            <h4 className="text-[10px] font-black text-amber-700 uppercase tracking-widest">Infrastructure Exposure (E_infra — 30% of E)</h4>
-                                                            <p className="text-[9px] text-slate-400 font-medium">Score vulnerability/exposure of critical infrastructure. Higher = more exposed.</p>
+                                                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                                                        <div className="flex items-center gap-2.5">
+                                                            <div className="w-7 h-7 rounded-xl bg-amber-500 flex items-center justify-center">
+                                                                <Zap size={13} className="text-white" />
+                                                            </div>
+                                                            <div>
+                                                                <h4 className="text-[10px] font-black text-amber-700 uppercase tracking-widest">Infrastructure Exposure Indicators</h4>
+                                                                <p className="text-[9px] text-slate-400 font-medium">Add, edit, score, or remove critical infrastructure exposure metrics</p>
+                                                            </div>
                                                         </div>
                                                     </div>
+
                                                     <div className="space-y-2">
-                                                        {[
-                                                            { key: 'health', label: 'Health Facilities Exposure' },
-                                                            { key: 'water', label: 'Water Supply Exposure' },
-                                                            { key: 'energy', label: 'Energy & Utilities Exposure' },
-                                                            { key: 'emergency', label: 'Emergency Services Exposure' },
-                                                            { key: 'communications', label: 'Communications Infrastructure Exposure' },
-                                                        ].map(item => (
-                                                            <ScoreSlider key={item.key} label={item.label}
-                                                                value={(formData.kii_infrastructure_exposure as any)?.[item.key] || 3}
-                                                                onChange={v => updateNested(`kii_infrastructure_exposure.${item.key}`, v)} />
+                                                        {Object.entries(formData.kii_infrastructure_exposure || {}).map(([key, value]) => (
+                                                            <ScoreSlider
+                                                                key={key}
+                                                                label={formatKeyToLabel(key)}
+                                                                value={value as number}
+                                                                onChange={v => updateNested(`kii_infrastructure_exposure.${key}`, v)}
+                                                                onDelete={() => handleRemoveInfra(key)}
+                                                                onRename={newLabel => handleRenameInfra(key, newLabel)}
+                                                            />
                                                         ))}
+                                                    </div>
+
+                                                    <div className="flex items-center gap-2 pt-3 border-t border-slate-100">
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Add custom infrastructure indicator..."
+                                                            value={newInfraName}
+                                                            onChange={e => setNewInfraName(e.target.value)}
+                                                            onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleAddInfra(newInfraName))}
+                                                            className="flex-1 bg-[#f7f8fc] border-2 border-slate-200 rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-amber-500"
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleAddInfra(newInfraName)}
+                                                            className="px-4 py-2 bg-amber-500 text-white rounded-xl text-xs font-black flex items-center gap-1.5 cursor-pointer shadow-sm hover:bg-amber-600"
+                                                        >
+                                                            <Plus size={14} /> Add Infrastructure Metric
+                                                        </button>
                                                     </div>
                                                 </div>
                                             </motion.div>
@@ -640,26 +1028,47 @@ export const WoredaAssessmentForm: React.FC<{
                                         {subStep === 'kii_environment' && (
                                             <motion.div key="kii_environment" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
                                                 <div className="bg-white rounded-[1.5rem] p-6 border-2 border-emerald-100 shadow-sm space-y-4">
-                                                    <div className="flex items-center gap-2.5 mb-1">
-                                                        <div className="w-7 h-7 rounded-xl bg-emerald-500 flex items-center justify-center">
-                                                            <Leaf size={13} className="text-white" />
-                                                        </div>
-                                                        <div>
-                                                            <h4 className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">Environmental Vulnerability (V_env — 15% of V)</h4>
-                                                            <p className="text-[9px] text-slate-400 font-medium">Score vulnerability of each environmental factor. Higher = more vulnerable.</p>
+                                                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                                                        <div className="flex items-center gap-2.5">
+                                                            <div className="w-7 h-7 rounded-xl bg-emerald-500 flex items-center justify-center">
+                                                                <Leaf size={13} className="text-white" />
+                                                            </div>
+                                                            <div>
+                                                                <h4 className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">Environmental Vulnerability Indicators</h4>
+                                                                <p className="text-[9px] text-slate-400 font-medium">Add, edit, score, or remove environmental vulnerability metrics</p>
+                                                            </div>
                                                         </div>
                                                     </div>
+
                                                     <div className="space-y-2">
-                                                        {[
-                                                            { key: 'drainage', label: 'Drainage System Condition' },
-                                                            { key: 'green_cover', label: 'Green Cover / Urban Forests' },
-                                                            { key: 'waste_mgmt', label: 'Waste Management' },
-                                                            { key: 'pollution', label: 'Pollution Levels' },
-                                                        ].map(item => (
-                                                            <ScoreSlider key={item.key} label={item.label}
-                                                                value={(formData.kii_environmental_indicators as any)?.[item.key] || 3}
-                                                                onChange={v => updateNested(`kii_environmental_indicators.${item.key}`, v)} />
+                                                        {Object.entries(formData.kii_environmental_indicators || {}).map(([key, value]) => (
+                                                            <ScoreSlider
+                                                                key={key}
+                                                                label={formatKeyToLabel(key)}
+                                                                value={value as number}
+                                                                onChange={v => updateNested(`kii_environmental_indicators.${key}`, v)}
+                                                                onDelete={() => handleRemoveEnv(key)}
+                                                                onRename={newLabel => handleRenameEnv(key, newLabel)}
+                                                            />
                                                         ))}
+                                                    </div>
+
+                                                    <div className="flex items-center gap-2 pt-3 border-t border-slate-100">
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Add custom environmental indicator..."
+                                                            value={newEnvName}
+                                                            onChange={e => setNewEnvName(e.target.value)}
+                                                            onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleAddEnv(newEnvName))}
+                                                            className="flex-1 bg-[#f7f8fc] border-2 border-slate-200 rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-emerald-500"
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleAddEnv(newEnvName)}
+                                                            className="px-4 py-2 bg-emerald-500 text-white rounded-xl text-xs font-black flex items-center gap-1.5 cursor-pointer shadow-sm hover:bg-emerald-600"
+                                                        >
+                                                            <Plus size={14} /> Add Environmental Metric
+                                                        </button>
                                                     </div>
                                                 </div>
                                             </motion.div>

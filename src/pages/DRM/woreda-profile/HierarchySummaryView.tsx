@@ -20,8 +20,8 @@ export const HierarchySummaryView: React.FC<{ profile: WProfile }> = ({ profile 
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {[
-                    { label: 'Aggregation Level', value: (summary.aggregation_level || 'household').toUpperCase(), icon: Layers, color: 'text-brand-600', bg: 'bg-brand-50' },
-                    { label: 'Source Items', value: summary.source_profiles, icon: Database, color: 'text-accent-600', bg: 'bg-accent-50' },
+                    { label: 'Aggregation Level', value: (summary.aggregation_level || 'household').toUpperCase(), icon: Layers, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+                    { label: 'Source Items', value: summary.source_profiles, icon: Database, color: 'text-violet-600', bg: 'bg-violet-50' },
                     { label: 'Hierarchy Rank', value: `#${summary.rank_in_parent || '—'}`, icon: Sparkles, color: 'text-amber-600', bg: 'bg-amber-50' },
                     { label: 'Risk Percentile', value: 'Top 15%', icon: Activity, color: 'text-rose-600', bg: 'bg-rose-50' }
                 ].map((item, i) => (
@@ -39,10 +39,10 @@ export const HierarchySummaryView: React.FC<{ profile: WProfile }> = ({ profile 
             </div>
 
             <div className="bg-slate-950 rounded-[2.5rem] p-8 text-white relative overflow-hidden">
-                <div className="absolute inset-0 opacity-20 pointer-events-none bg-[radial-gradient(circle_at_top_right,_rgba(20,63,132,0.4),_transparent_40%)]" />
+                <div className="absolute inset-0 opacity-20 pointer-events-none bg-[radial-gradient(circle_at_top_right,_rgba(99,102,241,0.4),_transparent_40%)]" />
 
                 <h3 className="text-xl font-black mb-8 flex items-center gap-3">
-                    <Calculator className="text-brand-400" />
+                    <Calculator className="text-indigo-400" />
                     Risk Index Disclosure
                 </h3>
 
@@ -74,7 +74,7 @@ export const HierarchySummaryView: React.FC<{ profile: WProfile }> = ({ profile 
 
                     <div className="space-y-6">
                         {[
-                            { label: 'Vulnerability Index (V)', value: summary.vulnerability_score || 0, formula: 'Weighted average of social & physical indicators', desc: 'Aggregates household wall material, income levels, and presence of vulnerable groups.', color: 'from-brand-500 to-accent-500' },
+                            { label: 'Vulnerability Index (V)', value: summary.vulnerability_score || 0, formula: 'Weighted average of social & physical indicators', desc: 'Aggregates household wall material, income levels, and presence of vulnerable groups.', color: 'from-indigo-500 to-violet-500' },
                             { label: 'Capacity Index (C)', value: summary.capacity_score || 0, formula: '1 - (Active Response Teams / Total Needed)', desc: 'Calculated as the inverse of available mitigation resources at the aggregated level.', color: 'from-emerald-500 to-teal-500' }
                         ].map((metric, i) => (
                             <div key={i} className="group">
@@ -100,7 +100,7 @@ export const HierarchySummaryView: React.FC<{ profile: WProfile }> = ({ profile 
 
                 <div className="mt-10 pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-6">
                     <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 rounded-2xl bg-brand-500/20 flex items-center justify-center text-brand-400 border border-brand-500/30">
+                        <div className="w-16 h-16 rounded-2xl bg-indigo-500/20 flex items-center justify-center text-indigo-400 border border-indigo-500/30">
                             <TrendingUp size={32} />
                         </div>
                         <div>
@@ -109,7 +109,7 @@ export const HierarchySummaryView: React.FC<{ profile: WProfile }> = ({ profile 
                         </div>
                     </div>
                     <div className="bg-white/5 rounded-2xl px-6 py-4 border border-white/10 max-w-sm">
-                        <p className="text-[10px] font-black text-brand-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                        <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-2 flex items-center gap-2">
                             <Info size={12} /> Aggregation Logic
                         </p>
                         <p className="text-xs text-slate-300 font-medium">This score rolls up from {summary.source_profiles} individual {summary.aggregation_level === 'block' ? 'households' : 'areas'}. Rank compared against all other units at the same level in the hierarchy.</p>
