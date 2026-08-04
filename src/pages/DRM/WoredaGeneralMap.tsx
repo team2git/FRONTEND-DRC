@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { ArrowLeft, Map as MapIcon, Loader2, Activity, Layers, Crosshair, Navigation, Globe, Compass } from 'lucide-react';
+import { ArrowLeft, Map as MapIcon, Loader2, Activity, Globe } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { getWoredaProfiles, type WoredaProfile as WProfile } from '../../api/woredaProfileService';
 import {
@@ -37,7 +37,6 @@ export default function WoredaGeneralMap() {
     const [selectedMetric, setSelectedMetric] = useState<'risk' | 'hazard' | 'exposure' | 'vulnerability' | 'capacity' | 'subcity_color'>('risk');
     const [mouseCoords, setMouseCoords] = useState<{ lat: number; lng: number } | null>(null);
     const [selectedSubcity, setSelectedSubcity] = useState<string | null>(null);
-    const [searchQuery, setSearchQuery] = useState<string>('');
 
     // Fetch profiles on mount
     useEffect(() => {
@@ -87,21 +86,6 @@ export default function WoredaGeneralMap() {
         });
         return map;
     }, [profiles]);
-
-    // Overall stats summary
-    const cityStats = useMemo(() => {
-        const names = Object.keys(subcityRiskMap);
-        if (names.length === 0) return { assessed: 11, avgRisk: 5.2, highRisk: 3, totalPop: 3600000 };
-        const totalRisk = names.reduce((sum, n) => sum + subcityRiskMap[n].risk, 0);
-        const highRisk = names.filter(n => subcityRiskMap[n].risk >= 7).length;
-        const totalPop = names.reduce((sum, n) => sum + subcityRiskMap[n].population, 0);
-        return {
-            assessed: names.length,
-            avgRisk: totalRisk / names.length,
-            highRisk,
-            totalPop
-        };
-    }, [subcityRiskMap]);
 
     // Initialize Leaflet Map
     useEffect(() => {
@@ -294,40 +278,32 @@ export default function WoredaGeneralMap() {
         tileLayersRef.current[tileLayerType].addTo(mapRef.current);
     }, [tileLayerType]);
 
-    // Filtered subcities list for drawer
-    const filteredSubcityList = useMemo(() => {
-        const query = searchQuery.trim().toLowerCase();
-        return Object.keys(SUBCITY_PALETTE).filter(name =>
-            name.toLowerCase().includes(query)
-        );
-    }, [searchQuery]);
-
     return (
-        <div className="h-screen w-screen flex flex-col bg-slate-950 font-outfit text-slate-100 overflow-hidden relative">
-            {/* Header bar */}
-            <header className="bg-slate-900/95 backdrop-blur-xl px-6 py-3.5 flex items-center justify-between border-b border-white/10 z-30 shadow-lg">
+        <div className="h-screen w-screen flex flex-col bg-slate-950 font-outfit text-slate-900 overflow-hidden relative">
+            {/* Clean White Header Bar */}
+            <header className="bg-white border-b border-slate-200 shadow-sm px-6 py-3 flex items-center justify-between z-30 flex-wrap gap-3">
                 <div className="flex items-center gap-4">
                     <button
                         onClick={() => navigate('/woreda-profile')}
-                        className="flex items-center gap-2 text-indigo-400 hover:text-white font-black text-[10px] uppercase tracking-wider transition-all cursor-pointer bg-white/5 hover:bg-white/10 border border-white/10 px-4 py-2 rounded-xl shadow-xs"
+                        className="flex items-center gap-2 text-slate-700 hover:text-[#172358] font-black text-[11px] uppercase tracking-wider transition-all cursor-pointer bg-slate-100 hover:bg-slate-200 border border-slate-200 px-3.5 py-2 rounded-xl shadow-xs"
                     >
                         <ArrowLeft size={14} /> Back to Dashboard
                     </button>
                     <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-2xl bg-indigo-500/20 flex items-center justify-center text-indigo-400 border border-indigo-500/30 shadow-sm">
+                        <div className="w-9 h-9 rounded-2xl bg-[#172358]/10 flex items-center justify-center text-[#172358] border border-[#172358]/20 shadow-sm">
                             <MapIcon size={18} />
                         </div>
                         <div>
-                            <h2 className="text-sm font-black tracking-tight text-white leading-tight">Addis Ababa Full City Geographic & DRM Map</h2>
-                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Sub-City Boundary & Coordinate Analysis</p>
+                            <h2 className="text-sm font-black tracking-tight text-slate-900 leading-tight">Addis Ababa General Map</h2>
+                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Full Sub-City Boundary & Coordinates View</p>
                         </div>
                     </div>
                 </div>
 
-                {/* Controls & Metric Selectors */}
-                <div className="flex items-center gap-3">
+                {/* Clear Controls & Metric Selectors in Header */}
+                <div className="flex items-center gap-3 flex-wrap">
                     {/* Layer Metric Selector */}
-                    <div className="flex items-center gap-1.5 bg-slate-800/80 p-1 rounded-xl border border-white/10">
+                    <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
                         {[
                             { id: 'subcity_color', label: 'Full City Colors 🎨' },
                             { id: 'risk', label: 'DRM Risk Score 🛡️' },
@@ -337,10 +313,10 @@ export default function WoredaGeneralMap() {
                             <button
                                 key={m.id}
                                 onClick={() => setSelectedMetric(m.id as any)}
-                                className={`px-2.5 py-1.5 rounded-lg text-[10px] font-black transition-all cursor-pointer ${
+                                className={`px-3 py-1.5 rounded-lg text-[11px] font-black transition-all cursor-pointer ${
                                     selectedMetric === m.id
-                                        ? 'bg-indigo-600 text-white shadow-sm'
-                                        : 'text-slate-400 hover:text-white hover:bg-white/5'
+                                        ? 'bg-[#172358] text-white shadow-xs'
+                                        : 'text-slate-600 hover:text-slate-900 hover:bg-white'
                                 }`}
                             >
                                 {m.label}
@@ -349,7 +325,7 @@ export default function WoredaGeneralMap() {
                     </div>
 
                     {/* Tile Layer Selector */}
-                    <div className="flex items-center gap-1 bg-slate-800/80 p-1 rounded-xl border border-white/10">
+                    <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
                         {[
                             { id: 'light', label: 'Light' },
                             { id: 'streets', label: 'Streets' },
@@ -359,10 +335,10 @@ export default function WoredaGeneralMap() {
                             <button
                                 key={t.id}
                                 onClick={() => setTileLayerType(t.id as any)}
-                                className={`px-2.5 py-1.5 rounded-lg text-[10px] font-black transition-all cursor-pointer ${
+                                className={`px-3 py-1.5 rounded-lg text-[11px] font-black transition-all cursor-pointer ${
                                     tileLayerType === t.id
-                                        ? 'bg-[#172358] text-white shadow-sm'
-                                        : 'text-slate-400 hover:text-white hover:bg-white/5'
+                                        ? 'bg-indigo-600 text-white shadow-xs'
+                                        : 'text-slate-600 hover:text-slate-900 hover:bg-white'
                                 }`}
                             >
                                 {t.label}
@@ -372,7 +348,7 @@ export default function WoredaGeneralMap() {
                 </div>
             </header>
 
-            {/* Map Canvas (FULL SCREEN - NO FOOTER) */}
+            {/* Map Canvas (FULL SCREEN - NO FOOTER & NO SUB-CITIES CARD) */}
             <div className="flex-1 relative w-full h-[calc(100vh-60px)]">
                 {loading && (
                     <div className="absolute inset-0 z-[500] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center">
@@ -399,70 +375,6 @@ export default function WoredaGeneralMap() {
                         ) : (
                             <span className="text-slate-400 italic">Hover map for live coordinates</span>
                         )}
-                    </div>
-                </div>
-
-                {/* Floating Left Subcity Coordinate Drawer */}
-                <div className="absolute top-4 left-4 z-[1000] bg-slate-900/90 backdrop-blur-xl p-4 rounded-3xl border border-white/15 shadow-2xl w-72 space-y-3 max-h-[calc(100vh-100px)] flex flex-col">
-                    <div className="flex items-center justify-between">
-                        <h3 className="text-xs font-black uppercase tracking-wider text-white flex items-center gap-2">
-                            <Compass size={14} className="text-indigo-400" />
-                            <span>Addis Ababa Sub-Cities</span>
-                        </h3>
-                        <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                            11 Regions
-                        </span>
-                    </div>
-
-                    <input
-                        type="text"
-                        placeholder="Search Sub-City..."
-                        value={searchQuery}
-                        onChange={e => setSearchQuery(e.target.value)}
-                        className="w-full bg-slate-950/80 border border-white/10 rounded-xl px-3 py-2 text-xs font-bold text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
-                    />
-
-                    <div className="flex-1 overflow-y-auto space-y-1.5 pr-1 no-scrollbar">
-                        {filteredSubcityList.map(name => {
-                            const info = SUBCITY_PALETTE[name];
-                            const data = subcityRiskMap[name];
-                            const riskScore = data ? data.risk : 5.2;
-                            const riskLvl = getRiskLevel(riskScore);
-                            const isSelected = selectedSubcity === name;
-
-                            return (
-                                <button
-                                    key={name}
-                                    onClick={() => {
-                                        setSelectedSubcity(name);
-                                        if (mapRef.current && info) {
-                                            mapRef.current.flyTo(info.center, 13, { duration: 1.2 });
-                                        }
-                                    }}
-                                    className={`w-full p-2.5 rounded-2xl border text-left transition-all cursor-pointer flex items-center justify-between ${
-                                        isSelected
-                                            ? 'bg-indigo-950/90 border-indigo-500 text-white shadow-lg'
-                                            : 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10 hover:border-white/20'
-                                    }`}
-                                >
-                                    <div className="flex items-center gap-2.5 min-w-0">
-                                        <div
-                                            className="w-3.5 h-3.5 rounded-full flex-shrink-0 shadow-sm"
-                                            style={{ backgroundColor: info?.color || '#3b82f6' }}
-                                        />
-                                        <div className="min-w-0">
-                                            <p className="text-xs font-black text-white leading-tight truncate">{name}</p>
-                                            <p className="text-[8px] font-mono text-slate-400 mt-0.5">
-                                                {info?.center[0].toFixed(3)}°N, {info?.center[1].toFixed(3)}°E
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase text-white ${riskLvl.bgClass}`}>
-                                        {riskScore.toFixed(1)}
-                                    </span>
-                                </button>
-                            );
-                        })}
                     </div>
                 </div>
 

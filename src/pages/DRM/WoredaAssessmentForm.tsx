@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     MapPin, AlertTriangle, ChevronLeft, ChevronRight, Loader2,
-    ShieldCheck, Shield, Leaf, Activity, MessageSquare, X,
+    ShieldCheck, Shield, Leaf, MessageSquare, X,
     CheckCircle2, Sparkles, BarChart3, Zap, Plus, Trash2, RotateCcw,
     Pencil, Check
 } from 'lucide-react';
@@ -268,7 +268,7 @@ export const WoredaAssessmentForm: React.FC<{
     const handleAddHazard = (name: string) => {
         const trimmed = name.trim();
         if (!trimmed) return;
-        if (formData.hazards?.some(h => h.hazard_name.toLowerCase() === trimmed.toLowerCase())) {
+        if (formData.hazards?.some(h => (h.hazard_name || '').toLowerCase() === trimmed.toLowerCase())) {
             toast.info('Hazard already exists in table');
             return;
         }
@@ -304,7 +304,7 @@ export const WoredaAssessmentForm: React.FC<{
 
     const handleRemoveCapacity = (key: string) => {
         setFormData(prev => {
-            const next = { ...(prev.kii_capacity_indicators || {}) };
+            const next: Record<string, any> = { ...(prev.kii_capacity_indicators || {}) };
             delete next[key];
             return { ...prev, kii_capacity_indicators: next };
         });
@@ -326,7 +326,7 @@ export const WoredaAssessmentForm: React.FC<{
 
     const handleRemoveInfra = (key: string) => {
         setFormData(prev => {
-            const next = { ...(prev.kii_infrastructure_exposure || {}) };
+            const next: Record<string, any> = { ...(prev.kii_infrastructure_exposure || {}) };
             delete next[key];
             return { ...prev, kii_infrastructure_exposure: next };
         });
@@ -346,6 +346,14 @@ export const WoredaAssessmentForm: React.FC<{
         setNewEnvName('');
     };
 
+    const handleRemoveEnv = (key: string) => {
+        setFormData(prev => {
+            const next: Record<string, any> = { ...(prev.kii_environmental_indicators || {}) };
+            delete next[key];
+            return { ...prev, kii_environmental_indicators: next };
+        });
+    };
+
     const [editingHazardIdx, setEditingHazardIdx] = useState<number | null>(null);
     const [editingHazardName, setEditingHazardName] = useState('');
 
@@ -354,7 +362,7 @@ export const WoredaAssessmentForm: React.FC<{
         if (!trimmed) return;
         const newKey = trimmed.toLowerCase().replace(/\s+/g, '_');
         setFormData(prev => {
-            const next = { ...(prev.kii_capacity_indicators || {}) };
+            const next: Record<string, any> = { ...(prev.kii_capacity_indicators || {}) };
             const val = next[oldKey] ?? 3;
             delete next[oldKey];
             next[newKey] = val;
@@ -367,7 +375,7 @@ export const WoredaAssessmentForm: React.FC<{
         if (!trimmed) return;
         const newKey = trimmed.toLowerCase().replace(/\s+/g, '_');
         setFormData(prev => {
-            const next = { ...(prev.kii_infrastructure_exposure || {}) };
+            const next: Record<string, any> = { ...(prev.kii_infrastructure_exposure || {}) };
             const val = next[oldKey] ?? 3;
             delete next[oldKey];
             next[newKey] = val;
@@ -380,7 +388,7 @@ export const WoredaAssessmentForm: React.FC<{
         if (!trimmed) return;
         const newKey = trimmed.toLowerCase().replace(/\s+/g, '_');
         setFormData(prev => {
-            const next = { ...(prev.kii_environmental_indicators || {}) };
+            const next: Record<string, any> = { ...(prev.kii_environmental_indicators || {}) };
             const val = next[oldKey] ?? 3;
             delete next[oldKey];
             next[newKey] = val;
@@ -696,7 +704,7 @@ export const WoredaAssessmentForm: React.FC<{
                                                                 className="bg-[#f7f8fc] border-2 border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 outline-none cursor-pointer focus:border-[#465FFF]"
                                                             >
                                                                 <option value="">+ Add Hazard to Assessment...</option>
-                                                                {HAZARD_TYPES.filter(h => !formData.hazards?.some(existing => existing.hazard_name.toLowerCase() === h.toLowerCase())).map(h => (
+                                                                {HAZARD_TYPES.filter(h => !formData.hazards?.some(existing => (existing.hazard_name || '').toLowerCase() === h.toLowerCase())).map(h => (
                                                                     <option key={h} value={h}>{h}</option>
                                                                 ))}
                                                                 <option value="CUSTOM">+ Add Custom Hazard Name...</option>
@@ -837,7 +845,7 @@ export const WoredaAssessmentForm: React.FC<{
                                                                                             type="button"
                                                                                             onClick={() => {
                                                                                                 setEditingHazardIdx(idx);
-                                                                                                setEditingHazardName(hazard.hazard_name);
+                                                                                                setEditingHazardName(hazard.hazard_name || '');
                                                                                             }}
                                                                                             className="p-1 rounded text-slate-300 hover:text-[#465FFF] hover:bg-indigo-50 opacity-0 group-hover/hName:opacity-100 transition-all cursor-pointer"
                                                                                             title="Edit Hazard Name"
@@ -867,7 +875,7 @@ export const WoredaAssessmentForm: React.FC<{
                                                                                         type="button"
                                                                                         onClick={() => {
                                                                                             setEditingHazardIdx(idx);
-                                                                                            setEditingHazardName(hazard.hazard_name);
+                                                                                            setEditingHazardName(hazard.hazard_name || '');
                                                                                         }}
                                                                                         className="p-1.5 rounded-xl text-slate-400 hover:text-[#465FFF] hover:bg-indigo-50 transition-all cursor-pointer"
                                                                                         title="Edit Hazard Name"

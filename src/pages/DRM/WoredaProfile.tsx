@@ -4,15 +4,15 @@ import PageMeta from '../../components/common/PageMeta';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
 import {
-    MapPin, Users, Plus, Search, RefreshCw, ChevronRight, ChevronLeft,
-    BarChart3, FileText, Clock, Edit3, Eye, Upload,
+    MapPin, Users, Plus, Search, RefreshCw, ChevronRight,
+    FileText, Clock, Edit3, Eye, Upload,
     AlertTriangle, ArrowRightLeft, Map as MapIcon, Activity,
-    Filter, ArrowUpDown, X, ShieldAlert, Sparkles, Download,
-    SlidersHorizontal, PieChart, Building2, ShieldCheck, ChevronDown, ChevronUp
+    Filter, ArrowUpDown, X, ShieldAlert, Sparkles,
+    SlidersHorizontal, PieChart, Building2, ShieldCheck, ChevronDown
 } from 'lucide-react';
 import {
     getWoredaProfiles, getWoredaProfileStats,
-    updateWoredaProfile, importWoredaProfile, bulkImportProfiles,
+    importWoredaProfile, bulkImportProfiles,
     syncFromInterview,
     createHouseholdProfile, updateHouseholdProfile, deleteHouseholdProfile,
     deleteWoredaAssessment,
@@ -25,7 +25,6 @@ import { Can } from '../../components/auth/PermissionGuard';
 
 // Modular components and constants
 import {
-    STATUS_CONFIG,
     getProfileTitle,
     getProfileSubtitle
 } from './woreda-profile/constants';
@@ -60,8 +59,6 @@ const WoredaProfile: React.FC = () => {
     const [riskFilter, setRiskFilter] = useState<'ALL' | 'HIGH' | 'MODERATE' | 'LOW'>('ALL');
     const [subcityFilter, setSubcityFilter] = useState<string>('ALL');
     const [sortBy, setSortBy] = useState<'risk_desc' | 'risk_asc' | 'pop_desc' | 'name_asc' | 'date_desc'>('risk_desc');
-    const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 10;
 
     const activeFilterCount = useMemo(() => {
         let count = 0;
@@ -169,27 +166,7 @@ const WoredaProfile: React.FC = () => {
         setSortBy('risk_desc');
     };
 
-    const handleExportReportCSV = () => {
-        const rows = filtered.map(p => {
-            const score = getRiskScore(p).toFixed(1);
-            const category = getRiskCategory(getRiskScore(p));
-            const pop = p.demographics?.total_population || p.household_profile?.demographics?.total_household_members || 0;
-            return `"${getProfileTitle(p)}","${p.location?.subcity || ''}","${p.location?.woreda || ''}","${score}","${category}","${pop}","${p.status || 'Draft'}"`;
-        });
-        const csvContent = 'Location,Subcity,Woreda,Risk Score,Risk Category,Population,Status\n' + rows.join('\n');
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.setAttribute('href', url);
-        link.setAttribute('download', `DRM_Executive_Risk_Report_${level}_${new Date().toISOString().slice(0, 10)}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        toast.success('Executive report CSV generated successfully');
-    };
 
-    const totalPages = Math.ceil(filtered.length / itemsPerPage);
-    const paginated = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
     const handleSave = async (input: WProfileInput) => {
         try {
@@ -240,15 +217,7 @@ const WoredaProfile: React.FC = () => {
         }
     };
 
-    const handleStatusChange = async (id: string, status: string) => {
-        try {
-            await updateWoredaProfile(id, { status } as any);
-            toast.success(`Status updated to ${status}`);
-            fetchData();
-        } catch {
-            toast.error('Failed to update status');
-        }
-    };
+
 
     const handleImport = async (file: File, type: 'woreda' | 'household', parsedData?: any[]) => {
         try {

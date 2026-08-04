@@ -2,10 +2,8 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { 
     Search, Filter, SlidersHorizontal, Download, RefreshCw, 
     ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown,
-    Plus, Check, X, Trash2, FileSpreadsheet, FileText, AlertCircle,
-    Building2, Layers
+    Plus, X, FileSpreadsheet, FileText, AlertCircle
 } from 'lucide-react';
-import { StatusBadge, StatusType } from './StatusBadge';
 import { RowActionMenu, ActionItem } from './RowActionMenu';
 
 export interface ColumnDef<T> {

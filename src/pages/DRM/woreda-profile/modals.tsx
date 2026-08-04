@@ -21,7 +21,6 @@ export const ImportModal: React.FC<{
     const [activeTab, setActiveTab] = useState<'woreda' | 'household'>('woreda');
     const [file, setFile] = useState<File | null>(null);
     const [parsedRows, setParsedRows] = useState<any[]>([]);
-    const [parsedHeaders, setParsedHeaders] = useState<string[]>([]);
     const [parseError, setParseError] = useState<string | null>(null);
     const [columnAnalysis, setColumnAnalysis] = useState<any | null>(null);
     const [dataAnalysis, setDataAnalysis] = useState<any | null>(null);
@@ -30,7 +29,6 @@ export const ImportModal: React.FC<{
     const handleFileSelect = (selectedFile: File | null) => {
         setFile(selectedFile);
         setParsedRows([]);
-        setParsedHeaders([]);
         setParseError(null);
         setColumnAnalysis(null);
         setDataAnalysis(null);
@@ -67,7 +65,6 @@ export const ImportModal: React.FC<{
                         // Spreadsheet Data Analysis
                         const analysis = analyzeSpreadsheetData(rows, activeTab);
 
-                        setParsedHeaders(headers);
                         setParsedRows(rows);
                         setColumnAnalysis(colCheck);
                         setDataAnalysis(analysis);

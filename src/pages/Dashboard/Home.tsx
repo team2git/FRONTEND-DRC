@@ -14,7 +14,7 @@ import Chart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
 import {
   Database, AlertTriangle, Map as MapIcon, RefreshCw,
-  User as UserIcon, Clock, Shield, BarChart3, Users, Building2, BookOpen
+  User as UserIcon, Shield, BarChart3, Users, Building2, BookOpen
 } from 'lucide-react';
 
 type TabKey = 'drm' | 'admin';

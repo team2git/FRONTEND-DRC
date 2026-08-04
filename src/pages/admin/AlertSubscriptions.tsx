@@ -8,7 +8,6 @@ import {
   CalenderIcon,
   CheckCircleIcon,
   ChatIcon,
-  EnvelopeIcon,
   PaperPlaneIcon,
   PlusIcon,
   TimeIcon,

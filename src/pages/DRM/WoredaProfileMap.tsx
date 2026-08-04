@@ -8,9 +8,9 @@ import {
     ArrowLeft, Search, Filter, Map as MapIcon,
     X, ChevronRight, RefreshCw, GitCompare,
     Printer, FileText, AlertTriangle, ShieldAlert,
-    ShieldCheck, Activity, BarChart2, CheckCircle2,
-    Building2, Flame, Droplets, Zap, Shield, Info,
-    FileSpreadsheet, AlertCircle
+    ShieldCheck, Activity,
+    Building2, Flame, Droplets, Zap,
+    AlertCircle
 } from 'lucide-react';
 import { getWoredaProfiles, type WoredaProfile } from '../../api/woredaProfileService';
 import { addisAbabaGeoData, RISK_LEVELS, getRiskColor, getRiskLevel, ADDIS_ABABA_CENTER } from './addisAbabaGeoData';
@@ -30,7 +30,7 @@ const SUBCITY_CENTERS: Record<string, [number, number]> = {
     'Lemi Kura': [8.965, 38.815]
 };
 
-const DEFAULT_WOREDAS: Record<string, string[]> = {};
+
 
 const DEFAULT_CENTER: [number, number] = [9.015, 38.755];
 const DEFAULT_ZOOM = 12;
@@ -138,7 +138,7 @@ export function getDominantHazard(profile: WoredaProfile): { name: string; score
             });
             const top = sorted[0];
             const score = (parseFloat((top.severity || '0').toString()) || 0) * (parseFloat((top.frequency || '0').toString()) || 0);
-            return { name: top.hazard_name, score };
+            return { name: top.hazard_name || 'Urban Flash Flood', score };
         }
     }
     return null;
@@ -347,13 +347,7 @@ export default function WoredaProfileMap() {
         return Array.from(new Set(dbWoredas)).sort();
     };
 
-    const registeredSubcities = useMemo(() => {
-        const set = new Set([
-            ...subcityProfiles.map(p => p.location.subcity),
-            ...woredaProfiles.map(p => p.location.subcity)
-        ].filter(Boolean));
-        return Array.from(set).sort();
-    }, [subcityProfiles, woredaProfiles]);
+
 
     const registeredHazardTypesMap = useMemo(() => {
         const map = new Map<string, typeof HAZARD_COLOR_MAP[string]>();
@@ -496,7 +490,7 @@ export default function WoredaProfileMap() {
                 let fillColor = '';
 
                 if (selectedLayer === 'hazard_index') {
-                    const dom = regionData ? getDominantHazard(regionData.profile) : { name: 'Flood', score: 5 };
+                    const dom = (regionData ? getDominantHazard(regionData.profile) : null) || { name: 'Flood', score: 5 };
                     if (selectedHazardFilter !== 'ALL') {
                         const matchesFilter = regionData?.profile?.hazards?.some(
                             (h: any) => h.hazard_name?.toLowerCase() === selectedHazardFilter.toLowerCase()
@@ -525,7 +519,7 @@ export default function WoredaProfileMap() {
 
                 let fillOpacity = isSelected ? 0.92 : 0.80;
                 if (selectedLayer === 'hazard_index') {
-                    const dom = regionData ? getDominantHazard(regionData.profile) : { name: 'Flood', score: 5 };
+                    const dom = (regionData ? getDominantHazard(regionData.profile) : null) || { name: 'Flood', score: 5 };
                     if (isDimmed) {
                         fillOpacity = 0.15;
                     } else if (dom.score >= 8.0) {
@@ -940,7 +934,9 @@ export default function WoredaProfileMap() {
                                             <div className="flex items-center gap-1.5">
                                                 <p className="text-xs font-black text-slate-900 truncate">{prop.fullName}</p>
                                                 {isAlertRegion && (
-                                                    <AlertTriangle size={12} className="text-rose-500 flex-shrink-0 animate-pulse" title="High Risk / Hazard Alert" />
+                                                    <span title="High Risk / Hazard Alert">
+                                                        <AlertTriangle size={12} className="text-rose-500 flex-shrink-0 animate-pulse" />
+                                                    </span>
                                                 )}
                                             </div>
                                             <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">{activeLayerConfig.format(r.value)} {activeLayerConfig.unit}</p>
@@ -1065,19 +1061,21 @@ export default function WoredaProfileMap() {
                                 const isHazardLayer = selectedLayer === 'hazard_index';
                                 if (isHazardLayer) {
                                     const dom = getDominantHazard(hoveredRegion.profile);
-                                    const hConfig = HAZARD_COLOR_MAP[dom.name] || HAZARD_COLOR_MAP['Flood'];
-                                    const lvl = getHazardLevelInfo(dom.score);
-                                    return (
-                                        <div className="flex items-center justify-between gap-2 mt-2 pt-2 border-t border-slate-100">
-                                            <div className="flex items-center gap-1.5">
-                                                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: hConfig.color }} />
-                                                <span className="text-[10px] font-black text-slate-800">{dom.name}</span>
+                                    if (dom) {
+                                        const hConfig = HAZARD_COLOR_MAP[dom.name] || HAZARD_COLOR_MAP['Flood'];
+                                        const lvl = getHazardLevelInfo(dom.score);
+                                        return (
+                                            <div className="flex items-center justify-between gap-2 mt-2 pt-2 border-t border-slate-100">
+                                                <div className="flex items-center gap-1.5">
+                                                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: hConfig.color }} />
+                                                    <span className="text-[10px] font-black text-slate-800">{dom.name}</span>
+                                                </div>
+                                                <span className={`text-[9px] font-black px-2 py-0.5 rounded-full text-white ${lvl.bg}`}>
+                                                    {lvl.label} Level ({dom.score.toFixed(1)})
+                                                </span>
                                             </div>
-                                            <span className={`text-[9px] font-black px-2 py-0.5 rounded-full text-white ${lvl.bg}`}>
-                                                {lvl.label} Level ({dom.score.toFixed(1)})
-                                            </span>
-                                        </div>
-                                    );
+                                        );
+                                    }
                                 }
                                 const isRiskLayer = ['risk_classification', 'exposure_index', 'vulnerability_index', 'capacity_index'].includes(selectedLayer);
                                 const riskVal = isRiskLayer ? hoveredRegion.value : (hoveredRegion.profile.risk_index?.overall_woreda_risk_score || hoveredRegion.profile.hierarchy_summary?.dr_risk_score || 0);
