@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { UseFormRegister, FieldErrors } from 'react-hook-form';
 import { MapPin, Upload, Cloud, Plus, Trash2 } from 'lucide-react';
 
@@ -291,16 +291,171 @@ export const GeoField: React.FC<FieldProps> = ({ field, register, setValue, watc
     );
 };
 
-export const FileField: React.FC<FieldProps> = ({ field, register }) => (
-    <div className="space-y-1">
-        <label className="block text-sm font-semibold text-gray-700">
-            {field.label} {field.required && <span className="text-red-500">*</span>}
-        </label>
-        <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-xl p-8 hover:bg-gray-50 hover:border-brand-400 cursor-pointer transition-all group">
-            <Upload className="text-gray-400 group-hover:text-brand-500 mb-2" size={32} />
-            <span className="text-sm text-gray-500 font-medium">Click or drag and drop to upload</span>
-            <span className="text-xs text-gray-400 mt-1">Maximum file size: 5MB</span>
-            <input type="file" className="hidden" {...register(field.questionCode, { required: field.required })} />
-        </label>
-    </div>
-);
+export const FileField: React.FC<FieldProps> = ({ field, register, setValue }) => {
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (!files || files.length === 0) return;
+        const file = files[0];
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const base64 = event.target?.result as string;
+            if (setValue) {
+                setValue(field.questionCode, {
+                    name: file.name,
+                    size: file.size,
+                    type: file.type,
+                    data: base64
+                });
+            }
+        };
+        reader.readAsDataURL(file);
+    };
+
+    return (
+        <div className="space-y-1">
+            <label className="block text-sm font-semibold text-gray-700">
+                {field.label} {field.required && <span className="text-red-500">*</span>}
+            </label>
+            <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-xl p-6 hover:bg-gray-50 hover:border-brand-400 cursor-pointer transition-all group">
+                <Upload className="text-gray-400 group-hover:text-brand-500 mb-2" size={28} />
+                <span className="text-sm text-gray-500 font-medium">Click or capture photo / attachment</span>
+                <input
+                    type="file"
+                    accept="image/*,application/pdf"
+                    onChange={handleFileChange}
+                    className="hidden"
+                />
+            </label>
+            <input type="hidden" {...register(field.questionCode, { required: field.required })} />
+        </div>
+    );
+};
+
+export const SignatureField: React.FC<FieldProps> = ({ field, register, setValue, watch }) => {
+    const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
+    const [isDrawing, setIsDrawing] = useState(false);
+    const value = watch?.(field.questionCode);
+
+    const startDrawing = (e: any) => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        setIsDrawing(true);
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        ctx.beginPath();
+        ctx.moveTo(clientX - rect.left, clientY - rect.top);
+    };
+
+    const draw = (e: any) => {
+        if (!isDrawing) return;
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = '#1e293b';
+        ctx.lineTo(clientX - rect.left, clientY - rect.top);
+        ctx.stroke();
+    };
+
+    const stopDrawing = () => {
+        if (!isDrawing) return;
+        setIsDrawing(false);
+        const canvas = canvasRef.current;
+        if (canvas && setValue) {
+            setValue(field.questionCode, canvas.toDataURL());
+        }
+    };
+
+    const clearCanvas = () => {
+        const canvas = canvasRef.current;
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+        if (setValue) setValue(field.questionCode, '');
+    };
+
+    return (
+        <div className="space-y-2">
+            <div className="flex justify-between items-center">
+                <label className="block text-sm font-semibold text-gray-700">
+                    {field.label} {field.required && <span className="text-red-500">*</span>}
+                </label>
+                {value && (
+                    <button type="button" onClick={clearCanvas} className="text-xs text-red-500 hover:underline">
+                        Clear
+                    </button>
+                )}
+            </div>
+            <div className="border-2 border-dashed border-gray-300 rounded-xl bg-white overflow-hidden">
+                <canvas
+                    ref={canvasRef}
+                    width={500}
+                    height={140}
+                    onMouseDown={startDrawing}
+                    onMouseMove={draw}
+                    onMouseUp={stopDrawing}
+                    onMouseLeave={stopDrawing}
+                    onTouchStart={startDrawing}
+                    onTouchMove={draw}
+                    onTouchEnd={stopDrawing}
+                    className="w-full h-36 touch-none cursor-crosshair"
+                />
+            </div>
+            <input type="hidden" {...register(field.questionCode, { required: field.required })} />
+        </div>
+    );
+};
+
+export const RatingField: React.FC<FieldProps> = ({ field, register, setValue, watch }) => {
+    const currentRating = Number(watch?.(field.questionCode) || 0);
+
+    return (
+        <div className="space-y-2">
+            <label className="block text-sm font-semibold text-gray-700">
+                {field.label} {field.required && <span className="text-red-500">*</span>}
+            </label>
+            <div className="flex items-center gap-1">
+                {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                        key={star}
+                        type="button"
+                        onClick={() => setValue?.(field.questionCode, star)}
+                        className={`text-2xl transition-transform hover:scale-110 ${currentRating >= star ? 'text-amber-400' : 'text-gray-300'}`}
+                    >
+                        ★
+                    </button>
+                ))}
+                <span className="ml-2 text-xs text-gray-500">({currentRating} / 5)</span>
+            </div>
+            <input type="hidden" {...register(field.questionCode, { required: field.required })} />
+        </div>
+    );
+};
+
+export const SwitchField: React.FC<FieldProps> = ({ field, register, setValue, watch }) => {
+    const isChecked = !!watch?.(field.questionCode);
+
+    return (
+        <div className="space-y-2">
+            <label className="flex items-center cursor-pointer gap-3">
+                <input
+                    type="checkbox"
+                    checked={isChecked}
+                    onChange={(e) => setValue?.(field.questionCode, e.target.checked)}
+                    className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600 relative"></div>
+                <span className="text-sm font-semibold text-gray-700">{field.label}</span>
+            </label>
+            <input type="hidden" {...register(field.questionCode, { required: field.required })} />
+        </div>
+    );
+};

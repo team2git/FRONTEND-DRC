@@ -1,7 +1,8 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import {
-    TextField, TextareaField, RadioField, CheckboxField, SelectField, MatrixField, TableField, GeoField, FileField
+    TextField, TextareaField, RadioField, CheckboxField, SelectField, MatrixField, TableField, GeoField, FileField,
+    SignatureField, RatingField, SwitchField
 } from './FieldComponents';
 import { ChevronLeft, ChevronRight, Save, CheckCircle2, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -176,6 +177,13 @@ const FormRenderer: React.FC<FormRendererProps> = ({
                                                                 return <GeoField {...commonProps} />;
                                                             case 'file':
                                                                 return <FileField {...commonProps} />;
+                                                            case 'signature':
+                                                                return <SignatureField {...commonProps} />;
+                                                            case 'rating':
+                                                                return <RatingField {...commonProps} />;
+                                                            case 'switch':
+                                                            case 'boolean':
+                                                                return <SwitchField {...commonProps} />;
                                                             case 'header':
                                                             case 'section_header':
                                                                 return (

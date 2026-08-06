@@ -84,8 +84,17 @@ const navItems: NavItem[] = [
   {
     icon: <DocsIcon />,
     name: "Site Survey",
-    path: "/survey-library",
-    permission: "template_view",
+    subItems: [
+      {
+        name: "Offline Site Survey",
+        path: "/site-survey",
+      },
+      {
+        name: "Survey Templates",
+        path: "/survey-library",
+        permission: "template_view",
+      }
+    ]
   },
   {
     icon: <MapNavIcon />,

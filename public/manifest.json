@@ -1,0 +1,16 @@
+{
+  "short_name": "FDRMS Survey",
+  "name": "FDRMS Offline Site Survey & Inspection",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ],
+  "start_url": "/site-survey",
+  "background_color": "#0f172a",
+  "theme_color": "#1e40af",
+  "display": "standalone",
+  "orientation": "portrait"
+}

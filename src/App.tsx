@@ -31,6 +31,7 @@ import ConcernReports from "./pages/admin/ConcernReports";
 // Template Engine
 import TemplateLibrary from "./components/TemplateEngine/TemplateLibrary/TemplateLibrary";
 import FormBuilder from "./components/TemplateEngine/FormBuilder/FormBuilder";
+import { SiteSurveyModule } from "./pages/survey/SiteSurveyModule";
 
 import DisasterRiskAssessment from "./pages/DRM/DisasterRiskAssessment";
 import DisasterRiskDatabase from "./pages/DRM/DisasterRiskDatabase";
@@ -110,6 +111,7 @@ export default function App() {
                   <Route path="/analytics" element={<Analytics />} />
 
                   {/* Template Engine & Survey Routes */}
+                  <Route path="/site-survey" element={<SiteSurveyModule />} />
                   <Route path="/survey-library" element={<PermissionRoute resource="template" action="view" element={<TemplateLibrary mode="published_only" />} />} />
                  <Route path="/admin/template-library" element={<TemplateLibrary />} />
                   <Route path="/admin/form-builder" element={<FormBuilder />} />
