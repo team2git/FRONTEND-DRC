@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
-    MapPin, Users, CheckCircle, CheckCircle2, ChevronLeft, ChevronRight,
-    Loader2, ShieldCheck, Info, FileText, Building, Shield, Heart,
-    Sparkles, X, Navigation, RefreshCw, AlertTriangle, AlertCircle
+    MapPin, Users, CheckCircle2, ChevronLeft, ChevronRight,
+    Loader2, ShieldCheck, FileText, Building, Shield, Heart,
+    Sparkles, X, Navigation, RefreshCw, AlertCircle
 } from 'lucide-react';
 import {
     type WoredaProfile as WProfile,

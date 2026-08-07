@@ -6,6 +6,7 @@ export interface AdminLocation {
     kebele?: string;
     block?: string;
     house_no?: string;
+    coordinates?: [number, number];
 }
 
 export interface HouseholdIdentityLocation {
