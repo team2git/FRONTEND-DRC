@@ -68,6 +68,7 @@ import BasicTables from "./pages/Tables/BasicTables";
 import FormElements from "./pages/Forms/FormElements";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
+import UserProfiles from "./pages/UserProfiles";
 import Home from "./pages/Dashboard/Home";
 import LandingPage from "./pages/portal";
 import { ToastContainer } from 'react-toastify';
@@ -97,6 +98,7 @@ export default function App() {
                 {/* Dashboard Layout Routes */}
                 <Route element={<AppLayout />}>
                   <Route path="/dashboard" element={<Home />} />
+                  <Route path="/profile" element={<UserProfiles />} />
                   <Route path="/woreda-profile" element={<PermissionRoute resource="woredaprofile" action="view" element={<WoredaProfile />} />} />
                   <Route path="/woreda-profile/:section" element={<PermissionRoute resource="woredaprofile" action="view" element={<WoredaProfile />} />} />
 
@@ -111,9 +113,9 @@ export default function App() {
                   <Route path="/analytics" element={<Analytics />} />
 
                   {/* Template Engine & Survey Routes */}
-                  <Route path="/site-survey" element={<SiteSurveyModule />} />
+                  <Route path="/site-survey" element={<PermissionRoute resource="sitesurvey" action="view" element={<SiteSurveyModule />} />} />
                   <Route path="/survey-library" element={<PermissionRoute resource="template" action="view" element={<TemplateLibrary mode="published_only" />} />} />
-                 <Route path="/admin/template-library" element={<TemplateLibrary />} />
+                  <Route path="/admin/template-library" element={<TemplateLibrary />} />
                   <Route path="/admin/form-builder" element={<FormBuilder />} />
                   <Route path="/admin/form-builder/:templateId" element={<FormBuilder />} />
                   <Route path="/admin/profile-mapping" element={<MappingConfig />} />

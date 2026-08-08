@@ -20,7 +20,13 @@ export const usePermission = (resource: string, action: PermissionAction): boole
     // Check if user has the specific permission
     const permissionName = `${resource.toLowerCase()}_${action}`;
     const hasPermission = user?.permissions?.some(
-        (p: string) => p.toLowerCase() === permissionName.toLowerCase()
+        (p: any) => {
+            const permStr = (typeof p === 'string' ? p : p?.name || '').toLowerCase();
+            if (permStr === permissionName.toLowerCase()) return true;
+            if (resource.toLowerCase() === 'sitesurvey' && permStr === `site_${action.toLowerCase()}`) return true;
+            if (resource.toLowerCase() === 'site' && permStr === `sitesurvey_${action.toLowerCase()}`) return true;
+            return false;
+        }
     );
 
     return hasPermission || false;

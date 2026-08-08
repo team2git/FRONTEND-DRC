@@ -88,6 +88,7 @@ const navItems: NavItem[] = [
       {
         name: "Offline Site Survey",
         path: "/site-survey",
+        permission: "sitesurvey_view|site_view",
       },
       {
         name: "Survey Templates",
@@ -315,7 +316,12 @@ const AppSidebar: React.FC = () => {
       return true;
     }
     if (!permission) return true;
-    return user?.permissions?.includes(permission) || false;
+    const userPerms = user?.permissions?.map((p: any) => (typeof p === 'string' ? p : p?.name || '').toLowerCase()) || [];
+    if (permission.includes('|')) {
+      const perms = permission.split('|').map(p => p.trim().toLowerCase());
+      return perms.some(p => userPerms.includes(p));
+    }
+    return userPerms.includes(permission.toLowerCase());
   };
 
   const filterItems = (items: NavItem[]) => {

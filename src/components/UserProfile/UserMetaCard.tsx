@@ -3,6 +3,7 @@ import { useModal } from "../../hooks/useModal";
 import { Modal } from "../ui/modal";
 import Button from "../ui/button/Button";
 import { useAuth } from "../../context/AuthContext";
+import { useToast } from "../../hooks/useToast";
 import api from "../../api/axios";
 
 interface User {
@@ -20,6 +21,7 @@ interface User {
 export default function UserMetaCard({ user }: { user: User }) {
   const { isOpen, openModal, closeModal } = useModal();
   const { refreshUser } = useAuth();
+  const toast = useToast();
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -43,29 +45,18 @@ export default function UserMetaCard({ user }: { user: User }) {
       const formData = new FormData();
       formData.append('profileImage', selectedImage);
 
-      // We might need to send other data if the backend expects it, 
-      // but our backend seems flexible to update just the image if provided alone?
-      // Actually, looking at the backend code, it updates fields present in the body.
-      // It might be safer to ideally just send the image or ensure the backend handles partial updates well.
-      // Based on previous `updateUserById`, it uses `Object.assign` or direct updates on fields found.
-      // But wait, `userService.js` `updateUserById` takes `data` and manually updates fields.
-      // We should double check if providing ONLY profileImage works without erasing other fields.
-      // Looking at `userService.js` from previous steps:
-      // `if (data.fullname) user.fullname = data.fullname;`
-      // So partial updates ARE supported.
+      const userId = user.id || (user as any)._id;
 
-      await api.put(`/users/${user.id}`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      await api.put(`/users/${userId}`, formData);
 
       await refreshUser();
+      toast.success("Profile avatar updated successfully!");
       closeModal();
-      // Reset state
       setSelectedImage(null);
       setPreviewUrl(null);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to update profile image", error);
-      alert("Failed to update profile image"); // Simple alert for now
+      toast.error(error.response?.data?.message || "Failed to update profile image");
     } finally {
       setIsLoading(false);
     }
