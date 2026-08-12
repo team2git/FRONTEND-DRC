@@ -27,6 +27,7 @@ import AlertSubscriptions from "./pages/admin/AlertSubscriptions";
 import EmergencyContacts from "./pages/admin/EmergencyContacts";
 import IncidentReports from "./pages/admin/IncidentReports";
 import ConcernReports from "./pages/admin/ConcernReports";
+import NewsManagement from "./pages/admin/NewsManagement";
 
 // Template Engine
 import TemplateLibrary from "./components/TemplateEngine/TemplateLibrary/TemplateLibrary";
@@ -55,6 +56,9 @@ import IncidentReportingPage from "./pages/portal/IncidentReportingPage";
 import EmergencyContactDirectoryPage from "./pages/portal/EmergencyContactDirectoryPage";
 import CommunityParticipationRegistrationPage from "./pages/portal/CommunityParticipationRegistrationPage";
 import InspectionRequestPage from "./pages/portal/InspectionRequestPage";
+import PublicNewsPage from "./pages/portal/PublicNewsPage";
+import NewsDetailPage from "./pages/portal/NewsDetailPage";
+import FloodDashboardPage from "./pages/portal/FloodDashboardPage";
 import NotFound from "./pages/OtherPage/NotFound";
 import Videos from "./pages/UiElements/Videos";
 import Images from "./pages/UiElements/Images";
@@ -70,6 +74,8 @@ import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import UserProfiles from "./pages/UserProfiles";
 import Home from "./pages/Dashboard/Home";
+import NewsFeed from "./pages/NewsFeed";
+import NewsDetails from "./pages/NewsDetails";
 import LandingPage from "./pages/portal";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -98,6 +104,8 @@ export default function App() {
                 {/* Dashboard Layout Routes */}
                 <Route element={<AppLayout />}>
                   <Route path="/dashboard" element={<Home />} />
+                  <Route path="/news-feed" element={<NewsFeed />} />
+                  <Route path="/news-feed/:id" element={<NewsDetails />} />
                   <Route path="/profile" element={<UserProfiles />} />
                   <Route path="/woreda-profile" element={<PermissionRoute resource="woredaprofile" action="view" element={<WoredaProfile />} />} />
                   <Route path="/woreda-profile/:section" element={<PermissionRoute resource="woredaprofile" action="view" element={<WoredaProfile />} />} />
@@ -139,6 +147,7 @@ export default function App() {
                   <Route path="/admin/admin-logs" element={<AdminLogs />} />
                   <Route path="/admin/email-logs" element={<EmailLogs />} />
                   <Route path="/admin/site-settings" element={<PortalContentPage />} />
+                  <Route path="/admin/news" element={<PermissionRoute resource="news" action="view" element={<NewsManagement />} />} />
                   <Route path="/admin/alert-subscriptions" element={<AlertSubscriptions />} />
                   <Route path="/admin/emergency-contacts" element={<EmergencyContacts />} />
                   <Route path="/admin/incident-reports" element={<IncidentReports />} />
@@ -177,6 +186,10 @@ export default function App() {
               <Route path="/portal" element={<LandingPage />} />
               <Route path="/portal/services" element={<ServicePortalPage />} />
               <Route path="/feedback" element={<PublicFeedbackPage />} />
+              <Route path="/news" element={<PublicNewsPage />} />
+              <Route path="/news/:id" element={<NewsDetailPage />} />
+              <Route path="/news/:slug" element={<NewsDetailPage />} />
+              <Route path="/flood-dashboard" element={<FloodDashboardPage />} />
               <Route path="/portal/services/:serviceSlug" element={<PublicServicePage />} />
               <Route path="/alert-subscription" element={<AlertSubscriptionPage />} />
               <Route path="/incident-reporting" element={<IncidentReportingPage />} />

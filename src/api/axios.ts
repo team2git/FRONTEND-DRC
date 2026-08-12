@@ -9,9 +9,14 @@ const api = axios.create({
 // Request interceptor to add the auth token header to requests
 api.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem('token');
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
+        try {
+            const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+            if (token) {
+                config.headers = config.headers || {};
+                config.headers.Authorization = `Bearer ${token}`;
+            }
+        } catch (e) {
+            // ignore in non-browser environments
         }
         return config;
     },
@@ -32,12 +37,11 @@ api.interceptors.response.use(
                 error.config.url.includes('/login')
             );
 
-            const isLoginPage = window.location.pathname === '/login' || window.location.pathname.includes('/auth/login');
+            const isLoginPage = typeof window !== 'undefined' && (window.location.pathname === '/login' || window.location.pathname.includes('/auth/login'));
 
             if (!isLoginRequest && !isLoginPage) {
-                localStorage.removeItem('token');
-                localStorage.removeItem('user');
-                window.location.href = '/login';
+                try { localStorage.removeItem('token'); localStorage.removeItem('user'); } catch(e) {}
+                if (typeof window !== 'undefined') window.location.href = '/login';
             }
         }
         return Promise.reject(error);
@@ -45,3 +49,4 @@ api.interceptors.response.use(
 );
 
 export default api;
+

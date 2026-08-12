@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import api from "@/api/axios";
 import PageMeta from "@/components/common/PageMeta";
 import { toast } from "react-toastify";
@@ -28,6 +28,7 @@ type PortalContent = {
     hero?: boolean;
     about?: boolean;
     services?: boolean;
+    news?: boolean;
     features?: boolean;
     feedback?: boolean;
     contact?: boolean;
@@ -47,6 +48,7 @@ type PortalContent = {
   };
   featuresSection?: { heading?: string; subheading?: string; badge?: string; features?: PortalFeature[] };
   servicesSection?: { heading?: string; subheading?: string; services?: PortalService[] };
+  newsSection?: { heading?: string; subheading?: string; items?: { title?: string; description?: string; href?: string; disabled?: boolean }[] };
   features?: PortalFeature[]; // legacy
   services?: PortalService[]; // legacy
   contact?: { email?: string; phone?: string; address?: string };
@@ -69,6 +71,7 @@ const DEFAULT_CONTENT: PortalContent = {
     hero: true,
     about: true,
     services: true,
+    news: true,
     features: true,
     feedback: true,
     contact: true,
@@ -85,6 +88,7 @@ const DEFAULT_CONTENT: PortalContent = {
       { label: "About", href: "/#about" },
       { label: "Services", href: "/#services" },
       { label: "Feedback", href: "/feedback" },
+      { label: "News", href: "/news" },
       { label: "Contact Us", href: "/#contact" },
     ],
     ctaLabel: "My Portal",
@@ -261,6 +265,18 @@ const DEFAULT_CONTENT: PortalContent = {
       },
     ],
   },
+  newsSection: {
+    heading: "Latest Portal News",
+    subheading: "Quick updates, alerts, and announcements for public visitors.",
+    items: [
+      {
+        title: "Stay informed with new alert subscriptions",
+        description:
+          "Subscribe to notifications to receive timely alerts and stay prepared for emergency situations.",
+        href: "/#services",
+      },
+    ],
+  },
   contact: {
     address: "Addis Ababa, Ethiopia",
     phone: "+251 911 22 33 44",
@@ -332,8 +348,9 @@ type SettingsTab =
   | "header"
   | "hero"
   | "about"
-  | "features"
   | "services"
+  | "news"
+  | "features"
   | "feedback"
   | "contact"
   | "footer";
@@ -359,6 +376,10 @@ const PortalContentPage: React.FC = () => {
     () => content.servicesSection?.services ?? content.services ?? [],
     [content.servicesSection?.services, content.services]
   );
+  const newsItems = useMemo(
+    () => content.newsSection?.items ?? [],
+    [content.newsSection?.items]
+  );
   const features = useMemo(
     () => content.featuresSection?.features ?? content.features ?? [],
     [content.featuresSection?.features, content.features]
@@ -369,6 +390,7 @@ const PortalContentPage: React.FC = () => {
     { key: "hero", label: "Hero" },
     { key: "about", label: "About" },
     { key: "services", label: "Services" },
+    { key: "news", label: "News" },
     { key: "features", label: "Features" },
     { key: "feedback", label: "Feedback Page" },
     { key: "contact", label: "Contact Block" },
@@ -478,8 +500,9 @@ const PortalContentPage: React.FC = () => {
             ["header", "Header"],
             ["hero", "Hero"],
             ["about", "About"],
-            ["features", "Features"],
             ["services", "Services"],
+            ["news", "News"],
+            ["features", "Features"],
             ["feedback", "Feedback"],
             ["contact", "Contact"],
             ["footer", "Footer"],
@@ -1229,7 +1252,123 @@ const PortalContentPage: React.FC = () => {
       </div>
       </>
       )}
-
+ 
+      {activeTab === "news" && (
+        <div className="space-y-6">
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-6">
+            <h2 className="text-lg font-bold text-slate-900">News Section</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+            <label className="text-xs font-bold text-slate-600">Heading</label>
+            <input
+              className={inputClass}
+              value={content.newsSection?.heading ?? ""}
+              onChange={(e) =>
+                setContent((c) => ({ ...c, newsSection: { ...(c.newsSection || {}), heading: e.target.value, items: newsItems } }))
+              }
+            />
+          </div>
+          <div className="md:col-span-3">
+            <label className="text-xs font-bold text-slate-600">Subheading</label>
+            <RichTextEditor
+              value={content.newsSection?.subheading ?? ""}
+              onChange={(value) =>
+                setContent((c) => ({ ...c, newsSection: { ...(c.newsSection || {}), subheading: value, items: newsItems } }))
+              }
+            />
+          </div>
+        </div>
+      </div>
+ 
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-6">
+        <h2 className="text-lg font-bold text-slate-900">Portal News Items</h2>
+        <p className="text-slate-500 text-sm">
+          Add news items to display on the public portal page. Use the optional link to direct visitors to related content.
+        </p>
+        <div className="space-y-4">
+          {newsItems.map((item, idx) => (
+            <div key={idx} className={`${itemPanelClass(item.disabled)} grid grid-cols-1 gap-4 md:grid-cols-3`}>
+              <div>
+                <label className="text-xs font-bold text-slate-600">Title</label>
+                <input
+                  className={inputClass}
+                  value={item.title ?? ""}
+                  onChange={(e) => {
+                    const next = [...newsItems];
+                    next[idx] = { ...next[idx], title: e.target.value };
+                    setContent((c) => ({ ...c, newsSection: { ...(c.newsSection || {}), items: next } }));
+                  }}
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="text-xs font-bold text-slate-600">Description</label>
+                <RichTextEditor
+                  value={item.description ?? ""}
+                  onChange={(value) => {
+                    const next = [...newsItems];
+                    next[idx] = { ...next[idx], description: value };
+                    setContent((c) => ({ ...c, newsSection: { ...(c.newsSection || {}), items: next } }));
+                  }}
+                />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-slate-600">Read More Href</label>
+                <input
+                  className={inputClass}
+                  value={item.href ?? ""}
+                  onChange={(e) => {
+                    const next = [...newsItems];
+                    next[idx] = { ...next[idx], href: e.target.value };
+                    setContent((c) => ({ ...c, newsSection: { ...(c.newsSection || {}), items: next } }));
+                  }}
+                />
+              </div>
+              <div className="md:col-span-3 flex items-center justify-between gap-2">
+                <span className={`text-xs font-bold uppercase tracking-[0.14em] ${item.disabled ? "text-amber-700" : "text-emerald-600"}`}>
+                  {item.disabled ? "Disabled" : "Active"}
+                </span>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const next = toggleDisabledAtIndex(newsItems, idx);
+                      setContent((c) => ({ ...c, newsSection: { ...(c.newsSection || {}), items: next } }));
+                    }}
+                    className={`px-3 py-2 rounded-xl font-bold ${
+                      item.disabled ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100" : "bg-amber-50 text-amber-700 hover:bg-amber-100"
+                    }`}
+                  >
+                    {item.disabled ? "Enable" : "Disable"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const next = newsItems.filter((_, i) => i !== idx);
+                      setContent((c) => ({ ...c, newsSection: { ...(c.newsSection || {}), items: next } }));
+                    }}
+                    className="px-3 py-2 rounded-xl bg-rose-50 text-rose-600 font-bold hover:bg-rose-100"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() => {
+              const next = [...newsItems, { title: "", description: "", href: "" }];
+              setContent((c) => ({ ...c, newsSection: { ...(c.newsSection || {}), items: next } }));
+            }}
+            className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 font-semibold"
+          >
+            + Add news item
+          </button>
+        </div>
+      </div>
+      </div>
+      )}
+  
       {activeTab === "feedback" && (
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-4">
         <h2 className="text-lg font-bold text-slate-900">Feedback Page</h2>
@@ -1699,7 +1838,7 @@ const PortalContentPage: React.FC = () => {
           </button>
         </div>
         <div>
-          <label className="text-xs font-bold text-slate-600">Copyright Text (use {'{year}'})</label>
+          <label className="text-xs font-bold text-slate-600">Copyright Text (use {"{year}"})</label>
           <input
             className={inputClass}
             value={content.footer?.copyrightText ?? ""}

@@ -81,6 +81,12 @@ const navItems: NavItem[] = [
     path: "/woreda-profile",
     permission: "woredaprofile_view",
   },
+  // {
+  //   icon: <ListIcon />,
+  //   name: "News Management",
+  //   path: "/admin/news",
+  //   permission: "news_view",
+  // },
   {
     icon: <DocsIcon />,
     name: "Site Survey",
@@ -101,7 +107,7 @@ const navItems: NavItem[] = [
     icon: <MapNavIcon />,
     name: "Maps",
     subItems: [
-      
+
       {
         name: "GIS Map",
         path: "/woreda-profile/map",
@@ -161,6 +167,12 @@ const adminItems: NavItem[] = [
     icon: <FolderIcon />,
     name: "Portal Site Management",
     subItems: [
+      {
+        name: "News Management",
+        path: "/admin/news",
+        icon: <ListIcon />,
+        permission: "news_view",
+      },
       {
         name: "Site Settings",
         path: "/admin/site-settings",
@@ -275,7 +287,7 @@ const adminItems: NavItem[] = [
         icon: <GroupIcon />,
         permission: "template_create",
       },
-      
+
       {
         name: "Profile Mapping",
         path: "/admin/profile-mapping",
@@ -426,8 +438,8 @@ const AppSidebar: React.FC = () => {
               {(isExpanded || isHovered || isMobileOpen) && (
                 <ChevronDownIcon
                   className={`ml-auto w-5 h-5 transition-transform duration-200 ${openSubmenu?.type === menuType && openSubmenu?.index === index
-                      ? "menu-item-arrow-active"
-                      : ""
+                    ? "menu-item-arrow-active"
+                    : ""
                     }`}
                 />
               )}
