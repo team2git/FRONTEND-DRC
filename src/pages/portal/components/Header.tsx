@@ -10,9 +10,9 @@ const defaultNavLinks: NavLink[] = [
     { label: "Home", href: "/" },
     { label: "About", href: "/#about" },
     { label: "Services", href: "/portal/services" },
-    { label: "Feedback", href: "/feedback" },
     { label: "News", href: "/news" },
     { label: "Flood", href: "/flood-dashboard" },
+    { label: "Feedback", href: "/feedback" },
     { label: "Contact Us", href: "/#contact" },
 ];
 

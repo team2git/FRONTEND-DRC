@@ -848,3 +848,23 @@ input[type="range"]::-moz-range-thumb {
   box-shadow: 0 0 0 3px rgba(20, 63, 132, 0.18);
   border: 2px solid white;
 }
+
+/* Ticker Marquee Right to Left Animation */
+@keyframes marqueeRtl {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.animate-marquee-rtl {
+  display: inline-block;
+  white-space: nowrap;
+  animation: marqueeRtl 35s linear infinite;
+}
+
+.animate-marquee-rtl:hover {
+  animation-play-state: paused;
+}

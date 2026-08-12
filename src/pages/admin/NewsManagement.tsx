@@ -25,12 +25,15 @@ import {
   LayoutGrid,
   List,
   Video,
-  Archive
+  Archive,
+  Megaphone
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import PageMeta from '@/components/common/PageMeta';
 import { useAuth } from '@/context/AuthContext';
 import { resolvePortalAssetUrl } from '@/utils/resolvePortalAssetUrl';
+import api from '@/api/axios';
+import { invalidatePortalContentCache } from '@/hooks/usePortalContent';
 import {
   listAdminNews,
   createNews,
@@ -100,6 +103,42 @@ export default function NewsManagement() {
   const [newCategoryName, setNewCategoryName] = useState('');
   const [showInlineAddCategory, setShowInlineAddCategory] = useState(false);
   const [inlineCategoryInput, setInlineCategoryInput] = useState('');
+
+  // Ticker Modal state
+  const [tickerText, setTickerText] = useState('');
+  const [showTickerModal, setShowTickerModal] = useState(false);
+  const [savingTicker, setSavingTicker] = useState(false);
+
+  useEffect(() => {
+    api.get('/site-settings').then(res => {
+      if (res.data?.newsSection?.tickerText) {
+        setTickerText(res.data.newsSection.tickerText);
+      }
+    }).catch(() => {});
+  }, []);
+
+  const handleSaveTicker = async () => {
+    setSavingTicker(true);
+    try {
+      const currentRes = await api.get('/site-settings');
+      const existing = currentRes.data || {};
+      const updated = {
+        ...existing,
+        newsSection: {
+          ...(existing.newsSection || {}),
+          tickerText: tickerText
+        }
+      };
+      await api.put('/site-settings', updated);
+      invalidatePortalContentCache();
+      toast.success('Breaking News Ticker updated successfully!');
+      setShowTickerModal(false);
+    } catch (err) {
+      toast.error('Failed to update ticker settings');
+    } finally {
+      setSavingTicker(false);
+    }
+  };
 
   // Modal states
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -428,6 +467,15 @@ export default function NewsManagement() {
           >
             <FolderPlus className="w-4 h-4 text-indigo-600" />
             <span>Manage Categories ({categoriesList.length})</span>
+          </button>
+
+          {/* Breaking News Ticker Config Button */}
+          <button
+            onClick={() => setShowTickerModal(true)}
+            className="inline-flex items-center gap-2 px-4.5 py-3 bg-red-50 hover:bg-red-100 text-red-700 font-bold text-xs rounded-2xl border border-red-200/80 transition-all shadow-sm"
+          >
+            <Megaphone className="w-4 h-4 text-red-600" />
+            <span>Breaking Ticker</span>
           </button>
 
           {/* Post New Article */}
@@ -1400,6 +1448,76 @@ export default function NewsManagement() {
                 </button>
               </div>
             </motion.div>
+          </div>
+        )}
+
+        {/* --- BREAKING NEWS TICKER CONFIG MODAL --- */}
+        {showTickerModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-fadeIn">
+            <div className="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 space-y-6 shadow-2xl border border-slate-200">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 bg-red-50 text-red-600 rounded-2xl border border-red-100">
+                    <Megaphone className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-slate-900">Breaking News Ticker</h3>
+                    <p className="text-xs text-slate-500 font-medium pt-0.5">Customize the live right-to-left marquee announcement bar</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowTickerModal(false)}
+                  className="p-2 text-slate-400 hover:text-slate-700 rounded-xl hover:bg-slate-100 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                    Custom Ticker Announcement Text
+                  </label>
+                  <textarea
+                    rows={4}
+                    value={tickerText}
+                    onChange={e => setTickerText(e.target.value)}
+                    placeholder="e.g. 🔴 Emergency Flood Alert Issued for Akaki Kality Sub-city • 📢 Volunteer Registration Open • ⚠️ Severe Rainfall Advisory..."
+                    className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:bg-white transition-all"
+                  />
+                  <p className="text-[11px] text-slate-500 pt-1.5 leading-relaxed">
+                    💡 <strong>Tip:</strong> Leave blank to automatically stream recent approved news headlines straight from MongoDB database!
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => setTickerText('')}
+                    className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-colors"
+                  >
+                    Clear (Auto-DB Headlines)
+                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowTickerModal(false)}
+                      className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSaveTicker}
+                      disabled={savingTicker}
+                      className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl shadow-md transition-colors flex items-center gap-1.5"
+                    >
+                      {savingTicker ? <RefreshCw className="w-4 h-4 animate-spin" /> : 'Save Ticker'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </AnimatePresence>

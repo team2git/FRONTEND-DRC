@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -77,6 +77,18 @@ export default function PublicNewsPage() {
   const showHeader = sectionsVisibility?.header !== false;
   const showFooter = sectionsVisibility?.footer !== false;
   const showContact = sectionsVisibility?.contact !== false;
+
+  // Dynamic breaking news ticker content loaded from DB or Admin site settings
+  const tickerTextContent = useMemo(() => {
+    if (portalContent?.newsSection?.tickerText && portalContent.newsSection.tickerText.trim()) {
+      return portalContent.newsSection.tickerText.trim();
+    }
+    const dbArticles = (latestNews && latestNews.length > 0) ? latestNews : items;
+    if (dbArticles && dbArticles.length > 0) {
+      return dbArticles.map(item => `🔴 ${item.title} (${item.category})`).join('   •   ');
+    }
+    return "🔴⚠️ Seasonal Flood Alert & Early Warning Guidelines Available Online • "
+  }, [portalContent?.newsSection?.tickerText, latestNews, items]);
 
   // Debounce search input
   useEffect(() => {
@@ -199,7 +211,7 @@ export default function PublicNewsPage() {
     e.preventDefault();
     e.stopPropagation();
     setShareModalItem(item);
-    shareNews(item._id).catch(() => {});
+    shareNews(item._id).catch(() => { });
   };
 
   const shareToPlatform = (platform: 'facebook' | 'telegram' | 'whatsapp' | 'x' | 'copy') => {
@@ -239,17 +251,17 @@ export default function PublicNewsPage() {
 
       {showHeader ? <Header branding={portalContent?.branding} header={portalContent?.header} /> : null}
 
-      
-{/* --- LIVE BREAKING NEWS TICKER --- */}
-      <div className="bg-slate-900 text-white text-xs border-b border-slate-800 py-2.5 px-4 overflow-hidden pt-20">
+
+      {/* --- LIVE BREAKING NEWS TICKER (LOADED FROM DB, SCROLLS RIGHT TO LEFT) --- */}
+      <div className="bg-slate-950 text-white text-xs border-b border-slate-800/90 py-2.5 px-4 overflow-hidden pt-20">
         <div className="container mx-auto flex items-center gap-3">
-          <div className="flex items-center gap-2 px-3 py-1 bg-red-600/90 backdrop-blur-md rounded-full text-white text-[11px] font-black uppercase tracking-wider whitespace-nowrap shadow-md shadow-red-600/30">
+          <div className="flex items-center gap-2 px-3 py-1 bg-red-600/90 backdrop-blur-md rounded-full text-white text-[11px] font-black uppercase tracking-wider whitespace-nowrap shadow-md shadow-red-600/30 z-10">
             <span className="w-2 h-2 bg-white rounded-full animate-ping" />
             <span>Breaking News</span>
           </div>
-          <div className="overflow-hidden whitespace-nowrap text-slate-300 font-medium text-xs flex-1">
-            <div className="inline-block animate-pulse hover:pause cursor-pointer">
-              🔴 National Emergency Disaster Response Plan Updated for Season Readiness • 📢 Woreda Emergency Officers Training Workshop Registration Now Open • ⚠️ Seasonal Flood Alert & Early Warning Guidelines Available Online • 🌟 DRMIS Community Risk Reduction Grants Announced
+          <div className="overflow-hidden whitespace-nowrap text-slate-300 font-medium text-xs flex-1 relative">
+            <div className="animate-marquee-rtl cursor-pointer hover:text-white transition-colors">
+              {tickerTextContent}
             </div>
           </div>
         </div>
@@ -420,11 +432,10 @@ export default function PublicNewsPage() {
                     setSelectedCategory(cat);
                     setPage(1);
                   }}
-                  className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all duration-200 whitespace-nowrap flex items-center gap-2 ${
-                    active
+                  className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all duration-200 whitespace-nowrap flex items-center gap-2 ${active
                       ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30 scale-105'
                       : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200/60'
-                  }`}
+                    }`}
                 >
                   <span>{cat}</span>
                   {count !== undefined && count > 0 && (
