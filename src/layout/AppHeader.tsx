@@ -5,9 +5,15 @@ import { useSidebar } from "../context/SidebarContext";
 import { ThemeToggleButton } from "../components/common/ThemeToggleButton";
 import NotificationDropdown from "../components/header/NotificationDropdown";
 import UserDropdown from "../components/header/UserDropdown";
+import { usePortalContent } from "@/hooks/usePortalContent";
+import { resolvePortalAssetUrl } from "@/utils/resolvePortalAssetUrl";
 
 const AppHeader: React.FC = () => {
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
+  const { portalContent } = usePortalContent();
+
+  const logoUrl = resolvePortalAssetUrl(portalContent?.branding?.logoUrl) || "/images/logo/logo.png";
+  const orgName = portalContent?.branding?.orgName || portalContent?.branding?.portalName || "PDRM";
 
   const { isMobileOpen, toggleSidebar, toggleMobileSidebar } = useSidebar();
 
@@ -86,11 +92,11 @@ const AppHeader: React.FC = () => {
           <Link to="/" className="lg:hidden flex items-center gap-2">
             <img
               className="h-10 w-10 object-contain"
-              src="/images/logo/logo.png"
+              src={logoUrl}
               alt="Logo"
             />
-            <h3 className="text-lg font-bold text-gray-800 dark:text-white">
-              PDRM
+            <h3 className="text-lg font-bold text-gray-800 dark:text-white truncate max-w-[150px]">
+              {orgName}
             </h3>
           </Link>
 

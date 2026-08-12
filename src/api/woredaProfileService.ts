@@ -631,6 +631,19 @@ export const deleteHouseholdProfile = async (id: string): Promise<void> => {
 // ─── Woreda Assessment ─────────────────────────────────────────────────────────
 export type CommunityHazard = Hazard;
 
+export interface DisasterRecordItem {
+    year: number;
+    hazard_name: string;
+    location_description?: string;
+    affected_population?: number;
+    displaced_population?: number;
+    deaths?: number;
+    injuries?: number;
+    houses_damaged?: number;
+    infrastructure_damaged?: string;
+    estimated_loss_etb?: number;
+}
+
 export interface WoredaAssessmentInput {
     location: {
         subcity?: string;
@@ -640,6 +653,7 @@ export interface WoredaAssessmentInput {
     remarks?: string;
     hazards?: CommunityHazard[];
     cgd_community_voice?: CgdCommunityVoice;
+    disaster_history?: DisasterRecordItem[];
     kii_capacity_indicators?: KiiCapacityIndicators;
     kii_infrastructure_exposure?: KiiInfrastructureExposure;
     kii_environmental_indicators?: KiiEnvironmentalIndicators;

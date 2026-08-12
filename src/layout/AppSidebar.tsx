@@ -21,6 +21,8 @@ import {
 import { useSidebar } from "../context/SidebarContext";
 import { useAuth } from "../context/AuthContext";
 import SidebarWidget from "./SidebarWidget";
+import { usePortalContent } from "@/hooks/usePortalContent";
+import { resolvePortalAssetUrl } from "@/utils/resolvePortalAssetUrl";
 
 // ─── Inline Map Icons (no map SVG exists in the icons folder) ─────────────────
 const MapNavIcon = () => (
@@ -309,6 +311,10 @@ const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const { user } = useAuth();
   const location = useLocation();
+  const { portalContent } = usePortalContent();
+
+  const logoUrl = resolvePortalAssetUrl(portalContent?.branding?.logoUrl) || "/images/logo/logo.png";
+  const orgName = portalContent?.branding?.orgName || portalContent?.branding?.portalName || "PDRM";
 
   const [openSubmenu, setOpenSubmenu] = useState<{
     type: "main" | "admin";
@@ -538,16 +544,16 @@ const AppSidebar: React.FC = () => {
           {isExpanded || isHovered || isMobileOpen ? (
             <>
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/15 backdrop-blur-sm shadow-lg shadow-black/15">
-                <img src="/images/logo/logo.png" alt="Logo" className="h-10 w-10 object-contain" />
+                <img src={logoUrl} alt="Logo" className="h-10 w-10 object-contain" />
               </div>
-              <div>
-                <h3 className="text-xl font-black tracking-[0.16em] text-white">PDRM</h3>
+              <div className="overflow-hidden">
+                <h3 className="text-xl font-black tracking-[0.16em] text-white truncate max-w-[170px]" title={orgName}>{orgName}</h3>
                 <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-brand-200">Fire & DRM</p>
               </div>
             </>
           ) : (
             <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/15 backdrop-blur-sm shadow-lg shadow-black/15">
-              <img src="/images/logo/logo.png" alt="Logo" className="h-8 w-8 object-contain" />
+              <img src={logoUrl} alt="Logo" className="h-8 w-8 object-contain" />
             </div>
           )}
         </Link>

@@ -2,12 +2,18 @@ import React from "react";
 import GridShape from "../../components/common/GridShape";
 import { Link } from "react-router";
 import ThemeTogglerTwo from "../../components/common/ThemeTogglerTwo";
+import { usePortalContent } from "../../hooks/usePortalContent";
+import { resolvePortalAssetUrl } from "../../utils/resolvePortalAssetUrl";
 
 export default function AuthLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { portalContent } = usePortalContent();
+  const logoUrl = resolvePortalAssetUrl(portalContent?.branding?.logoUrl) || "/images/logo/logo.png";
+  const orgName = portalContent?.branding?.orgName || portalContent?.branding?.portalName || "IDRMIS";
+
   return (
     <div className="relative p-6 bg-white z-1 dark:bg-gray-900 sm:p-0">
       <div className="relative flex flex-col justify-center w-full h-screen lg:flex-row dark:bg-gray-900 sm:p-0">
@@ -17,14 +23,14 @@ export default function AuthLayout({
             {/* <!-- ===== Common Grid Shape Start ===== --> */}
             <GridShape />
             <div className="flex flex-col items-center max-w-xs">
-              <Link to="/" className="flex flex-col items-center gap-3 mb-4">
+              <Link to="/" className="flex flex-col items-center gap-3 mb-4 text-center">
                 <img
                   className="h-24 w-24 object-contain"
-                  src="/images/logo/logo.png"
+                  src={logoUrl}
                   alt="Logo"
                 />
                 <h3 className="text-2xl font-bold text-white">
-                  IDRMIS
+                  {orgName}
                 </h3>
               </Link>
               <p className="text-center text-gray-400 dark:text-white/60">

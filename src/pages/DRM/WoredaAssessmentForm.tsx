@@ -14,7 +14,7 @@ import {
 import { getLocationHierarchy, type LocationHierarchyItem } from '../../api/locationService';
 import { HAZARD_TYPES } from './woreda-profile/constants';
 
-type SubStep = 'cgd_hazards' | 'cgd_voice' | 'kii_capacity' | 'kii_infrastructure' | 'kii_environment';
+type SubStep = 'cgd_hazards' | 'cgd_voice' | 'cgd_disaster_history' | 'kii_capacity' | 'kii_infrastructure' | 'kii_environment';
 
 const STEP_LABELS = ['Location', 'CGD & KII Assessment', 'Review'];
 
@@ -26,6 +26,7 @@ const emptyAssessment = (): WoredaAssessmentInput => ({
     remarks: '',
     hazards: HAZARD_TYPES.map(h => ({ hazard_name: h, frequency: '3', severity: '3', duration: '3', spatial_extent: '3', seasonality: '', historical_events: '' })),
     cgd_community_voice: { coping_strategies: '', collective_action_structure: '', suggested_interventions: '' },
+    disaster_history: [],
     kii_capacity_indicators: { ews: 3, drm_committee: 3, focal_persons: 3, training_freq: 3, shelters: 3, community_structures: 3, emergency_services: 3, inter_sector_coordination: 3, institutional_strength: 3, recovery_plan: 3, budget: 3, drm_mainstreaming: 3 },
     kii_infrastructure_exposure: { health: 3, water: 3, energy: 3, emergency: 3, communications: 3 },
     kii_environmental_indicators: { drainage: 3, green_cover: 3, waste_mgmt: 3, pollution: 3 },
@@ -162,6 +163,7 @@ export const WoredaAssessmentForm: React.FC<{
             remarks: initial.remarks || '',
             hazards: initial.hazards || emptyAssessment().hazards,
             cgd_community_voice: initial.cgd_community_voice || emptyAssessment().cgd_community_voice,
+            disaster_history: initial.disaster_history || [],
             kii_capacity_indicators: initial.kii_capacity_indicators || emptyAssessment().kii_capacity_indicators,
             kii_infrastructure_exposure: initial.kii_infrastructure_exposure || emptyAssessment().kii_infrastructure_exposure,
             kii_environmental_indicators: initial.kii_environmental_indicators || emptyAssessment().kii_environmental_indicators,
@@ -170,6 +172,24 @@ export const WoredaAssessmentForm: React.FC<{
     );
 
     const [assessmentId, setAssessmentId] = useState<string | null>(initial?._id || null);
+
+    useEffect(() => {
+        if (initial) {
+            setFormData({
+                location: initial.location || { subcity: '', woreda: '' },
+                assessment_date: initial.assessment_date ? (initial.assessment_date.includes('T') ? initial.assessment_date.split('T')[0] : initial.assessment_date) : emptyAssessment().assessment_date,
+                remarks: initial.remarks || '',
+                hazards: initial.hazards || emptyAssessment().hazards,
+                cgd_community_voice: initial.cgd_community_voice || emptyAssessment().cgd_community_voice,
+                disaster_history: initial.disaster_history || [],
+                kii_capacity_indicators: initial.kii_capacity_indicators || emptyAssessment().kii_capacity_indicators,
+                kii_infrastructure_exposure: initial.kii_infrastructure_exposure || emptyAssessment().kii_infrastructure_exposure,
+                kii_environmental_indicators: initial.kii_environmental_indicators || emptyAssessment().kii_environmental_indicators,
+                status: initial.status || 'Draft',
+            });
+            if (initial._id) setAssessmentId(initial._id);
+        }
+    }, [initial]);
 
     useEffect(() => {
         const subcity = formData.location.subcity;
@@ -196,6 +216,7 @@ export const WoredaAssessmentForm: React.FC<{
                         remarks: match.remarks || '',
                         hazards: match.hazards || emptyAssessment().hazards,
                         cgd_community_voice: match.cgd_community_voice || emptyAssessment().cgd_community_voice,
+                        disaster_history: match.disaster_history || [],
                         kii_capacity_indicators: match.kii_capacity_indicators || emptyAssessment().kii_capacity_indicators,
                         kii_infrastructure_exposure: match.kii_infrastructure_exposure || emptyAssessment().kii_infrastructure_exposure,
                         kii_environmental_indicators: match.kii_environmental_indicators || emptyAssessment().kii_environmental_indicators,
@@ -424,9 +445,56 @@ export const WoredaAssessmentForm: React.FC<{
         }
     };
 
+    const [disasterYear, setDisasterYear] = useState<number>(new Date().getFullYear());
+    const [disasterHazard, setDisasterHazard] = useState<string>('Flood');
+    const [disasterLoc, setDisasterLoc] = useState<string>('');
+    const [disasterAffected, setDisasterAffected] = useState<number>(0);
+    const [disasterDisplaced, setDisasterDisplaced] = useState<number>(0);
+    const [disasterDeaths, setDisasterDeaths] = useState<number>(0);
+    const [disasterInjuries, setDisasterInjuries] = useState<number>(0);
+    const [disasterHouses, setDisasterHouses] = useState<number>(0);
+    const [disasterInfra, setDisasterInfra] = useState<string>('');
+    const [disasterLoss, setDisasterLoss] = useState<number>(0);
+
+    const handleAddDisasterRecord = () => {
+        if (!disasterHazard) return;
+        const newRecord = {
+            year: Number(disasterYear) || new Date().getFullYear(),
+            hazard_name: disasterHazard,
+            location_description: disasterLoc,
+            affected_population: Number(disasterAffected) || 0,
+            displaced_population: Number(disasterDisplaced) || 0,
+            deaths: Number(disasterDeaths) || 0,
+            injuries: Number(disasterInjuries) || 0,
+            houses_damaged: Number(disasterHouses) || 0,
+            infrastructure_damaged: disasterInfra,
+            estimated_loss_etb: Number(disasterLoss) || 0,
+        };
+        setFormData(prev => ({
+            ...prev,
+            disaster_history: [...(prev.disaster_history || []), newRecord]
+        }));
+        setDisasterLoc('');
+        setDisasterAffected(0);
+        setDisasterDisplaced(0);
+        setDisasterDeaths(0);
+        setDisasterInjuries(0);
+        setDisasterHouses(0);
+        setDisasterInfra('');
+        setDisasterLoss(0);
+    };
+
+    const handleRemoveDisasterRecord = (idx: number) => {
+        setFormData(prev => ({
+            ...prev,
+            disaster_history: prev.disaster_history?.filter((_, i) => i !== idx)
+        }));
+    };
+
     const subTabs = [
         { id: 'cgd_hazards', label: 'CGD: Hazards', icon: AlertTriangle, color: 'text-rose-500' },
         { id: 'cgd_voice', label: 'Community Voice', icon: MessageSquare, color: 'text-violet-500' },
+        { id: 'cgd_disaster_history', label: 'Disaster History', icon: BarChart3, color: 'text-red-500' },
         { id: 'kii_capacity', label: 'KII: Capacity', icon: Shield, color: 'text-blue-500' },
         { id: 'kii_infrastructure', label: 'KII: Infrastructure', icon: Zap, color: 'text-amber-500' },
         { id: 'kii_environment', label: 'KII: Environment', icon: Leaf, color: 'text-emerald-500' },
@@ -929,6 +997,176 @@ export const WoredaAssessmentForm: React.FC<{
                                                         />
                                                     </div>
                                                 ))}
+                                            </motion.div>
+                                        )}
+
+                                        {/* CGD: Disaster History */}
+                                        {subStep === 'cgd_disaster_history' && (
+                                            <motion.div key="cgd_disaster_history" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-4">
+                                                <div className="bg-white rounded-[1.5rem] p-6 border-2 border-[#C8102E]/15 shadow-sm space-y-4">
+                                                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                                                        <div className="flex items-center gap-2.5">
+                                                            <div className="w-7 h-7 rounded-xl flex items-center justify-center bg-[#C8102E] text-white">
+                                                                <BarChart3 size={13} />
+                                                            </div>
+                                                            <div>
+                                                                <h4 className="text-[10px] font-black uppercase tracking-widest text-[#C8102E]">Register Historical Disaster Events</h4>
+                                                                <p className="text-[9px] text-slate-400 font-medium">Log past disaster occurrences, affected population, casualties, and financial damage (ETB)</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Record Entry Form */}
+                                                    <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                                                        <div>
+                                                            <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Year</label>
+                                                            <input
+                                                                type="number"
+                                                                value={disasterYear}
+                                                                onChange={e => setDisasterYear(Number(e.target.value))}
+                                                                className="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-bold"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Hazard Type</label>
+                                                            <select
+                                                                value={disasterHazard}
+                                                                onChange={e => setDisasterHazard(e.target.value)}
+                                                                className="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-bold"
+                                                            >
+                                                                {HAZARD_TYPES.map(h => <option key={h} value={h}>{h}</option>)}
+                                                            </select>
+                                                        </div>
+                                                        <div>
+                                                            <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Location / Zone</label>
+                                                            <input
+                                                                type="text"
+                                                                placeholder="e.g. Riverbank District"
+                                                                value={disasterLoc}
+                                                                onChange={e => setDisasterLoc(e.target.value)}
+                                                                className="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-bold"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Affected Pop</label>
+                                                            <input
+                                                                type="number"
+                                                                value={disasterAffected}
+                                                                onChange={e => setDisasterAffected(Number(e.target.value))}
+                                                                className="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-bold"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Displaced Pop</label>
+                                                            <input
+                                                                type="number"
+                                                                value={disasterDisplaced}
+                                                                onChange={e => setDisasterDisplaced(Number(e.target.value))}
+                                                                className="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-bold"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Deaths</label>
+                                                            <input
+                                                                type="number"
+                                                                value={disasterDeaths}
+                                                                onChange={e => setDisasterDeaths(Number(e.target.value))}
+                                                                className="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-bold"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Injuries</label>
+                                                            <input
+                                                                type="number"
+                                                                value={disasterInjuries}
+                                                                onChange={e => setDisasterInjuries(Number(e.target.value))}
+                                                                className="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-bold"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Houses Damaged</label>
+                                                            <input
+                                                                type="number"
+                                                                value={disasterHouses}
+                                                                onChange={e => setDisasterHouses(Number(e.target.value))}
+                                                                className="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-bold"
+                                                            />
+                                                        </div>
+                                                        <div className="sm:col-span-2">
+                                                            <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Infra Damage</label>
+                                                            <input
+                                                                type="text"
+                                                                placeholder="e.g. 2 Schools, 1 Bridge"
+                                                                value={disasterInfra}
+                                                                onChange={e => setDisasterInfra(e.target.value)}
+                                                                className="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-bold"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Est. Loss (ETB)</label>
+                                                            <input
+                                                                type="number"
+                                                                placeholder="e.g. 15000000"
+                                                                value={disasterLoss}
+                                                                onChange={e => setDisasterLoss(Number(e.target.value))}
+                                                                className="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-bold"
+                                                            />
+                                                        </div>
+                                                        <div className="flex items-end">
+                                                            <button
+                                                                type="button"
+                                                                onClick={handleAddDisasterRecord}
+                                                                className="w-full py-2 bg-[#C8102E] text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1 hover:bg-[#a00d24] transition"
+                                                            >
+                                                                <Plus size={14} /> Add Disaster Record
+                                                            </button>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Registered History Table */}
+                                                    <div className="overflow-x-auto">
+                                                        <table className="w-full text-left border-collapse">
+                                                            <thead>
+                                                                <tr className="border-b border-slate-200 text-[10px] font-black text-slate-400 uppercase">
+                                                                    <th className="py-2 px-3">Year</th>
+                                                                    <th className="py-2 px-3">Hazard</th>
+                                                                    <th className="py-2 px-3">Location</th>
+                                                                    <th className="py-2 px-3 text-right">Affected</th>
+                                                                    <th className="py-2 px-3 text-right">Displaced</th>
+                                                                    <th className="py-2 px-3 text-right">Loss (ETB)</th>
+                                                                    <th className="py-2 px-3 text-center">Action</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody className="divide-y divide-slate-100 text-xs font-semibold text-slate-700">
+                                                                {(formData.disaster_history || []).length === 0 ? (
+                                                                    <tr>
+                                                                        <td colSpan={7} className="py-6 text-center text-slate-400 text-xs">No historical disaster records added yet.</td>
+                                                                    </tr>
+                                                                ) : (
+                                                                    formData.disaster_history?.map((dh, idx) => (
+                                                                        <tr key={idx} className="hover:bg-slate-50">
+                                                                            <td className="py-2.5 px-3 font-bold">{dh.year}</td>
+                                                                            <td className="py-2.5 px-3 font-black text-slate-900">{dh.hazard_name}</td>
+                                                                            <td className="py-2.5 px-3">{dh.location_description || '—'}</td>
+                                                                            <td className="py-2.5 px-3 text-right font-mono">{dh.affected_population?.toLocaleString()}</td>
+                                                                            <td className="py-2.5 px-3 text-right font-mono">{dh.displaced_population?.toLocaleString()}</td>
+                                                                            <td className="py-2.5 px-3 text-right font-mono font-bold text-[#C8102E]">{dh.estimated_loss_etb ? `${dh.estimated_loss_etb.toLocaleString()} ETB` : '0 ETB'}</td>
+                                                                            <td className="py-2.5 px-3 text-center">
+                                                                                <button
+                                                                                    type="button"
+                                                                                    onClick={() => handleRemoveDisasterRecord(idx)}
+                                                                                    className="p-1 text-slate-400 hover:text-rose-600 rounded"
+                                                                                >
+                                                                                    <Trash2 size={14} />
+                                                                                </button>
+                                                                            </td>
+                                                                        </tr>
+                                                                    ))
+                                                                )}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
                                             </motion.div>
                                         )}
 

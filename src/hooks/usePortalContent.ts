@@ -4,6 +4,8 @@ import api from "@/api/axios";
 let cachedPortalContent: any | null = null;
 let inFlight: Promise<any> | null = null;
 
+const PORTAL_CONTENT_EVENT = "portalContentUpdated";
+
 export const usePortalContent = () => {
   const [portalContent, setPortalContent] = useState<any>(cachedPortalContent);
   const [loading, setLoading] = useState(!cachedPortalContent);
@@ -33,8 +35,20 @@ export const usePortalContent = () => {
     };
 
     load();
+
+    const handleUpdate = () => {
+      load();
+    };
+
+    if (typeof window !== "undefined") {
+      window.addEventListener(PORTAL_CONTENT_EVENT, handleUpdate);
+    }
+
     return () => {
       mounted = false;
+      if (typeof window !== "undefined") {
+        window.removeEventListener(PORTAL_CONTENT_EVENT, handleUpdate);
+      }
     };
   }, []);
 
@@ -44,4 +58,7 @@ export const usePortalContent = () => {
 export const invalidatePortalContentCache = () => {
   cachedPortalContent = null;
   inFlight = null;
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event(PORTAL_CONTENT_EVENT));
+  }
 };
