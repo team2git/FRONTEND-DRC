@@ -50,6 +50,7 @@ import MappingConfig from "./pages/DRM/MappingConfig";
 import PublicFeedbackPage from "./pages/portal/PublicFeedbackPage";
 import PublicServicePage from "./pages/portal/PublicServicePage";
 import ServicePortalPage from "./pages/portal/ServicePortalPage";
+import DisasterRiskInfoPage from "./pages/portal/DisasterRiskInfoPage";
 import AlertSubscriptionPage from "./pages/portal/AlertSubscriptionPage";
 import IncidentReportingPage from "./pages/portal/IncidentReportingPage";
 import EmergencyContactDirectoryPage from "./pages/portal/EmergencyContactDirectoryPage";
@@ -174,6 +175,7 @@ export default function App() {
               <Route index path="/" element={<LandingPage />} />
               <Route path="/portal" element={<LandingPage />} />
               <Route path="/portal/services" element={<ServicePortalPage />} />
+              <Route path="/portal/services/risk-information" element={<DisasterRiskInfoPage />} />
               <Route path="/feedback" element={<PublicFeedbackPage />} />
               <Route path="/portal/services/:serviceSlug" element={<PublicServicePage />} />
               <Route path="/alert-subscription" element={<AlertSubscriptionPage />} />

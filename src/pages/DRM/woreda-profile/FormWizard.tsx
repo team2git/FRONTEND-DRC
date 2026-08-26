@@ -82,7 +82,7 @@ export const FormWizard: React.FC<{
     const captureGpsLocation = () => {
         if (!navigator.geolocation) {
             setLocationStatus('error');
-            setLocationError('Geolocation is not supported by your browser.');
+            setLocationError('Your browser cannot get your location. Please enter it manually.');
             return;
         }
 
@@ -116,7 +116,7 @@ export const FormWizard: React.FC<{
                 setLocationStatus('error');
                 switch (err.code) {
                     case err.PERMISSION_DENIED:
-                        setLocationError('Location permission denied. Please enable location access in browser.');
+                        setLocationError('We need your location to continue. Please allow location access in your browser.');
                         break;
                     case err.POSITION_UNAVAILABLE:
                         setLocationError('Position unavailable. Please try again.');

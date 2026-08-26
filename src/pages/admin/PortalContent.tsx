@@ -20,6 +20,8 @@ type PortalService = {
   disabled?: boolean;
 };
 
+type RiskInformationLevel = { label: string; count: number; color: string };
+
 type PortalContent = {
   branding?: { orgName?: string; portalName?: string; logoUrl?: string };
   header?: { navLinks?: { label: string; href: string; disabled?: boolean }[]; ctaLabel?: string; ctaHref?: string };
@@ -60,7 +62,23 @@ type PortalContent = {
     bottomLinks?: { label: string; href: string; disabled?: boolean }[];
     copyrightText?: string;
   };
-  pages?: { feedback?: { title?: string; subtitle?: string; templateSearch?: string; heroImage?: string } };
+  pages?: {
+    feedback?: { title?: string; subtitle?: string; templateSearch?: string; heroImage?: string };
+    riskInformation?: {
+      title?: string;
+      subtitle?: string;
+      heroImage?: string;
+      statusLabel?: string;
+      statusValue?: string;
+      lastSynced?: string;
+      searchPlaceholder?: string;
+      hazardsLabel?: string;
+      regionsLabel?: string;
+      searchButtonLabel?: string;
+      hazardFilters?: string[];
+      ladderLevels?: RiskInformationLevel[];
+    };
+  };
 };
 
 const DEFAULT_CONTENT: PortalContent = {
@@ -313,6 +331,35 @@ const DEFAULT_CONTENT: PortalContent = {
       templateSearch: "Portal Feedback",
       heroImage: "/assets/images/hero1.png",
     },
+    riskInformation: {
+      title: "Disaster Risk Information Access",
+      subtitle: "Live hazard monitoring, historical records, and preparedness resources for national and regional response coordination.",
+      heroImage: "/assets/images/hero1.png",
+      statusLabel: "SYSTEM STATUS",
+      statusValue: "OPERATIONAL — DATA FEED LIVE",
+      lastSynced: "2026-08-07 09:41 UTC",
+      searchPlaceholder: "Search by region, hazard type, or event ID",
+      hazardsLabel: "All hazards",
+      regionsLabel: "All regions",
+      searchButtonLabel: "Search",
+      hazardFilters: [
+        "Flood",
+        "Landslide",
+        "Fire",
+        "Traffic",
+        "Earthquake",
+        "Electrical",
+        "Sanitation",
+        "Quarry",
+      ],
+      ladderLevels: [
+        { label: "Extreme", count: 2, color: "var(--sev-extreme)" },
+        { label: "Severe", count: 5, color: "var(--sev-severe)" },
+        { label: "Moderate", count: 11, color: "var(--sev-moderate)" },
+        { label: "Minor", count: 7, color: "var(--sev-minor)" },
+        { label: "Informational", count: 14, color: "var(--sev-info)" },
+      ],
+    },
   },
 };
 
@@ -335,6 +382,7 @@ type SettingsTab =
   | "features"
   | "services"
   | "feedback"
+  | "riskInformation"
   | "contact"
   | "footer";
 
@@ -481,6 +529,7 @@ const PortalContentPage: React.FC = () => {
             ["features", "Features"],
             ["services", "Services"],
             ["feedback", "Feedback"],
+            ["riskInformation", "Risk Info Page"],
             ["contact", "Contact"],
             ["footer", "Footer"],
           ] as const
@@ -1230,6 +1279,346 @@ const PortalContentPage: React.FC = () => {
       </>
       )}
 
+      {activeTab === "riskInformation" && (
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-4">
+        <h2 className="text-lg font-bold text-slate-900">Risk Information Page</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="text-xs font-bold text-slate-600">Page Title</label>
+            <input
+              className={inputClass}
+              value={content.pages?.riskInformation?.title ?? ""}
+              onChange={(e) =>
+                setContent((c) => ({
+                  ...c,
+                  pages: {
+                    ...(c.pages || {}),
+                    riskInformation: {
+                      ...(c.pages?.riskInformation || {}),
+                      title: e.target.value,
+                    },
+                  },
+                }))
+              }
+            />
+          </div>
+          <div className="md:col-span-2">
+            <label className="text-xs font-bold text-slate-600">Subtitle</label>
+            <RichTextEditor
+              value={content.pages?.riskInformation?.subtitle ?? ""}
+              onChange={(value) =>
+                setContent((c) => ({
+                  ...c,
+                  pages: {
+                    ...(c.pages || {}),
+                    riskInformation: {
+                      ...(c.pages?.riskInformation || {}),
+                      subtitle: value,
+                    },
+                  },
+                }))
+              }
+            />
+          </div>
+          <div>
+            <label className="text-xs font-bold text-slate-600">Status label</label>
+            <input
+              className={inputClass}
+              value={content.pages?.riskInformation?.statusLabel ?? ""}
+              onChange={(e) =>
+                setContent((c) => ({
+                  ...c,
+                  pages: {
+                    ...(c.pages || {}),
+                    riskInformation: {
+                      ...(c.pages?.riskInformation || {}),
+                      statusLabel: e.target.value,
+                    },
+                  },
+                }))
+              }
+            />
+          </div>
+          <div>
+            <label className="text-xs font-bold text-slate-600">Status value</label>
+            <input
+              className={inputClass}
+              value={content.pages?.riskInformation?.statusValue ?? ""}
+              onChange={(e) =>
+                setContent((c) => ({
+                  ...c,
+                  pages: {
+                    ...(c.pages || {}),
+                    riskInformation: {
+                      ...(c.pages?.riskInformation || {}),
+                      statusValue: e.target.value,
+                    },
+                  },
+                }))
+              }
+            />
+          </div>
+          <div>
+            <label className="text-xs font-bold text-slate-600">Last synced text</label>
+            <input
+              className={inputClass}
+              value={content.pages?.riskInformation?.lastSynced ?? ""}
+              onChange={(e) =>
+                setContent((c) => ({
+                  ...c,
+                  pages: {
+                    ...(c.pages || {}),
+                    riskInformation: {
+                      ...(c.pages?.riskInformation || {}),
+                      lastSynced: e.target.value,
+                    },
+                  },
+                }))
+              }
+            />
+          </div>
+          <div>
+            <label className="text-xs font-bold text-slate-600">Search placeholder</label>
+            <input
+              className={inputClass}
+              value={content.pages?.riskInformation?.searchPlaceholder ?? ""}
+              onChange={(e) =>
+                setContent((c) => ({
+                  ...c,
+                  pages: {
+                    ...(c.pages || {}),
+                    riskInformation: {
+                      ...(c.pages?.riskInformation || {}),
+                      searchPlaceholder: e.target.value,
+                    },
+                  },
+                }))
+              }
+            />
+          </div>
+          <div>
+            <label className="text-xs font-bold text-slate-600">Hazards label</label>
+            <input
+              className={inputClass}
+              value={content.pages?.riskInformation?.hazardsLabel ?? ""}
+              onChange={(e) =>
+                setContent((c) => ({
+                  ...c,
+                  pages: {
+                    ...(c.pages || {}),
+                    riskInformation: {
+                      ...(c.pages?.riskInformation || {}),
+                      hazardsLabel: e.target.value,
+                    },
+                  },
+                }))
+              }
+            />
+          </div>
+          <div>
+            <label className="text-xs font-bold text-slate-600">Regions label</label>
+            <input
+              className={inputClass}
+              value={content.pages?.riskInformation?.regionsLabel ?? ""}
+              onChange={(e) =>
+                setContent((c) => ({
+                  ...c,
+                  pages: {
+                    ...(c.pages || {}),
+                    riskInformation: {
+                      ...(c.pages?.riskInformation || {}),
+                      regionsLabel: e.target.value,
+                    },
+                  },
+                }))
+              }
+            />
+          </div>
+          <div>
+            <label className="text-xs font-bold text-slate-600">Search button label</label>
+            <input
+              className={inputClass}
+              value={content.pages?.riskInformation?.searchButtonLabel ?? ""}
+              onChange={(e) =>
+                setContent((c) => ({
+                  ...c,
+                  pages: {
+                    ...(c.pages || {}),
+                    riskInformation: {
+                      ...(c.pages?.riskInformation || {}),
+                      searchButtonLabel: e.target.value,
+                    },
+                  },
+                }))
+              }
+            />
+          </div>
+          <div className="md:col-span-2">
+            <label className="text-xs font-bold text-slate-600">Hazard filters (comma-separated)</label>
+            <input
+              className={inputClass}
+              value={(content.pages?.riskInformation?.hazardFilters || []).join(", ")}
+              onChange={(e) =>
+                setContent((c) => ({
+                  ...c,
+                  pages: {
+                    ...(c.pages || {}),
+                    riskInformation: {
+                      ...(c.pages?.riskInformation || {}),
+                      hazardFilters: e.target.value.split(",").map((value) => value.trim()).filter(Boolean),
+                    },
+                  },
+                }))
+              }
+            />
+          </div>
+          <div className="md:col-span-2">
+            <label className="text-xs font-bold text-slate-600">Hero image upload</label>
+            <input
+              type="file"
+              accept="image/*"
+              className={inputClass}
+              disabled={uploading}
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                try {
+                  setUploading(true);
+                  const url = await uploadPortalImage(file);
+                  setContent((c) => ({
+                    ...c,
+                    pages: {
+                      ...(c.pages || {}),
+                      riskInformation: {
+                        ...(c.pages?.riskInformation || {}),
+                        heroImage: url,
+                      },
+                    },
+                  }));
+                  toast.success("Image uploaded");
+                } catch (error) {
+                  toast.error("Failed to upload image");
+                } finally {
+                  setUploading(false);
+                }
+              }}
+            />
+            {content.pages?.riskInformation?.heroImage ? (
+              <img
+                src={resolvePortalAssetUrl(content.pages.riskInformation.heroImage)}
+                alt="Risk Info hero"
+                className="mt-2 h-24 w-full object-cover rounded-lg border border-slate-100"
+              />
+            ) : null}
+          </div>
+          <div className="md:col-span-3">
+            <label className="text-xs font-bold text-slate-600">Ladder levels</label>
+            <div className="space-y-4">
+              {(content.pages?.riskInformation?.ladderLevels || []).map((item, idx) => (
+                <div key={idx} className="grid grid-cols-1 gap-3 md:grid-cols-5">
+                  <input
+                    className={inputClass}
+                    value={item.label}
+                    placeholder="Label"
+                    onChange={(e) => {
+                      const next = [...(content.pages?.riskInformation?.ladderLevels || [])];
+                      next[idx] = { ...next[idx], label: e.target.value };
+                      setContent((c) => ({
+                        ...c,
+                        pages: {
+                          ...(c.pages || {}),
+                          riskInformation: {
+                            ...(c.pages?.riskInformation || {}),
+                            ladderLevels: next,
+                          },
+                        },
+                      }));
+                    }}
+                  />
+                  <input
+                    className={inputClass}
+                    type="number"
+                    value={item.count}
+                    placeholder="Count"
+                    onChange={(e) => {
+                      const next = [...(content.pages?.riskInformation?.ladderLevels || [])];
+                      next[idx] = { ...next[idx], count: Number(e.target.value) };
+                      setContent((c) => ({
+                        ...c,
+                        pages: {
+                          ...(c.pages || {}),
+                          riskInformation: {
+                            ...(c.pages?.riskInformation || {}),
+                            ladderLevels: next,
+                          },
+                        },
+                      }));
+                    }}
+                  />
+                  <input
+                    className={inputClass}
+                    value={item.color}
+                    placeholder="Color"
+                    onChange={(e) => {
+                      const next = [...(content.pages?.riskInformation?.ladderLevels || [])];
+                      next[idx] = { ...next[idx], color: e.target.value };
+                      setContent((c) => ({
+                        ...c,
+                        pages: {
+                          ...(c.pages || {}),
+                          riskInformation: {
+                            ...(c.pages?.riskInformation || {}),
+                            ladderLevels: next,
+                          },
+                        },
+                      }));
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const next = (content.pages?.riskInformation?.ladderLevels || []).filter((_, i) => i !== idx);
+                      setContent((c) => ({
+                        ...c,
+                        pages: {
+                          ...(c.pages || {}),
+                          riskInformation: {
+                            ...(c.pages?.riskInformation || {}),
+                            ladderLevels: next,
+                          },
+                        },
+                      }));
+                    }}
+                    className="px-3 py-2 rounded-xl bg-rose-50 text-rose-600 font-bold hover:bg-rose-100"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => {
+                  const next = [...(content.pages?.riskInformation?.ladderLevels || []), { label: "", count: 0, color: "" }];
+                  setContent((c) => ({
+                    ...c,
+                    pages: {
+                      ...(c.pages || {}),
+                      riskInformation: {
+                        ...(c.pages?.riskInformation || {}),
+                        ladderLevels: next,
+                      },
+                    },
+                  }));
+                }}
+                className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 font-semibold"
+              >
+                + Add ladder level
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      )}
       {activeTab === "feedback" && (
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-4">
         <h2 className="text-lg font-bold text-slate-900">Feedback Page</h2>

@@ -1,20 +1,16 @@
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, lazy, Suspense } from "react";
 import PageMeta from "../../components/common/PageMeta";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import api from "../../api/axios";
 import Button from "../../components/ui/button/Button";
+import { Eye } from "lucide-react";
+import type { ReviewReport } from "./ReportReviewModal";
+const ReportReviewModal = lazy(() => import("./ReportReviewModal").then((m) => ({ default: m.ReportReviewModal })));
 
-type IncidentReport = {
-  _id: string;
-  reportCode?: string;
+type IncidentReport = ReviewReport & {
   reportType?: "incident";
-  status: "submitted" | "received" | "dispatched" | "closed";
   category?: string;
-  severity?: string;
   details?: string;
-  location?: { addressLine?: string; city?: string; region?: string };
-  createdAt?: string;
-  updatedAt?: string;
 };
 
 const STATUS_OPTIONS = ["all", "submitted", "received", "dispatched", "closed"] as const;
@@ -22,8 +18,10 @@ const STATUS_OPTIONS = ["all", "submitted", "received", "dispatched", "closed"] 
 export default function IncidentReports() {
   const [reports, setReports] = useState<IncidentReport[]>([]);
   const [loading, setLoading] = useState(true);
+  const [savingReportId, setSavingReportId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<(typeof STATUS_OPTIONS)[number]>("all");
+  const [selectedReport, setSelectedReport] = useState<IncidentReport | null>(null);
 
   useEffect(() => {
     fetchReports();
@@ -70,9 +68,25 @@ export default function IncidentReports() {
       setReports((prev) =>
         prev.map((item) => (item._id === id ? { ...item, status } : item))
       );
+      setSelectedReport((prev) => (prev?._id === id ? { ...prev, status } : prev));
     } catch (error) {
       console.error("Failed to update report status", error);
       alert("Failed to update report status");
+    }
+  };
+
+  const handleSaveReport = async (id: string, updates: Partial<ReviewReport>) => {
+    setSavingReportId(id);
+    try {
+      const response = await api.put(`/incident-reports/${id}`, { ...updates, reportType: "incident" });
+      const updated = response.data as IncidentReport;
+      setReports((prev) => prev.map((item) => (item._id === id ? updated : item)));
+      setSelectedReport((prev) => (prev?._id === id ? updated : prev));
+    } catch (error) {
+      console.error("Failed to save report details", error);
+      alert("Failed to save report details");
+    } finally {
+      setSavingReportId(null);
     }
   };
 
@@ -133,17 +147,19 @@ export default function IncidentReports() {
                 <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Severity</th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Location</th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Status</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Media</th>
                 <th className="px-4 py-3 text-right text-sm font-medium text-gray-500 dark:text-gray-400">Updated</th>
+                <th className="px-4 py-3 text-right text-sm font-medium text-gray-500 dark:text-gray-400">Review</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="py-6 text-center text-gray-500">Loading...</td>
+                  <td colSpan={8} className="py-6 text-center text-gray-500">Loading...</td>
                 </tr>
               ) : filteredReports.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-6 text-center text-gray-500">No incident reports found</td>
+                  <td colSpan={8} className="py-6 text-center text-gray-500">No incident reports found</td>
                 </tr>
               ) : (
                 filteredReports.map((report) => (
@@ -177,10 +193,23 @@ export default function IncidentReports() {
                         <option value="received">Received</option>
                         <option value="dispatched">Dispatched</option>
                         <option value="closed">Closed</option>
-                      </select>
+                        </select>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
+                      {(report.attachments?.length || 0) > 0 ? `${report.attachments?.length} file(s)` : "None"}
                     </td>
                     <td className="px-4 py-3 text-right text-xs text-gray-500 dark:text-gray-400">
                       {report.updatedAt ? new Date(report.updatedAt).toLocaleString() : "—"}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedReport(report)}
+                        className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:border-primary/50 hover:text-primary dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
+                      >
+                        <Eye className="h-3.5 w-3.5" />
+                        View Details
+                      </button>
                     </td>
                   </tr>
                 ))
@@ -189,6 +218,16 @@ export default function IncidentReports() {
           </table>
         </div>
       </div>
+
+      <Suspense fallback={null}>
+        <ReportReviewModal
+          open={!!selectedReport}
+          report={selectedReport}
+          onClose={() => setSelectedReport(null)}
+          onSave={handleSaveReport}
+          saving={savingReportId === selectedReport?._id}
+        />
+      </Suspense>
     </>
   );
 }

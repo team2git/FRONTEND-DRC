@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import {
   AlertTriangle,
@@ -153,6 +153,22 @@ const EmergencyContactDirectoryPage = () => {
                 </div>
 
                 <div className="px-5 py-6 sm:px-8 sm:py-8">
+                  {directory.warningMessage ? (
+                    <div className="mb-6 rounded-[24px] border border-red-200 bg-red-50 p-5 shadow-sm sm:p-6">
+                      <div className="flex items-start gap-4">
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-600">
+                          <AlertTriangle className="h-6 w-6" />
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-black text-red-800">Emergency Warning</h3>
+                          <p className="mt-1 text-base font-medium text-red-700">
+                            {directory.warningMessage}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : null}
+
                   {availableRegions.length > 0 ? (
                     <div className="rounded-[28px] border border-brand-100 bg-brand-50/70 px-5 py-5 sm:px-6">
                       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

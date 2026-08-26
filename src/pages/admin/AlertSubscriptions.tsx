@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, lazy, Suspense } from "react";
 import PageMeta from "../../components/common/PageMeta";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import api from "../../api/axios";
@@ -8,19 +8,53 @@ import {
   CalenderIcon,
   CheckCircleIcon,
   ChatIcon,
+  EyeIcon,
   PaperPlaneIcon,
   PlusIcon,
   TimeIcon,
 } from "@/icons";
 import { ALERT_HAZARD_GROUPS, formatAlertCategory } from "@/constants/alertCategories";
+const SubscriptionReviewModal = lazy(() => import("./SubscriptionReviewModal"));
 
 type AlertSubscription = {
   _id: string;
   status: "active" | "paused" | "unsubscribed";
-  contact?: { fullName?: string; email?: string; phone?: string };
-  location?: { country?: string; region?: string; city?: string; addressLine?: string };
-  preferences?: { categories?: string[]; severities?: string[]; language?: string };
-  delivery?: { channels?: string[] };
+  contact?: { fullName?: string; email?: string; phone?: string; altPhone?: string };
+  location?: {
+    country?: string;
+    region?: string;
+    city?: string;
+    subCity?: string;
+    woreda?: string;
+    addressLine?: string;
+    latitude?: number | null;
+    longitude?: number | null;
+    radiusKm?: number;
+    additionalLocations?: Array<{ label?: string; addressLine?: string; latitude?: number | null; longitude?: number | null }>;
+  };
+  preferences?: {
+    categories?: string[];
+    severities?: string[];
+    minAlertLevel?: string;
+    language?: string;
+    quietHours?: { enabled?: boolean; start?: string; end?: string };
+  };
+  household?: {
+    householdSize?: number;
+    specialNeeds?: string[];
+    assetsAtRisk?: string[];
+    notes?: string;
+  };
+  delivery?: {
+    channels?: string[];
+    emailEnabled?: boolean;
+    smsEnabled?: boolean;
+    // whatsappEnabled?: boolean;
+    // inAppEnabled?: boolean;
+    // voiceCallEnabled?: boolean;
+    // emergencyContact?: string;
+  };
+  consent?: { accepted?: boolean; acceptedAt?: string };
   updatedAt?: string;
   createdAt?: string;
 };
@@ -117,14 +151,25 @@ const HAZARD_GROUP_ALL = "all";
 const normalizeText = (value?: string | null) => (value || "").trim().toLowerCase();
 
 const buildLocationLabel = (subscription: AlertSubscription) => {
-  const parts = [subscription.location?.city, subscription.location?.region, subscription.location?.country].filter(
-    Boolean
-  );
+  const parts = [
+    subscription.location?.woreda,
+    subscription.location?.subCity,
+    subscription.location?.city,
+    subscription.location?.region,
+    subscription.location?.country,
+  ].filter(Boolean);
   return parts.join(", ") || "Unknown location";
+};
+
+const formatPin = (latitude?: number | null, longitude?: number | null) => {
+  if (typeof latitude !== "number" || typeof longitude !== "number") return "Pin not set";
+  return `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
 };
 
 const buildLocationKey = (subscription: AlertSubscription) =>
   [
+    normalizeText(subscription.location?.woreda),
+    normalizeText(subscription.location?.subCity),
     normalizeText(subscription.location?.city),
     normalizeText(subscription.location?.region),
     normalizeText(subscription.location?.country),
@@ -157,6 +202,7 @@ export default function AlertSubscriptions() {
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
   const [isSending, setIsSending] = useState(false);
   const [deliveryMode, setDeliveryMode] = useState<"attach" | "scheduled" | "test">("scheduled");
+  const [selectedSubscription, setSelectedSubscription] = useState<AlertSubscription | null>(null);
 
   useEffect(() => {
     fetchSubscriptions();
@@ -183,9 +229,15 @@ export default function AlertSubscriptions() {
         sub.contact?.fullName,
         sub.contact?.email,
         sub.contact?.phone,
+        sub.contact?.altPhone,
+        sub.location?.addressLine,
+        sub.location?.woreda,
+        sub.location?.subCity,
         sub.location?.city,
         sub.location?.region,
         sub.location?.country,
+        sub.location?.latitude?.toString(),
+        sub.location?.longitude?.toString(),
       ]
         .filter(Boolean)
         .join(" ")
@@ -266,6 +318,7 @@ export default function AlertSubscriptions() {
     try {
       await api.put(`/alert-subscriptions/${id}`, { status });
       setSubscriptions((prev) => prev.map((item) => (item._id === id ? { ...item, status } : item)));
+      setSelectedSubscription((prev) => (prev?._id === id ? { ...prev, status } : prev));
     } catch (error) {
       console.error("Failed to update subscription status", error);
       alert("Failed to update subscription status");
@@ -956,24 +1009,27 @@ export default function AlertSubscriptions() {
                         <th className="px-4 py-3 text-right text-sm font-medium text-gray-500 dark:text-gray-400">
                           Updated
                         </th>
+                        <th className="px-4 py-3 text-right text-sm font-medium text-gray-500 dark:text-gray-400">
+                          Details
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
                       {loading ? (
                         <tr>
-                          <td colSpan={7} className="py-8 text-center text-gray-500 dark:text-gray-400">
+                          <td colSpan={8} className="py-8 text-center text-gray-500 dark:text-gray-400">
                             Loading...
                           </td>
                         </tr>
                       ) : filteredSubscriptions.length === 0 ? (
                         <tr>
-                          <td colSpan={7} className="py-8 text-center text-gray-500 dark:text-gray-400">
+                          <td colSpan={8} className="py-8 text-center text-gray-500 dark:text-gray-400">
                             No subscriptions found
                           </td>
                         </tr>
                       ) : targetedSubscriptions.length === 0 ? (
                         <tr>
-                          <td colSpan={7} className="py-8 text-center text-gray-500 dark:text-gray-400">
+                          <td colSpan={8} className="py-8 text-center text-gray-500 dark:text-gray-400">
                             No subscribers match the selected location and hazard group
                           </td>
                         </tr>
@@ -992,9 +1048,12 @@ export default function AlertSubscriptions() {
                               </div>
                             </td>
                             <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
-                              {[sub.location?.city, sub.location?.region, sub.location?.country]
+                              {[sub.location?.addressLine, sub.location?.city, sub.location?.region, sub.location?.country]
                                 .filter(Boolean)
                                 .join(", ") || "—"}
+                              <div className="mt-1 text-[11px] text-gray-400 dark:text-gray-500">
+                                Pin: {formatPin(sub.location?.latitude, sub.location?.longitude)}
+                              </div>
                             </td>
                             <td className="px-4 py-3 text-xs text-gray-600 dark:text-gray-300">
                               <div>
@@ -1025,6 +1084,16 @@ export default function AlertSubscriptions() {
                             <td className="px-4 py-3 text-right text-xs text-gray-500 dark:text-gray-400">
                               {sub.updatedAt ? new Date(sub.updatedAt).toLocaleString() : "—"}
                             </td>
+                            <td className="px-4 py-3 text-right">
+                              <button
+                                type="button"
+                                onClick={() => setSelectedSubscription(sub)}
+                                className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:border-amber-400/60 hover:text-amber-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
+                              >
+                                <EyeIcon className="h-3.5 w-3.5" />
+                                View Details
+                              </button>
+                            </td>
                           </tr>
                         ))
                       )}
@@ -1040,6 +1109,14 @@ export default function AlertSubscriptions() {
           )}
         </section>
       </div>
+
+      <Suspense fallback={null}>
+        <SubscriptionReviewModal
+          open={!!selectedSubscription}
+          subscription={selectedSubscription}
+          onClose={() => setSelectedSubscription(null)}
+        />
+      </Suspense>
     </>
   );
 }

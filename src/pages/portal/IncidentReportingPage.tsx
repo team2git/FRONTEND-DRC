@@ -24,6 +24,7 @@ import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
 
 import api from "@/api/axios";
+import { getLocationHierarchy, type LocationHierarchyItem } from "@/api/locationService";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import ServiceExitButton from "./components/ServiceExitButton";
@@ -40,6 +41,9 @@ type IncidentReportDraft = {
   location: {
     addressLine: string;
     city: string;
+    subCity: string;
+    woreda: string;
+    placeName: string;
     // region: string;
     country: string;
     latitude: string;
@@ -75,6 +79,9 @@ const DEFAULT_DRAFT: IncidentReportDraft = {
   location: {
     addressLine: "",
     city: "",
+    subCity: "",
+    woreda: "",
+    placeName: "",
     // region: "",
     country: "",
     latitude: "",
@@ -156,6 +163,11 @@ const IncidentReportingPage: React.FC = () => {
   const [reverseGeocoding, setReverseGeocoding] = useState(false);
   const [locating, setLocating] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [locationHierarchy, setLocationHierarchy] = useState<LocationHierarchyItem[]>([]);
+  const [coordInputLat, setCoordInputLat] = useState<string>("");
+  const [coordInputLng, setCoordInputLng] = useState<string>("");
+  const [coordError, setCoordError] = useState<string | null>(null);
+  const [previewFiles, setPreviewFiles] = useState<{ id: string; url: string; kind: 'image' | 'video'; uploading: boolean }[]>([]);
 
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
@@ -166,6 +178,17 @@ const IncidentReportingPage: React.FC = () => {
   const showHeader = sectionsVisibility?.header !== false;
   const showFooter = sectionsVisibility?.footer !== false;
   const showContact = sectionsVisibility?.contact !== false;
+
+  useEffect(() => {
+    getLocationHierarchy()
+      .then((data) => setLocationHierarchy(data))
+      .catch(() => {
+        toast.error("Could not load subcities and woredas.");
+      });
+  }, []);
+
+  const selectedSubcity = locationHierarchy.find((item) => item.name === draft.location.subCity);
+  const availableWoredas = selectedSubcity?.woredas ?? [];
 
   useEffect(() => {
     if (!mapOpen || !mapContainerRef.current || mapRef.current) return;
@@ -246,7 +269,7 @@ const IncidentReportingPage: React.FC = () => {
 
     recognition.onerror = () => {
       setIsListening(false);
-      toast.error("Microphone access failed.");
+      toast.error("We could not use your microphone. Please allow microphone access and try again.");
     };
 
     speechRef.current = recognition;
@@ -266,18 +289,18 @@ const IncidentReportingPage: React.FC = () => {
       return;
     }
     if (!window.isSecureContext) {
-      toast.info("Microphone access requires HTTPS or localhost.");
+      toast.info("Your browser needs a secure page to use your microphone.");
       return;
     }
     if (!navigator.mediaDevices?.getUserMedia) {
-      toast.info("Microphone access is not available in this browser.");
+      toast.info("Your browser does not support microphone recording.");
       return;
     }
     if ((navigator as any).permissions?.query) {
       try {
         const status = await (navigator as any).permissions.query({ name: "microphone" });
         if (status?.state === "denied") {
-          toast.info("Microphone permission denied. Enable it in your browser settings.");
+          toast.info("We need your microphone to record your voice. Please allow microphone access in your browser.");
           return;
         }
       } catch {
@@ -295,7 +318,7 @@ const IncidentReportingPage: React.FC = () => {
       recognition.start();
       setIsListening(true);
     } catch (error) {
-      toast.info("Microphone access failed. Please allow microphone access and try again.");
+      toast.info("We could not use your microphone. Please allow microphone access and try again.");
       setIsListening(false);
     }
   };
@@ -332,12 +355,12 @@ const IncidentReportingPage: React.FC = () => {
 
   const autoLocate = async () => {
     if (!navigator.geolocation) {
-      toast.error("Geolocation is not supported in this browser.");
+      toast.error("Your browser cannot get your location. Please tap the map instead.");
       setMapOpen(true);
       return;
     }
     if (!window.isSecureContext) {
-      toast.info("GPS requires HTTPS. Tap the map to set your location.");
+      toast.info("Your browser needs a secure page to use your location. Please tap the map instead.");
       setMapOpen(true);
       return;
     }
@@ -345,7 +368,7 @@ const IncidentReportingPage: React.FC = () => {
       try {
         const status = await (navigator as any).permissions.query({ name: "geolocation" });
         if (status?.state === "denied") {
-          toast.info("Location permission denied. Enable access in your browser settings.");
+          toast.info("We need your location to place the pin. Please allow location access in your browser.");
           setMapOpen(true);
           return;
         }
@@ -374,18 +397,18 @@ const IncidentReportingPage: React.FC = () => {
         setLocating(false);
         setMapOpen(true);
         if (error?.code === 1) {
-          toast.info("Location permission denied. Enable access in your browser settings.");
+          toast.info("We need your location to place the pin. Please allow location access in your browser.");
           return;
         }
         if (error?.code === 2) {
-          toast.error("Location unavailable. Check GPS or network.");
+          toast.error("We could not get your location. Please try again or tap the map.");
           return;
         }
         if (error?.code === 3) {
-          toast.error("Location request timed out. Try again.");
+          toast.error("Getting your location took too long. Please try again.");
           return;
         }
-        toast.info("Location unavailable. Tap the map to choose a point.");
+        toast.info("We could not access your location. Please allow access or tap the map.");
       },
       { enableHighAccuracy: true, timeout: 20000, maximumAge: 60000 }
     );
@@ -399,20 +422,71 @@ const IncidentReportingPage: React.FC = () => {
     });
     return res.data?.url as string;
   };
-
   const handleFileUpload = async (file: File) => {
+    const id = String(Date.now()) + Math.random().toString(36).slice(2, 6);
+    const kind = file.type.startsWith('video/') ? 'video' : 'image';
+    const objectUrl = URL.createObjectURL(file);
+    setPreviewFiles((p) => [...p, { id, url: objectUrl, kind, uploading: true }]);
     try {
       const url = await uploadIncidentMedia(file);
-      const type = file.type.startsWith("video/") ? "video" : "image";
       setDraft((prev) => ({
         ...prev,
-        attachments: [...prev.attachments, { url, type, name: file.name }],
+        attachments: [...prev.attachments, { url, type: kind, name: file.name }],
       }));
-      toast.success("Attachment uploaded");
+      setPreviewFiles((p) => p.filter((x) => x.id !== id));
+      URL.revokeObjectURL(objectUrl);
+      toast.success('Attachment uploaded');
     } catch (error) {
-      toast.error("Failed to upload attachment");
+      // leave preview and mark not uploading
+      setPreviewFiles((p) => p.map((x) => (x.id === id ? { ...x, uploading: false } : x)));
+      toast.error('Failed to upload attachment');
     }
   };
+
+  useEffect(() => {
+    return () => {
+      previewFiles.forEach((p) => URL.revokeObjectURL(p.url));
+    };
+  }, [previewFiles]);
+
+  const handleSelectAndUpload = (file?: File | null) => {
+    if (!file) return;
+    handleFileUpload(file);
+  };
+
+  const setPinFromInputs = () => {
+    setCoordError(null);
+    const lat = coordInputLat.trim();
+    const lng = coordInputLng.trim();
+    if (!lat || !lng) {
+      setCoordError('Please provide both latitude and longitude');
+      return;
+    }
+    const latNum = Number(lat);
+    const lngNum = Number(lng);
+    if (Number.isNaN(latNum) || Number.isNaN(lngNum)) {
+      setCoordError('Latitude and longitude must be valid numbers');
+      return;
+    }
+    if (latNum < -90 || latNum > 90) {
+      setCoordError('Latitude must be between -90 and 90');
+      return;
+    }
+    if (lngNum < -180 || lngNum > 180) {
+      setCoordError('Longitude must be between -180 and 180');
+      return;
+    }
+    setDraft((prev) => ({ ...prev, location: { ...prev.location, latitude: latNum.toFixed(6), longitude: lngNum.toFixed(6) } }));
+    setCoordInputLat('');
+    setCoordInputLng('');
+    setCoordError(null);
+  };
+
+  const locationHeaderText = [
+    draft.location.subCity,
+    draft.location.woreda,
+    draft.location.placeName,
+  ].filter(Boolean).join(" • ") || draft.location.addressLine || "Tap to enter location";
 
   const submitReport = async () => {
     if (draft.reportType === "incident") {
@@ -452,6 +526,9 @@ const IncidentReportingPage: React.FC = () => {
       location: {
         addressLine: draft.location.addressLine,
         city: draft.location.city,
+        subCity: draft.location.subCity,
+        woreda: draft.location.woreda,
+        placeName: draft.location.placeName,
         // region: draft.location.region,
         country: draft.location.country,
         latitude: draft.location.latitude ? Number(draft.location.latitude) : null,
@@ -587,11 +664,9 @@ const IncidentReportingPage: React.FC = () => {
                   <div className="flex items-center gap-3 text-slate-700">
                     <MapPin className="text-brand-600" />
                     <div>
-                      <div className="text-sm font-semibold">
-                        Location: {draft.location.addressLine || "Tap to enter location"}
-                      </div>
+                      <div className="text-sm font-semibold">Location: {locationHeaderText}</div>
                       <div className="text-xs text-slate-500">
-                        {/* {draft.location.city || ""} {draft.location.region || ""} {draft.location.country || ""} */}
+                        {draft.location.addressLine || draft.location.city || draft.location.country || ""}
                       </div>
                     </div>
                   </div>
@@ -621,28 +696,65 @@ const IncidentReportingPage: React.FC = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <select
+                    className="rounded-xl border border-slate-200 px-4 py-3 text-slate-700 bg-white"
+                    value={draft.location.subCity}
+                    onChange={(e) => {
+                      const nextSubCity = e.target.value;
+                      setDraft((p) => ({
+                        ...p,
+                        location: {
+                          ...p.location,
+                          subCity: nextSubCity,
+                          woreda: nextSubCity ? p.location.woreda : "",
+                        },
+                      }));
+                    }}
+                  >
+                    <option value="">Select subcity</option>
+                    {locationHierarchy.map((item) => (
+                      <option key={item._id || item.name} value={item.name}>
+                        {item.name}
+                      </option>
+                    ))}
+                  </select>
+
+                  <select
+                    className="rounded-xl border border-slate-200 px-4 py-3 text-slate-700 bg-white disabled:bg-slate-100 disabled:text-slate-400"
+                    value={draft.location.woreda}
+                    onChange={(e) => setDraft((p) => ({ ...p, location: { ...p.location, woreda: e.target.value } }))}
+                    disabled={!draft.location.subCity || availableWoredas.length === 0}
+                  >
+                    <option value="">{draft.location.subCity ? "Select woreda" : "Select subcity first"}</option>
+                    {availableWoredas.map((woreda) => (
+                      <option key={woreda._id || woreda.name} value={woreda.name}>
+                        {woreda.name}
+                      </option>
+                    ))}
+                  </select>
+
                   <input
-                    className="md:col-span-2 rounded-xl border border-slate-200 px-4 py-3 text-slate-700"
+                    className="rounded-xl border border-slate-200 px-4 py-3 text-slate-700"
+                    placeholder="Place name"
+                    value={draft.location.placeName}
+                    onChange={(e) => setDraft((p) => ({ ...p, location: { ...p.location, placeName: e.target.value } }))}
+                  />
+                  <input
+                    className="rounded-xl border border-slate-200 px-4 py-3 text-slate-700"
                     placeholder="Street / Landmark"
                     value={draft.location.addressLine}
                     onChange={(e) =>
                       setDraft((p) => ({ ...p, location: { ...p.location, addressLine: e.target.value } }))
                     }
                   />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <input
                     className="rounded-xl border border-slate-200 px-4 py-3 text-slate-700"
                     placeholder="City"
                     value={draft.location.city}
                     onChange={(e) => setDraft((p) => ({ ...p, location: { ...p.location, city: e.target.value } }))}
                   />
-                  {/* <input
-                    className="rounded-xl border border-slate-200 px-4 py-3 text-slate-700"
-                    placeholder="Region"
-                    value={draft.location.region}
-                    onChange={(e) =>
-                      setDraft((p) => ({ ...p, location: { ...p.location, region: e.target.value } }))
-                    }
-                  /> */}
                   <input
                     className="rounded-xl border border-slate-200 px-4 py-3 text-slate-700"
                     placeholder="Country"
@@ -663,7 +775,23 @@ const IncidentReportingPage: React.FC = () => {
                     <div className="flex gap-4 p-4 bg-slate-50 text-xs text-slate-600">
                       <div>Lat: {draft.location.latitude || "-"}</div>
                       <div>Lng: {draft.location.longitude || "-"}</div>
+                      <div className="ml-auto flex items-center gap-2">
+                        <input
+                          placeholder="lat"
+                          value={coordInputLat}
+                          onChange={(e) => setCoordInputLat(e.target.value)}
+                          className="rounded-xl border border-slate-200 px-3 py-1 text-xs w-28"
+                        />
+                        <input
+                          placeholder="lng"
+                          value={coordInputLng}
+                          onChange={(e) => setCoordInputLng(e.target.value)}
+                          className="rounded-xl border border-slate-200 px-3 py-1 text-xs w-28"
+                        />
+                        <button onClick={setPinFromInputs} className="px-3 py-1 rounded-lg bg-accent-600 text-white text-xs">Set pin</button>
+                      </div>
                     </div>
+                    {coordError ? <div className="px-4 pb-4 text-xs text-rose-600">{coordError}</div> : null}
                   </div>
                 ) : null}
 
@@ -776,17 +904,31 @@ const IncidentReportingPage: React.FC = () => {
                           ))}
                         </select>
                       </div>
+                      {draft.concernCategory === "other" ? (
+                        <div className="mt-4">
+                          <label className="text-sm font-semibold text-slate-700">Specify concern</label>
+                          <input
+                            className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-slate-700"
+                            value={draft.concernInfo.nature}
+                            onChange={(e) =>
+                              setDraft((p) => ({ ...p, concernInfo: { ...p.concernInfo, nature: e.target.value } }))
+                            }
+                            placeholder="e.g., Illegal dumping, unsafe structure"
+                          />
+                        </div>
+                      ) : null}
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="text-sm font-semibold text-slate-700">Nature of Concern</label>
                         <input
                           className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-slate-700"
-                          value={draft.concernInfo.nature}
+                          value={draft.concernCategory === "other" ? draft.concernInfo.nature : draft.concernInfo.nature}
                           onChange={(e) =>
                             setDraft((p) => ({ ...p, concernInfo: { ...p.concernInfo, nature: e.target.value } }))
                           }
                           placeholder="e.g., Uncollected trash, open drain"
+                          disabled={draft.concernCategory === "other"}
                         />
                       </div>
                       <div>
@@ -1133,7 +1275,7 @@ const IncidentReportingPage: React.FC = () => {
                     </button>
                   </div>
                   <div className="text-xs text-slate-500 mt-2">
-                    {isListening ? "Listening..." : "Tap microphone to speak"}
+                    {isListening ? "Listening..." : "Tap microphone to add voice notes"}
                   </div>
                 </div>
 
@@ -1150,7 +1292,7 @@ const IncidentReportingPage: React.FC = () => {
                         className="hidden"
                         onChange={(e) => {
                           const file = e.target.files?.[0];
-                          if (file) handleFileUpload(file);
+                          if (file) handleSelectAndUpload(file);
                         }}
                       />
                     </label>
@@ -1164,17 +1306,34 @@ const IncidentReportingPage: React.FC = () => {
                         className="hidden"
                         onChange={(e) => {
                           const file = e.target.files?.[0];
-                          if (file) handleFileUpload(file);
+                          if (file) handleSelectAndUpload(file);
                         }}
                       />
                     </label>
                   </div>
+                  {previewFiles.length > 0 ? (
+                    <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {previewFiles.map((p) => (
+                        <div key={p.id} className="rounded-xl border border-slate-200 p-2 relative">
+                          {p.kind === 'image' ? (
+                            <img src={p.url} alt="preview" className="w-full h-24 object-cover rounded-lg opacity-80" />
+                          ) : (
+                            <video src={p.url} className="w-full h-24 object-cover rounded-lg" controls />
+                          )}
+                          <div className="absolute top-2 right-2 text-xs bg-white/80 rounded px-2 py-0.5">Uploading...</div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+
                   {draft.attachments.length > 0 ? (
                     <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3">
                       {draft.attachments.map((att, idx) => (
                         <div key={`${att.url}-${idx}`} className="rounded-xl border border-slate-200 p-2">
                           {att.type === "image" ? (
                             <img src={att.url} alt={att.name} className="w-full h-24 object-cover rounded-lg" />
+                          ) : att.type === 'video' ? (
+                            <video src={att.url} className="w-full h-24 object-cover rounded-lg" controls />
                           ) : (
                             <div className="h-24 flex items-center justify-center text-sm text-slate-500">
                               {att.name}
@@ -1210,13 +1369,13 @@ const IncidentReportingPage: React.FC = () => {
                       onChange={(e) => setDraft((p) => ({ ...p, contact: { ...p.contact, phone: e.target.value } }))}
                       disabled={draft.anonymous}
                     />
-                    <input
-                    // className="rounded-xl border border-slate-200 px-4 py-3 text-slate-700"
-                    // placeholder="you@example.com"
-                    // value={draft.contact.email}
-                    // onChange={(e) => setDraft((p) => ({ ...p, contact: { ...p.contact, email: e.target.value } }))}
-                    // disabled={draft.anonymous}
-                    />
+                    {/* <input
+                    className="rounded-xl border border-slate-200 px-4 py-3 text-slate-700"
+                    placeholder="you@example.com"
+                    value={draft.contact.email}
+                    onChange={(e) => setDraft((p) => ({ ...p, contact: { ...p.contact, email: e.target.value } }))}
+                    disabled={draft.anonymous}
+                    /> */}
                   </div>
                   <div className="text-xs text-slate-500 mt-2">
                     Only for responders to ask clarifying questions. Not shared publicly.
@@ -1250,5 +1409,7 @@ const IncidentReportingPage: React.FC = () => {
     </div>
   );
 };
+
+
 
 export default IncidentReportingPage;

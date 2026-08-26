@@ -29,4 +29,25 @@ export default defineConfig({
     host: true, // Allows external access
     port: 5173, // Or your desired port
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom'],
+          'fullcalendar': [
+            '@fullcalendar/core',
+            '@fullcalendar/react',
+            '@fullcalendar/daygrid',
+            '@fullcalendar/timegrid',
+            '@fullcalendar/list',
+            '@fullcalendar/interaction'
+          ],
+          'charts': ['apexcharts', 'react-apexcharts'],
+          'maps': ['leaflet', '@react-jvectormap/core', '@react-jvectormap/world'],
+          'motion': ['framer-motion'],
+          'dnd': ['react-dnd', 'react-dnd-html5-backend']
+        }
+      }
+    }
+  }
 });

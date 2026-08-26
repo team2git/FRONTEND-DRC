@@ -23,6 +23,7 @@ import Footer from "./components/Footer";
 import ServiceExitButton from "./components/ServiceExitButton";
 import { usePortalContent } from "@/hooks/usePortalContent";
 import { resolvePortalAssetUrl } from "@/utils/resolvePortalAssetUrl";
+import { getLocationHierarchy, type LocationHierarchyItem } from "@/api/locationService";
 import { ALERT_CATEGORY_LABELS, ALERT_HAZARD_GROUPS } from "@/constants/alertCategories";
 
 type StepKey = "contact_location" | "preferences" | "household" | "delivery_review";
@@ -38,6 +39,8 @@ type AlertSubscriptionDraft = {
     country: string;
     region: string;
     city: string;
+    subCity: string;
+    woreda: string;
     addressLine: string;
     latitude: string;
     longitude: string;
@@ -72,6 +75,8 @@ const DEFAULT_DRAFT: AlertSubscriptionDraft = {
     country: "",
     region: "",
     city: "",
+    subCity: "",
+    woreda: "",
     addressLine: "",
     latitude: "",
     longitude: "",
@@ -165,6 +170,7 @@ const AlertSubscriptionPage: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [locating, setLocating] = useState(false);
+  const [locationHierarchy, setLocationHierarchy] = useState<LocationHierarchyItem[]>([]);
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.Marker | null>(null);
@@ -172,6 +178,17 @@ const AlertSubscriptionPage: React.FC = () => {
   const showHeader = sectionsVisibility?.header !== false;
   const showFooter = sectionsVisibility?.footer !== false;
   const showContact = sectionsVisibility?.contact !== false;
+
+  useEffect(() => {
+    getLocationHierarchy()
+      .then((data) => setLocationHierarchy(data))
+      .catch(() => {
+        toast.error("Could not load subcities and woredas.");
+      });
+  }, []);
+
+  const selectedSubcity = locationHierarchy.find((item) => item.name === draft.location.subCity);
+  const availableWoredas = selectedSubcity?.woredas ?? [];
 
   const steps = useMemo(
     () =>
@@ -249,6 +266,8 @@ const AlertSubscriptionPage: React.FC = () => {
           country: draft.location.country,
           region: draft.location.region,
           city: draft.location.city,
+          subCity: draft.location.subCity,
+          woreda: draft.location.woreda,
           addressLine: draft.location.addressLine,
           latitude: draft.location.latitude ? Number(draft.location.latitude) : null,
           longitude: draft.location.longitude ? Number(draft.location.longitude) : null,
@@ -348,11 +367,11 @@ const AlertSubscriptionPage: React.FC = () => {
 
   const useCurrentLocation = () => {
     if (!navigator.geolocation) {
-      toast.error("Geolocation is not supported by your browser.");
+      toast.error("Your browser cannot get your location. Please tap the map instead.");
       return;
     }
     if (!window.isSecureContext) {
-      toast.info("GPS requires HTTPS. Tap the map to set your location.");
+      toast.info("Your browser needs a secure page to use your location. Please tap the map instead.");
       return;
     }
     setLocating(true);
@@ -377,18 +396,18 @@ const AlertSubscriptionPage: React.FC = () => {
       (error) => {
         setLocating(false);
         if (error?.code === 1) {
-          toast.info("Location permission denied. Enable access in your browser settings.");
+          toast.info("We need your location to place the pin. Please allow location access in your browser.");
           return;
         }
         if (error?.code === 2) {
-          toast.error("Location unavailable. Check GPS or network.");
+          toast.error("We could not get your location. Please try again or tap the map.");
           return;
         }
         if (error?.code === 3) {
-          toast.error("Location request timed out. Try again.");
+          toast.error("Getting your location took too long. Please try again.");
           return;
         }
-        toast.error("Unable to access your location. Please allow location access.");
+        toast.error("We could not access your location. Please allow location access or tap the map.");
       },
       { enableHighAccuracy: true, timeout: 20000, maximumAge: 60000 }
     );
@@ -624,22 +643,78 @@ const AlertSubscriptionPage: React.FC = () => {
                       <MapPin className="h-5 w-5 text-brand-600" />
                       Primary Residence
                     </div>
-                    <label className="text-sm text-slate-600 block mt-4">
-                      Address
-                      <input
-                        className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 outline-none text-slate-700"
-                        value={draft.location.addressLine}
-                        onChange={(e) =>
-                          setDraft((p) => ({ ...p, location: { ...p.location, addressLine: e.target.value } }))
-                        }
-                        placeholder="123 Main Street, City, State ZIP"
-                      />
-                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                      <label className="text-sm text-slate-600 block">
+                        City
+                        <input
+                          className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 outline-none text-slate-700"
+                          value={draft.location.city}
+                          onChange={(e) =>
+                            setDraft((p) => ({ ...p, location: { ...p.location, city: e.target.value } }))
+                          }
+                          placeholder="City"
+                        />
+                      </label>
+                      <label className="text-sm text-slate-600 block">
+                        Sub City
+                        <select
+                          className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 outline-none text-slate-700 bg-white"
+                          value={draft.location.subCity}
+                          onChange={(e) => {
+                            const nextSubCity = e.target.value;
+                            setDraft((p) => ({
+                              ...p,
+                              location: {
+                                ...p.location,
+                                subCity: nextSubCity,
+                                woreda: nextSubCity ? p.location.woreda : "",
+                              },
+                            }));
+                          }}
+                        >
+                          <option value="">Select subcity</option>
+                          {locationHierarchy.map((item) => (
+                            <option key={item._id || item.name} value={item.name}>
+                              {item.name}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="text-sm text-slate-600 block">
+                        Woreda
+                        <select
+                          className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 outline-none text-slate-700 bg-white disabled:bg-slate-100 disabled:text-slate-400"
+                          value={draft.location.woreda}
+                          onChange={(e) =>
+                            setDraft((p) => ({ ...p, location: { ...p.location, woreda: e.target.value } }))
+                          }
+                          disabled={!draft.location.subCity || availableWoredas.length === 0}
+                        >
+                          <option value="">{draft.location.subCity ? "Select woreda" : "Select subcity first"}</option>
+                          {availableWoredas.map((woreda) => (
+                            <option key={woreda._id || woreda.name} value={woreda.name}>
+                              {woreda.name}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="text-sm text-slate-600 block">
+                        Address / Street
+                        <input
+                          className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 outline-none text-slate-700"
+                          value={draft.location.addressLine}
+                          onChange={(e) =>
+                            setDraft((p) => ({ ...p, location: { ...p.location, addressLine: e.target.value } }))
+                          }
+                          placeholder="123 Main Street"
+                        />
+                      </label>
+                    </div>
                     <div className="mt-4 rounded-2xl border border-dashed border-slate-300 overflow-hidden">
                       <div ref={mapContainerRef} className="h-56 w-full cursor-crosshair" />
                       <div className="px-4 py-3 text-center text-sm text-slate-500 bg-gradient-to-r from-brand-50 to-accent-50">
-                        Click to drop pin on map
-                        <div className="text-xs text-slate-400">Use GPS or tap on the map to set your exact point</div>
+                        Tap to place your pin
+                        <div className="text-xs text-slate-400">Use your location or tap the map to set the exact point</div>
                       </div>
                     </div>
                     <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">

@@ -83,13 +83,19 @@ export default function EmergencyContacts() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<ContactFormState>(emptyForm);
+  const [globalWarning, setGlobalWarning] = useState("");
+  const [savingWarning, setSavingWarning] = useState(false);
 
   const loadContacts = async () => {
     setLoading(true);
     try {
-      const response = await emergencyContactService.list(searchTerm.trim(), regionFilter);
+      const [response, warningResponse] = await Promise.all([
+        emergencyContactService.list(searchTerm.trim(), regionFilter),
+        emergencyContactService.getGlobalWarning().catch(() => ({ warningMessage: "" })),
+      ]);
       setContacts(response.contacts || []);
       setAvailableRegions(response.availableRegions || []);
+      setGlobalWarning(warningResponse.warningMessage || "");
     } catch (error) {
       console.error("Failed to load emergency contacts", error);
       toast.error("Failed to load emergency contacts");
@@ -128,6 +134,19 @@ export default function EmergencyContacts() {
       return haystack.includes(term);
     });
   }, [contacts, regionFilter, searchTerm]);
+
+  const handleSaveWarning = async () => {
+    setSavingWarning(true);
+    try {
+      await emergencyContactService.updateGlobalWarning(globalWarning);
+      toast.success("Global warning updated");
+    } catch (error) {
+      console.error("Failed to update global warning", error);
+      toast.error("Failed to update global warning");
+    } finally {
+      setSavingWarning(false);
+    }
+  };
 
   const openCreateForm = () => {
     setEditingId(null);
@@ -233,6 +252,35 @@ export default function EmergencyContacts() {
                 Add contact
               </Button>
             </div>
+          </div>
+        </div>
+
+        <div className="rounded-[28px] border border-red-200 bg-red-50/30 p-5 shadow-sm dark:border-red-900/50 dark:bg-red-900/10 sm:p-6">
+          <div className="mb-4">
+            <h4 className="flex items-center gap-2 text-lg font-bold text-red-700 dark:text-red-400">
+              <ShieldAlert className="h-5 w-5" />
+              Global Emergency Warning
+            </h4>
+            <p className="mt-1 text-sm text-red-600/80 dark:text-red-400/80">
+              Post a temporary warning message that will be displayed at the top of the public emergency directory (e.g. "911 is currently overloaded, please use alternate numbers").
+            </p>
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+            <div className="flex-1">
+              <textarea
+                className={`${inputClass} min-h-12 resize-y border-red-200 bg-white focus:border-red-400 focus:ring-red-200 dark:border-red-900/50 dark:bg-gray-900`}
+                value={globalWarning}
+                onChange={(e) => setGlobalWarning(e.target.value)}
+                placeholder="Enter warning message (leave blank to remove)"
+              />
+            </div>
+            <Button
+              onClick={handleSaveWarning}
+              disabled={savingWarning}
+              className="bg-red-600 hover:bg-red-700 text-white border-transparent w-full sm:w-auto"
+            >
+              {savingWarning ? "Saving..." : "Post Warning"}
+            </Button>
           </div>
         </div>
 

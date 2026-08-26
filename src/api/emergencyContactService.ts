@@ -12,6 +12,7 @@ export type EmergencyContact = {
   regions?: string[];
   addressLine?: string;
   availabilityText?: string;
+  emergencyWarning?: string;
   sortOrder?: number;
   isActive: boolean;
   createdAt?: string;
@@ -27,6 +28,7 @@ export type EmergencyDirectoryResponse = {
   };
   helperText: string;
   crisisText: string;
+  warningMessage: string;
   region: string;
   availableRegions: string[];
   contacts: EmergencyContact[];
@@ -37,6 +39,16 @@ export const emergencyContactService = {
     const response = await api.get<EmergencyDirectoryResponse>("/emergency-contacts/public", {
       params: region ? { region } : undefined,
     });
+    return response.data;
+  },
+
+  async getGlobalWarning() {
+    const response = await api.get<{ warningMessage: string }>("/emergency-contacts/warning");
+    return response.data;
+  },
+
+  async updateGlobalWarning(warningMessage: string) {
+    const response = await api.put<{ warningMessage: string }>("/emergency-contacts/warning", { warningMessage });
     return response.data;
   },
 
