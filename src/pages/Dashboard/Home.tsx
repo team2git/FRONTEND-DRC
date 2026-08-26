@@ -14,7 +14,8 @@ import {
   AlertTriangle, Map as MapIcon, RefreshCw,
   Shield, BarChart3, Users, Building2,
   Filter, FileText, Activity, AlertCircle, CheckCircle2, Clock, Flame,
-  HeartPulse, Sparkles, TrendingUp, ShieldCheck, ShieldAlert
+  HeartPulse, Sparkles, TrendingUp, ShieldCheck, ShieldAlert,
+  MapPin, Bell, Zap, ChevronDown, ChevronUp, X, SlidersHorizontal, UserCheck, Layers, TableProperties
 } from 'lucide-react';
 import { RiskMatrix } from '../../components/dashboard/RiskMatrix';
 import { DRMReportModal } from '../../components/dashboard/DRMReportModal';
@@ -44,29 +45,60 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Filters State
-  const [filterYear, setFilterYear] = useState('2025/26');
+  // Filters State - Hidden by default
+  const [showFilters, setShowFilters] = useState(false);
+  const [filterUser, setFilterUser] = useState('');
+  const [filterSubcity, setFilterSubcity] = useState('');
   const [filterWoreda, setFilterWoreda] = useState('');
   const [filterHazard, setFilterHazard] = useState('');
   const [filterRiskLevel, setFilterRiskLevel] = useState('');
-  const [filterStatus] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
+  const [filterYear, setFilterYear] = useState('2025/26');
 
   // Report Modal State
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
+  // Disaster history table toggle (hidden by default)
+  const [showDisasterTable, setShowDisasterTable] = useState(false);
+
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
+
+  // Calculate active filter count
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (filterUser) count++;
+    if (filterSubcity) count++;
+    if (filterWoreda) count++;
+    if (filterHazard) count++;
+    if (filterRiskLevel) count++;
+    if (filterStatus) count++;
+    if (filterYear && filterYear !== '2025/26' && filterYear !== 'all') count++;
+    return count;
+  }, [filterUser, filterSubcity, filterWoreda, filterHazard, filterRiskLevel, filterStatus, filterYear]);
+
+  const handleClearAllFilters = () => {
+    setFilterUser('');
+    setFilterSubcity('');
+    setFilterWoreda('');
+    setFilterHazard('');
+    setFilterRiskLevel('');
+    setFilterStatus('');
+    setFilterYear('2025/26');
+  };
 
   const fetchData = async () => {
     try {
       setLoading(true);
-      const params = {
-        year: filterYear,
-        woreda: filterWoreda,
-        hazard: filterHazard,
-        riskLevel: filterRiskLevel,
-        status: filterStatus,
-      };
+      const params: Record<string, any> = {};
+      if (filterYear && filterYear !== 'all') params.year = filterYear;
+      if (filterUser) params.user = filterUser;
+      if (filterSubcity) params.subcity = filterSubcity;
+      if (filterWoreda) params.woreda = filterWoreda;
+      if (filterHazard) params.hazard = filterHazard;
+      if (filterRiskLevel) params.riskLevel = filterRiskLevel;
+      if (filterStatus) params.status = filterStatus;
+
       const statsData = await getDashboardStats(params);
       setStats(statsData);
       setError(null);
@@ -80,7 +112,7 @@ export default function Home() {
 
   useEffect(() => {
     fetchData();
-  }, [filterYear, filterWoreda, filterHazard, filterRiskLevel, filterStatus]);
+  }, [filterUser, filterSubcity, filterWoreda, filterHazard, filterRiskLevel, filterStatus, filterYear]);
 
   // Build Woreda risk lookup for Leaflet GIS map directly from stats.woredaRankings
   const subcityRiskMap = useMemo(() => {
@@ -183,16 +215,39 @@ export default function Home() {
   };
   const hazardDistSeries = (stats?.hazardAnalysis || []).map(h => h.affectedPop);
 
+  // Sort disaster history by year ascending (for both chart & table)
+  const sortedDisasterHistory = [...(stats?.disasterHistory || [])].sort((a, b) => a.year - b.year);
+
+  // Aggregate per unique year so each year appears only once on the trend x-axis
+  type YearAgg = { affected: number; displaced: number; deaths: number; injuries: number; housesDamaged: number };
+  const disasterByYear = sortedDisasterHistory.reduce<Record<number, YearAgg>>((acc, d) => {
+    if (!acc[d.year]) acc[d.year] = { affected: 0, displaced: 0, deaths: 0, injuries: 0, housesDamaged: 0 };
+    acc[d.year].affected     += d.affected      ?? 0;
+    acc[d.year].displaced    += d.displaced     ?? 0;
+    acc[d.year].deaths       += d.deaths        ?? 0;
+    acc[d.year].injuries     += d.injuries      ?? 0;
+    acc[d.year].housesDamaged += d.housesDamaged ?? 0;
+    return acc;
+  }, {});
+  const disasterYears = Object.keys(disasterByYear).map(Number).sort((a, b) => a - b);
+
   const disasterTrendOptions: ApexOptions = {
     chart: { type: 'area', fontFamily: 'Outfit, sans-serif', toolbar: { show: false } },
-    colors: ['#C8102E', '#3b82f6'],
-    stroke: { curve: 'smooth', width: 3 },
-    xaxis: { categories: (stats?.disasterHistory || []).map(d => d.year.toString()) },
+    colors: ['#C8102E', '#3b82f6', '#f59e0b', '#10b981', '#8b5cf6'],
+    stroke: { curve: 'smooth', width: 2.5 },
+    fill: { type: 'gradient', gradient: { opacityFrom: 0.25, opacityTo: 0.02 } },
+    xaxis: { categories: disasterYears.map(String) },
+    yaxis: { labels: { formatter: (v: number) => v >= 1000 ? `${(v / 1000).toFixed(1)}k` : `${v}` } },
+    legend: { position: 'top', horizontalAlign: 'right', fontSize: '11px', fontWeight: 700 },
+    tooltip: { shared: true, intersect: false },
     grid: { borderColor: '#f1f5f9' }
   };
   const disasterTrendSeries = [
-    { name: 'People Affected', data: (stats?.disasterHistory || []).map(d => d.affected) },
-    { name: 'People Displaced', data: (stats?.disasterHistory || []).map(d => d.displaced) },
+    { name: 'People Affected',  data: disasterYears.map(y => disasterByYear[y].affected) },
+    { name: 'People Displaced', data: disasterYears.map(y => disasterByYear[y].displaced) },
+    { name: 'Deaths',           data: disasterYears.map(y => disasterByYear[y].deaths) },
+    { name: 'Injuries',         data: disasterYears.map(y => disasterByYear[y].injuries) },
+    { name: 'Damaged Houses',   data: disasterYears.map(y => disasterByYear[y].housesDamaged) },
   ];
 
   if (loading) {
@@ -230,7 +285,7 @@ export default function Home() {
         description="Decision-oriented Woreda Disaster Risk Management Dashboard"
       />
 
-      <div className="space-y-6">
+      <div className="space-y-6 w-full min-w-0">
         {/* ─── 1. WOREDA PROFILE HEADER BAR ────────────────────────────────────── */}
         <div className="bg-white dark:bg-slate-900/80 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 md:p-6 shadow-sm">
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 pb-5 border-b border-slate-100 dark:border-slate-800">
@@ -250,13 +305,33 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto justify-between lg:justify-end">
+            <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto justify-between lg:justify-end">
               <div className="text-right hidden sm:block">
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
                   <CheckCircle2 className="w-3.5 h-3.5" /> {header?.dataStatus || 'Verified Data'}
                 </span>
                 <p className="text-[10px] text-slate-400 mt-1 font-medium">Period: {header?.reportingPeriod} | Updated: {new Date(header?.lastDataUpdate || '').toLocaleDateString()}</p>
               </div>
+
+              {/* Filter Toggle Button */}
+              <button
+                onClick={() => setShowFilters(prev => !prev)}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-extrabold transition active:scale-95 border ${
+                  showFilters || activeFilterCount > 0
+                    ? 'bg-slate-900 text-white border-slate-900 dark:bg-slate-100 dark:text-slate-900 dark:border-white shadow-md'
+                    : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700 hover:border-slate-300'
+                }`}
+                title="Toggle Dashboard Filters"
+              >
+                <Filter className={`w-4 h-4 ${showFilters || activeFilterCount > 0 ? 'text-[#C8102E]' : 'text-slate-500'}`} />
+                <span>Filters</span>
+                {activeFilterCount > 0 && (
+                  <span className="px-1.5 py-0.5 rounded-full text-[10px] font-black bg-[#C8102E] text-white leading-none">
+                    {activeFilterCount}
+                  </span>
+                )}
+                {showFilters ? <ChevronUp className="w-3.5 h-3.5 ml-0.5 opacity-70" /> : <ChevronDown className="w-3.5 h-3.5 ml-0.5 opacity-70" />}
+              </button>
 
               <button
                 onClick={() => setIsReportModalOpen(true)}
@@ -267,79 +342,263 @@ export default function Home() {
 
               <button
                 onClick={fetchData}
-                className="p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-500 hover:text-[#C8102E] transition active:scale-95"
+                className="p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-500 hover:text-[#C8102E] transition active:scale-95 hover:bg-slate-50 dark:hover:bg-slate-800"
                 title="Refresh Data"
               >
-                <RefreshCw className="w-4 h-4" />
+                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-[#C8102E]' : ''}`} />
               </button>
             </div>
           </div>
 
-          {/* Interactive Filters Bar */}
-          <div className="pt-4 flex flex-wrap items-center gap-3">
-            <span className="text-xs font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1">
-              <Filter className="w-3.5 h-[#C8102E]" /> Filters:
-            </span>
+          {/* ─── EXPANDABLE FILTER PANEL ────────────────────────────────────── */}
+          {showFilters && (
+            <div className="pt-5 border-t border-slate-100 dark:border-slate-800 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 bg-[#C8102E]/10 rounded-lg text-[#C8102E]">
+                    <SlidersHorizontal className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-extrabold text-slate-800 dark:text-slate-200">
+                      Dashboard Filter Controls
+                    </h3>
+                    <p className="text-[11px] text-slate-400">
+                      Modifying any filter below updates the whole dashboard report, map, KPIs, and charts in real time.
+                    </p>
+                  </div>
+                </div>
 
-            {/* Reporting Year */}
-            <select
-              value={filterYear}
-              onChange={e => setFilterYear(e.target.value)}
-              className="text-xs font-semibold rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-2 text-slate-700 dark:text-slate-300"
-            >
-              <option value="2025/26">Year: 2025/26</option>
-              <option value="2024/25">Year: 2024/25</option>
-              <option value="2023/24">Year: 2023/24</option>
-            </select>
+                {activeFilterCount > 0 && (
+                  <button
+                    onClick={handleClearAllFilters}
+                    className="flex items-center gap-1 text-xs font-bold text-[#C8102E] hover:text-red-700 transition px-2.5 py-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30"
+                  >
+                    <X className="w-3.5 h-3.5" /> Clear All Filters ({activeFilterCount})
+                  </button>
+                )}
+              </div>
 
-            {/* Woreda Filter */}
-            <select
-              value={filterWoreda}
-              onChange={e => setFilterWoreda(e.target.value)}
-              className="text-xs font-semibold rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-2 text-slate-700 dark:text-slate-300"
-            >
-              <option value="">All Woredas</option>
-              {rankings.map(k => (
-                <option key={k.name} value={k.name}>{k.subcity ? `${k.subcity} — ${k.name}` : k.name} ({k.level})</option>
-              ))}
-            </select>
+              {/* Filters Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-3">
+                {/* 1. User / Assessor Filter */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                    <UserCheck className="w-3 h-3 text-[#C8102E]" /> User / Assessor
+                  </label>
+                  <select
+                    value={filterUser}
+                    onChange={e => setFilterUser(e.target.value)}
+                    className="w-full text-xs font-semibold rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-2.5 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-[#C8102E]/20 focus:border-[#C8102E] outline-none transition"
+                  >
+                    <option value="">All Users / Assessors</option>
+                    {(stats?.filterOptions?.users || []).map(u => (
+                      <option key={u.id} value={u.id}>
+                        {u.name} {u.role ? `(${u.role})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-            {/* Hazard Type */}
-            <select
-              value={filterHazard}
-              onChange={e => setFilterHazard(e.target.value)}
-              className="text-xs font-semibold rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-2 text-slate-700 dark:text-slate-300"
-            >
-              <option value="">All Hazards</option>
-              <option value="Flood">Flood</option>
-              <option value="Fire">Fire</option>
-              <option value="Landslide">Landslide</option>
-              <option value="Epidemic">Epidemic</option>
-              <option value="Drought">Drought</option>
-            </select>
+                {/* 2. Subcity Filter */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                    <MapPin className="w-3 h-3 text-[#C8102E]" /> Subcity
+                  </label>
+                  <select
+                    value={filterSubcity}
+                    onChange={e => setFilterSubcity(e.target.value)}
+                    className="w-full text-xs font-semibold rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-2.5 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-[#C8102E]/20 focus:border-[#C8102E] outline-none transition"
+                  >
+                    <option value="">All Subcities</option>
+                    {(stats?.filterOptions?.subcities || [
+                      'Addis Ketema', 'Akaky Kaliti', 'Arada', 'Bole', 'Gullele',
+                      'Kirkos', 'Kolfe Keranio', 'Lideta', 'Nifas Silk-Lafto', 'Yeka', 'Lemi Kura'
+                    ]).map(sc => (
+                      <option key={sc} value={sc}>{sc}</option>
+                    ))}
+                  </select>
+                </div>
 
-            {/* Risk Level */}
-            <select
-              value={filterRiskLevel}
-              onChange={e => setFilterRiskLevel(e.target.value)}
-              className="text-xs font-semibold rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-2 text-slate-700 dark:text-slate-300"
-            >
-              <option value="">All Risk Levels</option>
-              <option value="Very High">Very High</option>
-              <option value="High">High</option>
-              <option value="Medium">Medium</option>
-              <option value="Low">Low</option>
-            </select>
+                {/* 3. Woreda Filter */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                    <Layers className="w-3 h-3 text-[#C8102E]" /> Woreda Unit
+                  </label>
+                  <select
+                    value={filterWoreda}
+                    onChange={e => setFilterWoreda(e.target.value)}
+                    className="w-full text-xs font-semibold rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-2.5 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-[#C8102E]/20 focus:border-[#C8102E] outline-none transition"
+                  >
+                    <option value="">All Woredas</option>
+                    {(stats?.allWoredaRankings || stats?.woredaRankings || rankings || []).map(k => (
+                      <option key={k.name} value={k.name}>
+                        {k.subcity ? `${k.subcity} — ${k.name}` : k.name} ({k.level || 'Risk'})
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-            {(filterWoreda || filterHazard || filterRiskLevel) && (
-              <button
-                onClick={() => { setFilterWoreda(''); setFilterHazard(''); setFilterRiskLevel(''); }}
-                className="text-xs font-bold text-[#C8102E] hover:underline"
-              >
-                Clear Filters
-              </button>
-            )}
-          </div>
+                {/* 4. Hazard Type Filter */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                    <Flame className="w-3 h-3 text-[#C8102E]" /> Hazard Type
+                  </label>
+                  <select
+                    value={filterHazard}
+                    onChange={e => setFilterHazard(e.target.value)}
+                    className="w-full text-xs font-semibold rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-2.5 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-[#C8102E]/20 focus:border-[#C8102E] outline-none transition"
+                  >
+                    <option value="">All Hazards</option>
+                    {(stats?.filterOptions?.hazards || ['Flood', 'Fire', 'Landslide', 'Epidemic', 'Drought', 'Earthquake', 'Storm / Wind', 'Building Collapse']).map(h => (
+                      <option key={h} value={h}>{h}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* 5. Risk Level Filter */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                    <ShieldAlert className="w-3 h-3 text-[#C8102E]" /> Risk Level
+                  </label>
+                  <select
+                    value={filterRiskLevel}
+                    onChange={e => setFilterRiskLevel(e.target.value)}
+                    className="w-full text-xs font-semibold rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-2.5 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-[#C8102E]/20 focus:border-[#C8102E] outline-none transition"
+                  >
+                    <option value="">All Risk Levels</option>
+                    <option value="Very High">Very High (8.0+)</option>
+                    <option value="High">High (6.5 - 7.9)</option>
+                    <option value="Medium">Medium (4.0 - 6.4)</option>
+                    <option value="Low">Low (0.0 - 3.9)</option>
+                  </select>
+                </div>
+
+                {/* 6. Reporting Fiscal Year */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                    <Clock className="w-3 h-3 text-[#C8102E]" /> Reporting Year
+                  </label>
+                  <select
+                    value={filterYear}
+                    onChange={e => setFilterYear(e.target.value)}
+                    className="w-full text-xs font-semibold rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-2.5 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-[#C8102E]/20 focus:border-[#C8102E] outline-none transition"
+                  >
+                    <option value="all">All Years</option>
+                    <option value="2025/26">Year: 2025/26</option>
+                    <option value="2024/25">Year: 2024/25</option>
+                    <option value="2023/24">Year: 2023/24</option>
+                    <option value="2022/23">Year: 2022/23</option>
+                  </select>
+                </div>
+
+                {/* 7. Assessment Status */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3 text-[#C8102E]" /> Profile Status
+                  </label>
+                  <select
+                    value={filterStatus}
+                    onChange={e => setFilterStatus(e.target.value)}
+                    className="w-full text-xs font-semibold rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-2.5 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-[#C8102E]/20 focus:border-[#C8102E] outline-none transition"
+                  >
+                    <option value="">All Statuses</option>
+                    <option value="Draft">Draft</option>
+                    <option value="Submitted">Submitted</option>
+                    <option value="Reviewed">Reviewed</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Active Filter Chips */}
+              {activeFilterCount > 0 && (
+                <div className="pt-2 flex flex-wrap items-center gap-2">
+                  <span className="text-[11px] font-bold text-slate-400">Active:</span>
+
+                  {filterUser && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-[#C8102E]/10 text-[#C8102E] border border-[#C8102E]/20">
+                      User: {(stats?.filterOptions?.users || []).find(u => u.id === filterUser)?.name || filterUser}
+                      <button onClick={() => setFilterUser('')} className="hover:text-red-800"><X className="w-3 h-3" /></button>
+                    </span>
+                  )}
+
+                  {filterSubcity && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
+                      Subcity: {filterSubcity}
+                      <button onClick={() => setFilterSubcity('')} className="hover:text-indigo-900"><X className="w-3 h-3" /></button>
+                    </span>
+                  )}
+
+                  {filterWoreda && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800">
+                      Woreda: {filterWoreda}
+                      <button onClick={() => setFilterWoreda('')} className="hover:text-blue-900"><X className="w-3 h-3" /></button>
+                    </span>
+                  )}
+
+                  {filterHazard && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
+                      Hazard: {filterHazard}
+                      <button onClick={() => setFilterHazard('')} className="hover:text-amber-900"><X className="w-3 h-3" /></button>
+                    </span>
+                  )}
+
+                  {filterRiskLevel && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800">
+                      Risk: {filterRiskLevel}
+                      <button onClick={() => setFilterRiskLevel('')} className="hover:text-rose-900"><X className="w-3 h-3" /></button>
+                    </span>
+                  )}
+
+                  {filterStatus && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                      Status: {filterStatus}
+                      <button onClick={() => setFilterStatus('')} className="hover:text-emerald-900"><X className="w-3 h-3" /></button>
+                    </span>
+                  )}
+
+                  {filterYear && filterYear !== '2025/26' && filterYear !== 'all' && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                      Year: {filterYear}
+                      <button onClick={() => setFilterYear('2025/26')} className="hover:text-slate-900"><X className="w-3 h-3" /></button>
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ─── SLIM ACTIVE FILTERS BAR (when panel is collapsed) ──────────── */}
+          {!showFilters && activeFilterCount > 0 && (
+            <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-extrabold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                  <Filter className="w-3.5 h-3.5 text-[#C8102E]" /> Filtered View ({activeFilterCount} active):
+                </span>
+                {filterUser && <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold">User: {(stats?.filterOptions?.users || []).find(u => u.id === filterUser)?.name || filterUser}</span>}
+                {filterSubcity && <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold">{filterSubcity}</span>}
+                {filterWoreda && <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold">{filterWoreda}</span>}
+                {filterHazard && <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold">{filterHazard}</span>}
+                {filterRiskLevel && <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold">{filterRiskLevel} Risk</span>}
+                {filterStatus && <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold">Status: {filterStatus}</span>}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowFilters(true)}
+                  className="font-bold text-indigo-600 dark:text-indigo-400 hover:underline"
+                >
+                  Modify Filters
+                </button>
+                <span className="text-slate-300 dark:text-slate-700">•</span>
+                <button
+                  onClick={handleClearAllFilters}
+                  className="font-bold text-[#C8102E] hover:underline"
+                >
+                  Clear All
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* ─── 2. EXECUTIVE KPI CARDS GRID ──────────────────────────────────────── */}
@@ -464,35 +723,245 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Early Warning Alerts */}
-            <div className="bg-white dark:bg-slate-900/80 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-                  <AlertCircle className="w-5 h-5 text-red-500 animate-pulse" /> Active Early Warning & Disaster Alerts
-                </h3>
-                <span className="text-xs font-bold text-slate-400">{(stats?.activeAlerts || []).length} Active</span>
-              </div>
+            {/* ── Early Warning Alerts: Chart LEFT · Scrolling Cards RIGHT ── */}
+            {(() => {
+              const alerts = stats?.activeAlerts || [];
 
-              <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                {(stats?.activeAlerts || []).map(alert => (
-                  <div key={alert.id} className="py-3.5 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-black px-2 py-0.5 rounded bg-red-500 text-white">{alert.severity}</span>
-                        <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{alert.code} — {alert.title}</span>
-                      </div>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                        Location: <span className="font-bold">{alert.location}</span> | Affected: <span className="font-bold">{alert.affectedPop}</span>
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-xs font-bold text-slate-700 dark:text-slate-300">{alert.action}</p>
-                      <span className="text-[10px] text-slate-400">{alert.responsible}</span>
+              // ── Normalize severity: backend sends ALL_CAPS e.g. 'HIGH', 'MODERATE', 'CRITICAL', 'LOW'
+              const normalizeSev = (s: string) => {
+                const u = (s || '').toUpperCase();
+                if (u === 'CRITICAL') return 'critical';
+                if (u === 'HIGH') return 'high';
+                if (u === 'MODERATE' || u === 'MEDIUM') return 'moderate';
+                return 'low';
+              };
+
+              const sevCfg: Record<string, { bg: string; text: string; border: string; dot: string; bar: string; color: string; icon: typeof Zap; label: string }> = {
+                critical: { bg: 'bg-red-50 dark:bg-red-950/30',     text: 'text-red-700 dark:text-red-400',     border: 'border-red-200 dark:border-red-800',     dot: 'bg-red-500',    bar: 'bg-red-500',    color: '#ef4444', icon: Zap,           label: 'Critical' },
+                high:     { bg: 'bg-orange-50 dark:bg-orange-950/30', text: 'text-orange-700 dark:text-orange-400', border: 'border-orange-200 dark:border-orange-800', dot: 'bg-orange-500', bar: 'bg-orange-500', color: '#f97316', icon: AlertTriangle,  label: 'High' },
+                moderate: { bg: 'bg-amber-50 dark:bg-amber-950/30',   text: 'text-amber-700 dark:text-amber-400',   border: 'border-amber-200 dark:border-amber-800',   dot: 'bg-amber-500',  bar: 'bg-amber-500',  color: '#f59e0b', icon: AlertCircle,   label: 'Moderate' },
+                low:      { bg: 'bg-blue-50 dark:bg-blue-950/30',     text: 'text-blue-700 dark:text-blue-400',     border: 'border-blue-200 dark:border-blue-800',     dot: 'bg-blue-500',   bar: 'bg-blue-500',   color: '#3b82f6', icon: Bell,          label: 'Low' },
+              };
+              const getSev = (s: string) => sevCfg[normalizeSev(s)] || sevCfg['moderate'];
+
+              // ── Chart 1: Report Type (Incident vs Concern)
+              const incidentCount = alerts.filter(a => (a.title || '').toLowerCase().includes('incident') || (a.hazard || '').toLowerCase() !== 'concern').length;
+              const concernCount = alerts.length - incidentCount;
+
+              const typeChartOpts: ApexOptions = {
+                chart: { type: 'donut', fontFamily: 'Outfit, sans-serif', background: 'transparent', animations: { enabled: true, speed: 500 } },
+                colors: ['#C8102E', '#3b82f6'],
+                labels: ['Incident', 'Concern'],
+                legend: { show: false },
+                plotOptions: { pie: { donut: { size: '70%',
+                  labels: { show: true,
+                    total: { show: true, showAlways: true, label: 'Total', fontSize: '10px', fontWeight: 800, fontFamily: 'Outfit, sans-serif', color: '#94a3b8',
+                      formatter: () => `${alerts.length}`,
+                    },
+                    value: { fontSize: '22px', fontWeight: 900, fontFamily: 'Outfit, sans-serif', color: '#0f172a' },
+                  },
+                }}},
+                dataLabels: { enabled: false },
+                stroke: { width: 2, colors: ['#fff'] },
+                tooltip: { style: { fontFamily: 'Outfit, sans-serif' }, y: { formatter: (v: number) => `${v} report${v !== 1 ? 's' : ''}` } },
+              };
+              const typeSeries = [incidentCount || 0, concernCount || 0];
+              const hasTypeData = typeSeries.some(v => v > 0);
+
+              // ── Chart 2: Status breakdown
+              const statusMap: Record<string, { label: string; color: string; dot: string }> = {
+                'Active':     { label: 'Active',     color: '#ef4444', dot: 'bg-red-500' },
+                'Monitoring': { label: 'Monitoring', color: '#f59e0b', dot: 'bg-amber-500' },
+                'Resolved':   { label: 'Resolved',  color: '#10b981', dot: 'bg-emerald-500' },
+              };
+              const statusOrder = ['Active', 'Monitoring', 'Resolved'];
+              const statusCounts = statusOrder.map(s => alerts.filter(a => a.status === s).length);
+              const hasStatusData = statusCounts.some(v => v > 0);
+
+              const statusChartOpts: ApexOptions = {
+                chart: { type: 'donut', fontFamily: 'Outfit, sans-serif', background: 'transparent', animations: { enabled: true, speed: 500 } },
+                colors: ['#ef4444', '#f59e0b', '#10b981'],
+                labels: statusOrder,
+                legend: { show: false },
+                plotOptions: { pie: { donut: { size: '70%',
+                  labels: { show: true,
+                    total: { show: true, showAlways: true, label: 'Status', fontSize: '10px', fontWeight: 800, fontFamily: 'Outfit, sans-serif', color: '#94a3b8',
+                      formatter: () => `${alerts.length}`,
+                    },
+                    value: { fontSize: '22px', fontWeight: 900, fontFamily: 'Outfit, sans-serif', color: '#0f172a' },
+                  },
+                }}},
+                dataLabels: { enabled: false },
+                stroke: { width: 2, colors: ['#fff'] },
+                tooltip: { style: { fontFamily: 'Outfit, sans-serif' }, y: { formatter: (v: number) => `${v} report${v !== 1 ? 's' : ''}` } },
+              };
+
+              // ── Severity row counts (normalized)
+              const sevOrder = ['critical','high','moderate','low'] as const;
+              const sevCounts = sevOrder.map(k => alerts.filter(a => normalizeSev(a.severity) === k).length);
+
+              // Duplicate for seamless scroll
+              const doubled = alerts.length > 0 ? [...alerts, ...alerts] : [];
+
+              return (
+                <div className="bg-white dark:bg-slate-900/80 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+
+                  {/* Header */}
+                  <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 dark:border-slate-800">
+                    <h3 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 text-red-500 animate-pulse flex-shrink-0" />
+                      Active Early Warning &amp; Disaster Alerts
+                    </h3>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {alerts.length > 0 ? (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800">
+                          <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse inline-block" />
+                          {alerts.length} Reports
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                          <CheckCircle2 className="w-3 h-3" /> All Clear
+                        </span>
+                      )}
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
+
+                  {alerts.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-48 gap-3 text-slate-400">
+                      <CheckCircle2 className="w-10 h-10 text-emerald-400" />
+                      <p className="text-sm font-semibold">No active reports at this time.</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 lg:grid-cols-2 h-[400px]">
+
+                      {/* ════ LEFT: Two mini charts + severity rows ════ */}
+                      <div className="flex flex-col gap-3 p-4 border-b lg:border-b-0 lg:border-r border-slate-100 dark:border-slate-800 overflow-y-auto no-scrollbar">
+
+                        {/* ── Row: two donut charts side by side ── */}
+                        <div className="grid grid-cols-2 gap-2">
+
+                          {/* Type chart */}
+                          <div className="flex flex-col items-center bg-slate-50 dark:bg-slate-800/40 rounded-xl p-2">
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Report Type</p>
+                            {hasTypeData ? (
+                              <Chart options={typeChartOpts} series={typeSeries} type="donut" width={140} height={140} />
+                            ) : (
+                              <div className="w-[140px] h-[140px] flex items-center justify-center text-slate-300 text-[10px]">No data</div>
+                            )}
+                            <div className="flex gap-3 mt-1">
+                              <span className="flex items-center gap-1 text-[9px] font-bold text-slate-500"><span className="w-2 h-2 rounded-full bg-[#C8102E] inline-block" />Incident {incidentCount}</span>
+                              <span className="flex items-center gap-1 text-[9px] font-bold text-slate-500"><span className="w-2 h-2 rounded-full bg-blue-500 inline-block" />Concern {concernCount}</span>
+                            </div>
+                          </div>
+
+                          {/* Status chart */}
+                          <div className="flex flex-col items-center bg-slate-50 dark:bg-slate-800/40 rounded-xl p-2">
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Status</p>
+                            {hasStatusData ? (
+                              <Chart options={statusChartOpts} series={statusCounts} type="donut" width={140} height={140} />
+                            ) : (
+                              <div className="w-[140px] h-[140px] flex items-center justify-center text-slate-300 text-[10px]">No data</div>
+                            )}
+                            <div className="flex flex-col gap-0.5 mt-1 w-full px-1">
+                              {statusOrder.map((s, i) => (
+                                <span key={s} className="flex items-center gap-1 text-[9px] font-bold text-slate-500">
+                                  <span className={`w-2 h-2 rounded-full inline-block ${statusMap[s].dot}`} />{s} <span className="ml-auto font-black text-slate-700 dark:text-slate-300">{statusCounts[i]}</span>
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* ── Severity breakdown rows ── */}
+                        <div className="bg-slate-50 dark:bg-slate-800/40 rounded-xl p-3 space-y-2">
+                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Severity Level</p>
+                          {sevOrder.map((k, i) => {
+                            const cnt = sevCounts[i];
+                            const cfg = sevCfg[k];
+                            const pct = alerts.length > 0 ? Math.round((cnt / alerts.length) * 100) : 0;
+                            return (
+                              <div key={k} className="flex items-center gap-2">
+                                <cfg.icon className={`w-3 h-3 flex-shrink-0 ${cfg.text}`} />
+                                <span className={`text-[10px] font-bold w-16 flex-shrink-0 ${cfg.text}`}>{cfg.label}</span>
+                                <div className="flex-1 h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                  <div className={`h-full rounded-full ${cfg.bar}`} style={{ width: `${pct}%` }} />
+                                </div>
+                                <span className="text-[10px] font-black text-slate-700 dark:text-slate-300 w-5 text-right tabular-nums">{cnt}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* ════ RIGHT: Scrolling Alert Cards Ticker ════ */}
+                      <div className="relative h-full overflow-hidden">
+                        {/* fade masks */}
+                        <div className="absolute top-0 left-0 right-0 h-10 bg-gradient-to-b from-white dark:from-slate-900 to-transparent z-10 pointer-events-none" />
+                        <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-white dark:from-slate-900 to-transparent z-10 pointer-events-none" />
+
+                        {/* Scrolling list */}
+                        <div
+                          className="animate-scroll-down flex flex-col pt-2"
+                          style={{ animationDuration: `${Math.max(12, alerts.length * 5)}s` }}
+                        >
+                          {doubled.map((alert, idx) => {
+                            const cfg = getSev(alert.severity);
+                            const SevIcon = cfg.icon;
+                            const isIncident = !(alert.title || '').toLowerCase().includes('concern');
+                            return (
+                              <div
+                                key={`${alert.id}-${idx}`}
+                                className={`mx-3 my-1.5 rounded-xl border ${cfg.border} ${cfg.bg} p-3 flex flex-col gap-1.5 cursor-default select-none`}
+                              >
+                                {/* Top: type badge + severity + code + status */}
+                                <div className="flex items-center justify-between gap-2 flex-wrap">
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8px] font-black uppercase ${isIncident ? 'bg-[#C8102E]/10 text-[#C8102E]' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'}`}>
+                                      {isIncident ? <Flame className="w-2 h-2" /> : <Bell className="w-2 h-2" />}
+                                      {isIncident ? 'Incident' : 'Concern'}
+                                    </span>
+                                    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-black border ${cfg.bg} ${cfg.text} ${cfg.border}`}>
+                                      <SevIcon className="w-2.5 h-2.5" />
+                                      {cfg.label}
+                                    </span>
+                                    <span className="text-[8px] font-mono font-black text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">
+                                      {alert.code}
+                                    </span>
+                                  </div>
+                                  <span className={`text-[8px] font-black px-2 py-0.5 rounded-full flex-shrink-0 ${
+                                    alert.status === 'Active'     ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
+                                    alert.status === 'Monitoring' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
+                                    'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+                                  }`}>{alert.status}</span>
+                                </div>
+
+                                {/* Title */}
+                                <p className={`text-xs font-bold leading-snug ${cfg.text}`}>{alert.title}</p>
+
+                                {/* Meta */}
+                                <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] text-slate-500 dark:text-slate-400">
+                                  <span className="flex items-center gap-1">
+                                    <MapPin className="w-2.5 h-2.5 flex-shrink-0" />
+                                    <span className="font-semibold text-slate-700 dark:text-slate-300">{alert.location}</span>
+                                  </span>
+                                  <span className="flex items-center gap-1">
+                                    <Activity className="w-2.5 h-2.5 flex-shrink-0" />
+                                    <span className="font-semibold text-slate-700 dark:text-slate-300">{alert.action}</span>
+                                  </span>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
+
           </div>
         )}
 
@@ -671,49 +1140,77 @@ export default function Home() {
             </div>
 
             <div className="bg-white dark:bg-slate-900/80 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-4">
-              <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Activity className="w-5 h-5 text-rose-500" /> Registered Historical Disaster Events
-              </h3>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-slate-200 dark:border-slate-800 text-[11px] font-black text-slate-400 uppercase tracking-wider">
-                      <th className="p-3">Year</th>
-                      <th className="p-3">Hazard</th>
-                      <th className="p-3">Location</th>
-                      <th className="p-3 text-right">Affected</th>
-                      <th className="p-3 text-right">Displaced</th>
-                      <th className="p-3 text-right">Deaths</th>
-                      <th className="p-3 text-right">Injuries</th>
-                      <th className="p-3 text-right">Damaged Houses</th>
-                      <th className="p-3">Infra Damage</th>
-                      <th className="p-3 text-right">Est. Loss (ETB)</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300">
-                    {(stats?.disasterHistory || []).length === 0 ? (
-                      <tr>
-                        <td colSpan={10} className="p-6 text-center text-slate-400">No historical disaster records registered in MongoDB yet.</td>
-                      </tr>
-                    ) : (
-                      (stats?.disasterHistory || []).map((dh, idx) => (
-                        <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
-                          <td className="p-3 font-bold">{dh.year}</td>
-                          <td className="p-3 font-black text-slate-900 dark:text-white">{dh.hazard}</td>
-                          <td className="p-3">{dh.location}</td>
-                          <td className="p-3 text-right font-mono">{dh.affected?.toLocaleString()}</td>
-                          <td className="p-3 text-right font-mono">{dh.displaced?.toLocaleString()}</td>
-                          <td className="p-3 text-right font-mono text-rose-600 font-bold">{dh.deaths?.toLocaleString() || 0}</td>
-                          <td className="p-3 text-right font-mono">{dh.injuries?.toLocaleString() || 0}</td>
-                          <td className="p-3 text-right font-mono">{dh.housesDamaged?.toLocaleString() || 0}</td>
-                          <td className="p-3">{dh.infraDamaged || '—'}</td>
-                          <td className="p-3 text-right font-mono font-bold text-[#C8102E]">{dh.lossETB}</td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+              <div className="flex items-center justify-between">
+                <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <Activity className="w-5 h-5 text-rose-500" /> Registered Historical Disaster Events
+                </h3>
+                {sortedDisasterHistory.length > 0 && (
+                  <button
+                    onClick={() => setShowDisasterTable(prev => !prev)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all border ${
+                      showDisasterTable
+                        ? 'bg-slate-900 text-white border-slate-900 dark:bg-slate-100 dark:text-slate-900'
+                        : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
+                    }`}
+                  >
+                    <TableProperties className="w-3.5 h-3.5" />
+                    {showDisasterTable ? 'Hide' : 'Show'} Events Table
+                    {showDisasterTable
+                      ? <ChevronUp className="w-3.5 h-3.5" />
+                      : <ChevronDown className="w-3.5 h-3.5" />
+                    }
+                  </button>
+                )}
               </div>
+
+              {showDisasterTable && (
+                <div className="overflow-x-auto animate-in fade-in slide-in-from-top-2 duration-200">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-slate-200 dark:border-slate-800 text-[11px] font-black text-slate-400 uppercase tracking-wider">
+                        <th className="p-3">Year</th>
+                        <th className="p-3">Hazard</th>
+                        <th className="p-3">Location</th>
+                        <th className="p-3 text-right">Affected</th>
+                        <th className="p-3 text-right">Displaced</th>
+                        <th className="p-3 text-right">Deaths</th>
+                        <th className="p-3 text-right">Injuries</th>
+                        <th className="p-3 text-right">Damaged Houses</th>
+                        <th className="p-3">Infra Damage</th>
+                        <th className="p-3 text-right">Est. Loss (ETB)</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                      {sortedDisasterHistory.length === 0 ? (
+                        <tr>
+                          <td colSpan={10} className="p-6 text-center text-slate-400">No historical disaster records registered in MongoDB yet.</td>
+                        </tr>
+                      ) : (
+                        sortedDisasterHistory.map((dh, idx) => (
+                          <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                            <td className="p-3 font-bold">{dh.year}</td>
+                            <td className="p-3 font-black text-slate-900 dark:text-white">{dh.hazard}</td>
+                            <td className="p-3">{dh.location}</td>
+                            <td className="p-3 text-right font-mono">{dh.affected?.toLocaleString()}</td>
+                            <td className="p-3 text-right font-mono">{dh.displaced?.toLocaleString()}</td>
+                            <td className="p-3 text-right font-mono text-rose-600 font-bold">{dh.deaths?.toLocaleString() || 0}</td>
+                            <td className="p-3 text-right font-mono">{dh.injuries?.toLocaleString() || 0}</td>
+                            <td className="p-3 text-right font-mono">{dh.housesDamaged?.toLocaleString() || 0}</td>
+                            <td className="p-3">{dh.infraDamaged || '—'}</td>
+                            <td className="p-3 text-right font-mono font-bold text-[#C8102E]">{dh.lossETB}</td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {!showDisasterTable && sortedDisasterHistory.length > 0 && (
+                <p className="text-xs text-slate-400 text-center py-2">
+                  {sortedDisasterHistory.length} event{sortedDisasterHistory.length !== 1 ? 's' : ''} recorded — click "Show Events Table" to view details.
+                </p>
+              )}
             </div>
           </div>
         )}

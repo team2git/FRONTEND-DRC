@@ -205,8 +205,8 @@ export const DetailView: React.FC<{ profile: WProfile; onClose: () => void }> = 
                                             {[
                                                 { label: 'Sub-city', value: profile.location.subcity },
                                                 { label: 'Woreda', value: profile.location.woreda },
-                                                { label: 'Kebele', value: profile.location.kebele },
                                                 { label: 'Block', value: profile.location.block },
+                                                { label: 'House No', value: profile.location.house_no },
                                                 { label: 'Status', value: profile.status, isBadge: true }
                                             ].map((item, i) => (
                                                 <div key={i} className="flex justify-between items-center py-2.5 border-b border-slate-50 last:border-0 col-span-2 sm:col-span-1">

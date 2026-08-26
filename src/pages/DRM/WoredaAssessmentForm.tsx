@@ -9,10 +9,12 @@ import {
 import { toast } from 'react-toastify';
 import {
     type WoredaAssessmentInput,
-    createWoredaAssessment, updateWoredaAssessment, getWoredaAssessments
+    createWoredaAssessment, updateWoredaAssessment, getWoredaAssessments,
+    checkWoredaAssessmentHouseNo
 } from '../../api/woredaProfileService';
 import { getLocationHierarchy, type LocationHierarchyItem } from '../../api/locationService';
 import { HAZARD_TYPES } from './woreda-profile/constants';
+import { DuplicateHousePromptModal, type DuplicateConflictDetails } from '../../components/survey/DuplicateHousePromptModal';
 
 type SubStep = 'cgd_hazards' | 'cgd_voice' | 'cgd_disaster_history' | 'kii_capacity' | 'kii_infrastructure' | 'kii_environment';
 
@@ -21,7 +23,7 @@ const STEP_LABELS = ['Location', 'CGD & KII Assessment', 'Review'];
 // Logo brand colors: primary #465FFF (brand blue), accent #e11d48 (red), dark #101828
 
 const emptyAssessment = (): WoredaAssessmentInput => ({
-    location: { subcity: '', woreda: '' },
+    location: { subcity: '', woreda: '', block: '', house_no: '' },
     assessment_date: new Date().toISOString().split('T')[0],
     remarks: '',
     hazards: HAZARD_TYPES.map(h => ({ hazard_name: h, frequency: '3', severity: '3', duration: '3', spatial_extent: '3', seasonality: '', historical_events: '' })),
@@ -173,10 +175,14 @@ export const WoredaAssessmentForm: React.FC<{
 
     const [assessmentId, setAssessmentId] = useState<string | null>(initial?._id || null);
 
+    const [conflictModalOpen, setConflictModalOpen] = useState(false);
+    const [conflictDetails, setConflictDetails] = useState<DuplicateConflictDetails | null>(null);
+    const [allowDuplicateUpdate, setAllowDuplicateUpdate] = useState(false);
+
     useEffect(() => {
         if (initial) {
             setFormData({
-                location: initial.location || { subcity: '', woreda: '' },
+                location: initial.location || { subcity: '', woreda: '', block: '', house_no: '' },
                 assessment_date: initial.assessment_date ? (initial.assessment_date.includes('T') ? initial.assessment_date.split('T')[0] : initial.assessment_date) : emptyAssessment().assessment_date,
                 remarks: initial.remarks || '',
                 hazards: initial.hazards || emptyAssessment().hazards,
@@ -194,18 +200,22 @@ export const WoredaAssessmentForm: React.FC<{
     useEffect(() => {
         const subcity = formData.location.subcity;
         const woreda = formData.location.woreda;
+        const house_no = formData.location.house_no;
         if (!subcity || !woreda) {
             setAssessmentId(null);
             return;
         }
 
-        if (initial && initial._id && initial.location?.subcity === subcity && initial.location?.woreda === woreda) {
+        if (initial && initial._id && initial.location?.subcity === subcity && initial.location?.woreda === woreda && (!house_no || initial.location?.house_no === house_no)) {
             setAssessmentId(initial._id);
             return;
         }
 
         let isCurrent = true;
-        getWoredaAssessments({ subcity, woreda })
+        const queryParams: any = { subcity, woreda };
+        if (house_no) queryParams.house_no = house_no;
+
+        getWoredaAssessments(queryParams)
             .then(assessments => {
                 if (isCurrent && assessments && assessments.length > 0) {
                     const match = assessments[0];
@@ -222,7 +232,7 @@ export const WoredaAssessmentForm: React.FC<{
                         kii_environmental_indicators: match.kii_environmental_indicators || emptyAssessment().kii_environmental_indicators,
                         status: match.status || 'Draft',
                     });
-                } else if (isCurrent) {
+                } else if (isCurrent && !initial?._id) {
                     setAssessmentId(null);
                 }
             })
@@ -231,7 +241,7 @@ export const WoredaAssessmentForm: React.FC<{
         return () => {
             isCurrent = false;
         };
-    }, [formData.location.subcity, formData.location.woreda]);
+    }, [formData.location.subcity, formData.location.woreda, formData.location.house_no]);
 
     const selectedSubcityObj = locationHierarchy.find(s => s.name === formData.location.subcity);
     const availableWoredas = selectedSubcityObj?.woredas || [];
@@ -429,7 +439,7 @@ export const WoredaAssessmentForm: React.FC<{
         setSaving(true);
         setError(null);
         try {
-            const payload = { ...formData, status };
+            const payload = { ...formData, status, allowUpdateIfDuplicate: allowDuplicateUpdate };
             const idToSave = assessmentId || initial?._id;
             if (idToSave) {
                 await updateWoredaAssessment(idToSave, payload);
@@ -439,10 +449,74 @@ export const WoredaAssessmentForm: React.FC<{
             onSaved?.();
             onClose();
         } catch (e: any) {
-            setError(e?.response?.data?.message || 'Save failed');
+            if (e?.response?.status === 409) {
+                const houseNo = formData.location.house_no?.trim() || '';
+                setConflictDetails({
+                    house_no: houseNo,
+                    woreda: formData.location.woreda || 'this Woreda',
+                    subcity: formData.location.subcity,
+                    targetType: 'woreda',
+                    existingId: e.response.data?.existing?._id,
+                    existingData: e.response.data?.existing
+                });
+                setConflictModalOpen(true);
+            } else {
+                setError(e?.response?.data?.message || 'Save failed');
+            }
         } finally {
             setSaving(false);
         }
+    };
+
+    const handleStepAdvanceWoreda = async () => {
+        if (step === 1 && !allowDuplicateUpdate) {
+            const houseNo = formData.location.house_no?.trim();
+            const woreda = formData.location.woreda?.trim();
+            const subcity = formData.location.subcity?.trim();
+            const isUnnumbered = !houseNo || ['none', 'n/a', 'no house no', 'no house number', 'unnumbered'].includes(houseNo.toLowerCase());
+
+            if (!isUnnumbered && houseNo && !assessmentId) {
+                try {
+                    const checkRes = await checkWoredaAssessmentHouseNo({
+                        woreda,
+                        subcity,
+                        house_no: houseNo,
+                        excludeId: initial?._id
+                    });
+                    if (checkRes && checkRes.exists) {
+                        setConflictDetails({
+                            house_no: houseNo,
+                            woreda: woreda || 'this Woreda',
+                            subcity,
+                            targetType: 'woreda',
+                            existingId: checkRes.assessment?._id,
+                            existingData: checkRes.assessment
+                        });
+                        setConflictModalOpen(true);
+                        return;
+                    }
+                } catch (e) {
+                    console.warn('Duplicate check failed (continuing):', e);
+                }
+            }
+        }
+        setStep(step + 1);
+    };
+
+    const handleConflictUpdateExisting = () => {
+        setAllowDuplicateUpdate(true);
+        setConflictModalOpen(false);
+        if (step < 3) setStep(step + 1);
+    };
+
+    const handleConflictNewHouseNo = (newHouseNo: string) => {
+        setFormData(prev => ({ ...prev, location: { ...prev.location, house_no: newHouseNo } }));
+        setConflictModalOpen(false);
+        if (step < 3) setStep(step + 1);
+    };
+
+    const handleConflictNoHouseNo = () => {
+        handleConflictNewHouseNo('No House No');
     };
 
     const [disasterYear, setDisasterYear] = useState<number>(new Date().getFullYear());
@@ -668,6 +742,30 @@ export const WoredaAssessmentForm: React.FC<{
                                                     <option key={w._id} value={w.name}>{w.name}</option>
                                                 ))}
                                             </select>
+                                        </div>
+
+                                        {/* Block */}
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Block</label>
+                                            <input
+                                                type="text"
+                                                value={formData.location.block || ''}
+                                                onChange={e => setFormData(prev => ({ ...prev, location: { ...prev.location, block: e.target.value } }))}
+                                                placeholder="e.g. 04"
+                                                className="w-full bg-white border-2 border-slate-200 rounded-2xl p-4 text-sm font-bold focus:border-[#465FFF] focus:outline-none focus:ring-4 focus:ring-[#465FFF]/10 transition-all"
+                                            />
+                                        </div>
+
+                                        {/* House Number */}
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">House Number</label>
+                                            <input
+                                                type="text"
+                                                value={formData.location.house_no || ''}
+                                                onChange={e => setFormData(prev => ({ ...prev, location: { ...prev.location, house_no: e.target.value } }))}
+                                                placeholder="e.g. H-102"
+                                                className="w-full bg-white border-2 border-slate-200 rounded-2xl p-4 text-sm font-bold focus:border-[#465FFF] focus:outline-none focus:ring-4 focus:ring-[#465FFF]/10 transition-all"
+                                            />
                                         </div>
 
                                         {/* Assessment Date */}
@@ -1429,7 +1527,7 @@ export const WoredaAssessmentForm: React.FC<{
 
                         {step < 3 ? (
                             <button
-                                onClick={() => setStep(step + 1)}
+                                onClick={handleStepAdvanceWoreda}
                                 className="px-8 py-3.5 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl flex items-center gap-2 cursor-pointer transition-all hover:-translate-y-0.5"
                                 style={{ background: 'linear-gradient(135deg, #465FFF, #6B7FF5)', boxShadow: '0 8px 24px rgba(70,95,255,0.35)' }}
                             >
@@ -1458,6 +1556,16 @@ export const WoredaAssessmentForm: React.FC<{
                         )}
                     </div>
                 </div>
+
+                {/* Duplicate House Prompt Modal */}
+                <DuplicateHousePromptModal
+                    isOpen={conflictModalOpen}
+                    conflict={conflictDetails}
+                    onClose={() => setConflictModalOpen(false)}
+                    onUpdateExisting={handleConflictUpdateExisting}
+                    onRegisterNewHouseNo={handleConflictNewHouseNo}
+                    onRegisterAsNoHouseNo={handleConflictNoHouseNo}
+                />
             </motion.div>
         </motion.div>
     );

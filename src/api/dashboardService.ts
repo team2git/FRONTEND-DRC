@@ -165,6 +165,7 @@ export interface DashboardStats {
     executiveKpis?: ExecutiveKpis;
     hazardAnalysis?: HazardItem[];
     woredaRankings?: WoredaRankingItem[];
+    allWoredaRankings?: WoredaRankingItem[];
     vulnerabilityAnalysis?: VulnerabilityAnalysisInfo;
     exposureAnalysis?: ExposureAnalysisInfo;
     disasterHistory?: DisasterHistoryItem[];
@@ -173,6 +174,16 @@ export interface DashboardStats {
     responseActions?: ResponseActionItem[];
     executiveSummaryText?: string;
     priorityRecommendations?: PriorityRecommendationItem[];
+
+    filterOptions?: {
+        users: Array<{ id: string; name: string; email: string; role: string }>;
+        subcities: string[];
+        woredas: string[];
+        hazards: string[];
+        riskLevels: string[];
+        years: string[];
+        statuses: string[];
+    };
 
     recentDatabaseChanges?: Array<{
         _id: string;

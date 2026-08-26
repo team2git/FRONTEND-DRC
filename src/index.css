@@ -229,6 +229,7 @@ layer(base);
   }
   body {
     @apply relative font-normal font-outfit z-1 bg-gray-50;
+    overflow-x: hidden;
   }
 }
 
@@ -866,5 +867,19 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .animate-marquee-rtl:hover {
+  animation-play-state: paused;
+}
+
+/* Alert Cards Vertical Scroll (top → bottom) */
+@keyframes scrollDown {
+  0%   { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
+}
+
+.animate-scroll-down {
+  animation: scrollDown 18s linear infinite;
+}
+
+.animate-scroll-down:hover {
   animation-play-state: paused;
 }

@@ -7,13 +7,15 @@ import {
 } from 'lucide-react';
 import {
     type WoredaProfile as WProfile,
-    type WoredaProfileInput as WProfileInput
+    type WoredaProfileInput as WProfileInput,
+    checkHouseholdHouseNo
 } from '../../../api/woredaProfileService';
 import {
     emptyHouseholdProfile, emptyProfile,
     EDUCATION_CATS, LIVELIHOOD_TYPES
 } from './constants';
 import { getLocationHierarchy, type LocationHierarchyItem } from '../../../api/locationService';
+import { DuplicateHousePromptModal, type DuplicateConflictDetails } from '../../../components/survey/DuplicateHousePromptModal';
 
 type HHSubStep = 'demographics' | 'livelihood' | 'housing' | 'preparedness' | 'recovery';
 
@@ -28,6 +30,11 @@ export const FormWizard: React.FC<{
     const [step, setStep] = useState(1);
     const [subStep, setSubStep] = useState<HHSubStep>('demographics');
     const totalSteps = 3;
+
+    // Duplicate house number check state
+    const [conflictModalOpen, setConflictModalOpen] = useState(false);
+    const [conflictDetails, setConflictDetails] = useState<DuplicateConflictDetails | null>(null);
+    const [allowDuplicateUpdate, setAllowDuplicateUpdate] = useState(false);
 
     // Location hierarchy for dropdowns
     const [locationHierarchy, setLocationHierarchy] = useState<LocationHierarchyItem[]>([]);
@@ -165,6 +172,66 @@ export const FormWizard: React.FC<{
     const housing = formData.household_profile?.housing_physical_conditions || {};
     const preparedness = formData.household_profile?.preparedness || {};
     const recovery = formData.household_profile?.recovery_capacity || {};
+
+    const handleStepAdvance = async () => {
+        if (step === 1 && !allowDuplicateUpdate) {
+            const houseNo = formData.location?.house_no?.trim();
+            const woreda = formData.location?.woreda?.trim();
+            const subcity = formData.location?.subcity?.trim();
+            const isUnnumbered = !houseNo || ['none', 'n/a', 'no house no', 'no house number', 'unnumbered'].includes(houseNo.toLowerCase());
+
+            if (!isUnnumbered && houseNo) {
+                try {
+                    const checkRes = await checkHouseholdHouseNo({
+                        woreda,
+                        subcity,
+                        house_no: houseNo,
+                        excludeId: initial?._id
+                    });
+                    if (checkRes && checkRes.exists) {
+                        setConflictDetails({
+                            house_no: houseNo,
+                            woreda: woreda || 'this Woreda',
+                            subcity,
+                            targetType: 'household',
+                            existingId: checkRes.profile?._id,
+                            existingData: checkRes.profile
+                        });
+                        setConflictModalOpen(true);
+                        return;
+                    }
+                } catch (e) {
+                    console.warn('Duplicate check failed', e);
+                }
+            }
+        }
+        setStep(step + 1);
+    };
+
+    const handleSaveWithCheck = async () => {
+        const payload = {
+            ...formData,
+            allowUpdateIfDuplicate: allowDuplicateUpdate
+        };
+        onSave(payload);
+    };
+
+    const handleUpdateExistingConflict = () => {
+        setAllowDuplicateUpdate(true);
+        setConflictModalOpen(false);
+        setStep(step + 1);
+    };
+
+    const handleRegisterNewHouseNo = (newHouseNo: string) => {
+        updateNested('location.house_no', newHouseNo);
+        updateNested('household_profile.identity_location.house_no', newHouseNo);
+        setConflictModalOpen(false);
+        setStep(step + 1);
+    };
+
+    const handleRegisterAsNoHouseNo = () => {
+        handleRegisterNewHouseNo('No House No');
+    };
 
     return (
         <motion.div
@@ -321,21 +388,6 @@ export const FormWizard: React.FC<{
                                                 <option key={w._id} value={w.name}>{w.name}</option>
                                             ))}
                                         </select>
-                                    </div>
-
-                                    {/* Kebele */}
-                                    <div className="space-y-1.5">
-                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1 block">Kebele</label>
-                                        <input
-                                            type="text"
-                                            value={formData.location.kebele || ''}
-                                            onChange={e => {
-                                                updateNested('location.kebele', e.target.value);
-                                                updateNested('household_profile.identity_location.kebele', e.target.value);
-                                            }}
-                                            placeholder="e.g. 05"
-                                            className="w-full bg-white border-2 border-slate-200 focus:border-[#465FFF] focus:ring-4 focus:ring-[#465FFF]/10 rounded-2xl p-3.5 text-xs font-bold text-slate-800 outline-none transition-all"
-                                        />
                                     </div>
 
                                     {/* Block */}
@@ -1105,11 +1157,10 @@ export const FormWizard: React.FC<{
                                 </div>
                             </motion.div>
                         )}
-
                     </div>
                 </div>
 
-                {/* ─── Footer Action Bar (Matches WoredaAssessment style) ─────────────── */}
+                {/* ─── Footer Action Bar ────────────────────────────────────────── */}
                 <div className="px-8 py-4 bg-white border-t border-slate-200/80 flex items-center justify-between shadow-lg flex-shrink-0">
                     <button
                         type="button"
@@ -1132,7 +1183,7 @@ export const FormWizard: React.FC<{
                         {step < totalSteps ? (
                             <button
                                 type="button"
-                                onClick={() => setStep(step + 1)}
+                                onClick={handleStepAdvance}
                                 className="px-8 py-3.5 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl flex items-center gap-2 cursor-pointer transition-all hover:-translate-y-0.5"
                                 style={{ background: 'linear-gradient(135deg, #465FFF, #6B7FF5)', boxShadow: '0 8px 24px rgba(70,95,255,0.35)' }}
                             >
@@ -1141,7 +1192,7 @@ export const FormWizard: React.FC<{
                         ) : (
                             <button
                                 type="button"
-                                onClick={() => onSave(formData)}
+                                onClick={handleSaveWithCheck}
                                 disabled={saving}
                                 className="px-8 py-3.5 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl flex items-center gap-2 cursor-pointer transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
                                 style={{ background: 'linear-gradient(135deg, #465FFF, #6B7FF5)', boxShadow: '0 8px 24px rgba(70,95,255,0.35)' }}
@@ -1152,6 +1203,16 @@ export const FormWizard: React.FC<{
                         )}
                     </div>
                 </div>
+
+                {/* Duplicate House Prompt Modal */}
+                <DuplicateHousePromptModal
+                    isOpen={conflictModalOpen}
+                    conflict={conflictDetails}
+                    onClose={() => setConflictModalOpen(false)}
+                    onUpdateExisting={handleUpdateExistingConflict}
+                    onRegisterNewHouseNo={handleRegisterNewHouseNo}
+                    onRegisterAsNoHouseNo={handleRegisterAsNoHouseNo}
+                />
             </motion.div>
         </motion.div>
     );

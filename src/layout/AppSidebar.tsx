@@ -78,6 +78,16 @@ const navItems: NavItem[] = [
     permission: "dashboard_view",
   },
   {
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-rose-500 animate-pulse">
+        <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+      </svg>
+    ),
+    name: "Live Dashboard",
+    path: "/live-dashboard",
+    permission: "livedashboard_view",
+  },
+  {
     icon: <BoxCubeIcon />,
     name: "Woreda Profile",
     path: "/woreda-profile",
@@ -158,6 +168,7 @@ const navItems: NavItem[] = [
         name: "Inspection Requests",
         path: "/inspection",
         icon: <CheckCircleIcon />,
+        permission: "inspectionrequest_view",
       },
     ],
   },
@@ -178,6 +189,12 @@ const adminItems: NavItem[] = [
       {
         name: "Site Settings",
         path: "/admin/site-settings",
+        icon: <DocsIcon />,
+        permission: "portalcontent_view",
+      },
+      {
+        name: "Help & Guides",
+        path: "/admin/help",
         icon: <DocsIcon />,
         permission: "portalcontent_view",
       },
@@ -227,7 +244,7 @@ const adminItems: NavItem[] = [
   },
   {
     icon: <LockIcon />,
-    name: "Auth",
+    name: "User Management",
     subItems: [
       {
         name: "Permissions",
@@ -248,32 +265,7 @@ const adminItems: NavItem[] = [
         permission: "user_view",
       },
     ],
-  },
-  {
-    icon: <ListIcon />,
-    name: "Audit",
-    subItems: [
-      {
-        name: "Audit Logs",
-        path: "/admin/audit-logs",
-        icon: <ListIcon />,
-        permission: "audit_log_view",
-      },
-      {
-        name: "Admin Logs",
-        path: "/admin/admin-logs",
-        icon: <LockIcon />,
-        permission: "adminlog_view",
-      },
-      {
-        name: "Email Logs",
-        path: "/admin/email-logs",
-        icon: <MailIcon />,
-        permission: "audit_log_view",
-      },
-    ],
-  },
-  {
+  },{
     icon: <DocsIcon />,
     name: "Template Engine",
     subItems: [
@@ -304,6 +296,31 @@ const adminItems: NavItem[] = [
       },
     ],
   },
+  {
+    icon: <ListIcon />,
+    name: "Audit",
+    subItems: [
+      {
+        name: "Audit Logs",
+        path: "/admin/audit-logs",
+        icon: <ListIcon />,
+        permission: "audit_log_view",
+      },
+      {
+        name: "Admin Logs",
+        path: "/admin/admin-logs",
+        icon: <LockIcon />,
+        permission: "adminlog_view",
+      },
+      {
+        name: "Email Logs",
+        path: "/admin/email-logs",
+        icon: <MailIcon />,
+        permission: "audit_log_view",
+      },
+    ],
+  },
+  
 ];
 
 // ─── Component ────────────────────────────────────────────────────────────────

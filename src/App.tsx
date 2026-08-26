@@ -28,6 +28,7 @@ import EmergencyContacts from "./pages/admin/EmergencyContacts";
 import IncidentReports from "./pages/admin/IncidentReports";
 import ConcernReports from "./pages/admin/ConcernReports";
 import NewsManagement from "./pages/admin/NewsManagement";
+import HelpManagement from "./pages/admin/HelpManagement";
 
 // Template Engine
 import TemplateLibrary from "./components/TemplateEngine/TemplateLibrary/TemplateLibrary";
@@ -74,6 +75,7 @@ import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import UserProfiles from "./pages/UserProfiles";
 import Home from "./pages/Dashboard/Home";
+import LiveDashboard from "./features/live-dashboard/pages/LiveDashboard";
 import NewsFeed from "./pages/NewsFeed";
 import NewsDetails from "./pages/NewsDetails";
 import LandingPage from "./pages/portal";
@@ -104,6 +106,8 @@ export default function App() {
                 {/* Dashboard Layout Routes */}
                 <Route element={<AppLayout />}>
                   <Route path="/dashboard" element={<Home />} />
+                  <Route path="/live-dashboard" element={<PermissionRoute resource="livedashboard" action="view" element={<LiveDashboard />} />} />
+                  <Route path="/dashboard/live" element={<PermissionRoute resource="livedashboard" action="view" element={<LiveDashboard />} />} />
                   <Route path="/news-feed" element={<NewsFeed />} />
                   <Route path="/news-feed/:id" element={<NewsDetails />} />
                   <Route path="/profile" element={<UserProfiles />} />
@@ -117,7 +121,7 @@ export default function App() {
                   <Route path="/early-warning" element={<EarlyWarning />} />
                   <Route path="/volunteers" element={<Volunteers />} />
                   <Route path="/awareness" element={<Awareness />} />
-                  <Route path="/inspection" element={<Inspection />} />
+                  <Route path="/inspection" element={<PermissionRoute resource="inspectionrequest" action="view" element={<Inspection />} />} />
                   <Route path="/analytics" element={<Analytics />} />
 
                   {/* Template Engine & Survey Routes */}
@@ -152,6 +156,7 @@ export default function App() {
                   <Route path="/admin/emergency-contacts" element={<EmergencyContacts />} />
                   <Route path="/admin/incident-reports" element={<IncidentReports />} />
                   <Route path="/admin/concern-reports" element={<ConcernReports />} />
+                  <Route path="/admin/help" element={<HelpManagement />} />
                   {/* Backward compatible */}
                   {/* Forms */}
                   <Route path="/form-elements" element={<FormElements />} />
