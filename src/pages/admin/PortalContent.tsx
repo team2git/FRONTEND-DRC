@@ -424,10 +424,6 @@ const PortalContentPage: React.FC = () => {
     () => content.servicesSection?.services ?? content.services ?? [],
     [content.servicesSection?.services, content.services]
   );
-  const newsItems = useMemo(
-    () => content.newsSection?.items ?? [],
-    [content.newsSection?.items]
-  );
   const features = useMemo(
     () => content.featuresSection?.features ?? content.features ?? [],
     [content.featuresSection?.features, content.features]

@@ -82,16 +82,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
             const userId = user?.id || (user as any)?._id;
             if (userId) {
-                const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-
-                if (response.ok) {
-                    const updatedUser = await response.json();
-                    setUser(updatedUser);
-                    localStorage.setItem('user', JSON.stringify(updatedUser));
+                const response = await api.get(`/users/${userId}`);
+                if (response.data) {
+                    setUser(response.data);
+                    localStorage.setItem('user', JSON.stringify(response.data));
                 }
             }
         } catch (e) {

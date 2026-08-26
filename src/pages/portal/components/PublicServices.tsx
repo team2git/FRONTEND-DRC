@@ -149,6 +149,12 @@ const PublicServices: React.FC<{
                       ? "/incident-reporting"
                       : service.slug === "inspection-request"
                       ? "/inspection-request"
+                      : service.slug === "emergency-contacts"
+                      ? "/emergency-contacts"
+                      : service.slug === "community-registration"
+                      ? "/community-registration"
+                      : service.slug === "risk-information"
+                      ? "/portal/services/risk-information"
                       : `/portal/services/${service.slug}`
                   }
                   className="block h-full rounded-3xl bg-white border border-slate-100 shadow-sm hover:shadow-2xl transition-all duration-300 p-8 group"

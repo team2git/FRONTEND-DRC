@@ -37,11 +37,35 @@ api.interceptors.response.use(
                 error.config.url.includes('/login')
             );
 
-            const isLoginPage = typeof window !== 'undefined' && (window.location.pathname === '/login' || window.location.pathname.includes('/auth/login'));
+            const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+            const isPublicPage = (
+                pathname === '/' ||
+                pathname === '/portal' ||
+                pathname.startsWith('/portal/') ||
+                pathname.startsWith('/incident-reporting') ||
+                pathname.startsWith('/alert-subscription') ||
+                pathname.startsWith('/inspection-request') ||
+                pathname.startsWith('/emergency-contacts') ||
+                pathname.startsWith('/community-registration') ||
+                pathname.startsWith('/feedback') ||
+                pathname.startsWith('/news') ||
+                pathname.startsWith('/flood-dashboard') ||
+                pathname === '/login' ||
+                pathname === '/signin' ||
+                pathname === '/signup' ||
+                pathname === '/register' ||
+                pathname === '/verify' ||
+                pathname === '/forgot-password' ||
+                pathname === '/reset-password' ||
+                pathname === '/setup-account'
+            );
 
-            if (!isLoginRequest && !isLoginPage) {
+            if (!isLoginRequest && !isPublicPage) {
                 try { localStorage.removeItem('token'); localStorage.removeItem('user'); } catch(e) {}
                 if (typeof window !== 'undefined') window.location.href = '/login';
+            } else if (!isLoginRequest) {
+                // On public pages, quietly clear expired or invalid tokens from storage
+                try { localStorage.removeItem('token'); localStorage.removeItem('user'); } catch(e) {}
             }
         }
         return Promise.reject(error);
