@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Plus, Edit3, Trash2, X,
@@ -121,7 +121,6 @@ const TARGET_MODEL_OPTIONS = [
 const HOUSEHOLD_PROFILE_FIELDS = [
     { group: 'Location', path: 'location.subcity', label: 'Subcity' },
     { group: 'Location', path: 'location.woreda', label: 'Woreda' },
-    { group: 'Location', path: 'location.kebele', label: 'Kebele' },
     { group: 'Location', path: 'location.block', label: 'Block' },
     { group: 'Location', path: 'location.house_no', label: 'House No' },
     { group: 'Demographics', path: 'demographics.total_household_members', label: 'Total Members' },
@@ -157,6 +156,8 @@ const HOUSEHOLD_PROFILE_FIELDS = [
 const WOREDA_ASSESSMENT_FIELDS = [
     { group: 'Location', path: 'location.subcity', label: 'Subcity' },
     { group: 'Location', path: 'location.woreda', label: 'Woreda' },
+    { group: 'Location', path: 'location.block', label: 'Block' },
+    { group: 'Location', path: 'location.house_no', label: 'House No' },
     { group: 'Hazards', path: 'hazards.hazard_name', label: 'Hazard Name' },
     { group: 'Hazards', path: 'hazards.frequency', label: 'Hazard Frequency' },
     { group: 'Hazards', path: 'hazards.severity', label: 'Hazard Severity' },

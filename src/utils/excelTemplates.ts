@@ -5,7 +5,7 @@
 
 // ─── Expected Column Lists ──────────────────────────────────────────────────
 export const EXPECTED_WOREDA_COLUMNS = [
-    'Subcity', 'Woreda', 'Assessment Date (YYYY-MM-DD)', 'Remarks',
+    'Subcity', 'Woreda', 'Block', 'House No', 'Assessment Date (YYYY-MM-DD)', 'Remarks',
     'Primary Hazard Name', 'Hazard Frequency', 'Hazard Severity', 'Hazard Duration',
     'Spatial Extent', 'Seasonality', 'Historical Events', 'Coping Strategies',
     'Collective Action Structure', 'Suggested Interventions', 'EWS Rating (1-5)',
@@ -19,7 +19,7 @@ export const EXPECTED_WOREDA_COLUMNS = [
 ];
 
 export const EXPECTED_HOUSEHOLD_COLUMNS = [
-    'Subcity', 'Woreda', 'Kebele', 'Block', 'House No', 'Enumerator Name',
+    'Subcity', 'Woreda', 'Block', 'House No', 'Enumerator Name',
     'Survey Date (YYYY-MM-DD)', 'Consent (Yes/No)', 'Total Household Members',
     'Male Members', 'Female Members', 'Children (0-17)', 'Youth (18-29)',
     'Elderly (60+)', 'Female Headed (Yes/No)', 'IDP Status (Yes/No)', 'IDP Reason',
@@ -39,15 +39,15 @@ export const WOREDA_ASSESSMENT_CSV_HEADER = EXPECTED_WOREDA_COLUMNS.join(',');
 export const HOUSEHOLD_ASSESSMENT_CSV_HEADER = EXPECTED_HOUSEHOLD_COLUMNS.join(',');
 
 export const WOREDA_ASSESSMENT_SAMPLE_ROWS = [
-    '"Bole","Woreda 01","2026-07-01","Annual woreda assessment","Urban Flash Flood","Annual","High","2-4 hours","Woreda-wide","Kiremt (June-Sep)","2024 Flood Event","Temporary sandbags and community clearing","Iddir and Youth Volunteer Teams","Construct primary drainage channel and retaining walls",4,4,3,3,4,4,4,3,4,4,3,4,3,4,4,4,3,3,4,3,2,"Reviewed"',
-    '"Kirkos","Woreda 03","2026-07-02","KII & CGD assessment","Riverine Flood & Fire","Bi-annual","Critical","1-2 days","Lowland blocks","Kiremt","2023 Akaki river overflow","Early relocation to school shelters","Woreda Emergency Response Committee","Riverbank buffer zone reinforcement and fire hydrants",3,3,2,2,3,3,3,3,3,3,2,3,4,4,3,3,3,2,3,2,3,"Submitted"',
-    '"Yeka","Woreda 02","2026-07-03","Initial baseline survey","Landslide & Erosion","Occasional","Medium","Varies","Sloped terrain","Belg & Kiremt","2022 Slope collapse","Terracing and hillside vegetation","Local Community Development Association","Hillside stabilization and terracing",3,4,3,3,3,3,4,3,3,3,3,3,2,3,3,3,3,3,3,3,3,"Submitted"'
+    '"Bole","Woreda 01","Block 01","H-W01","2026-07-01","Annual woreda assessment","Urban Flash Flood","Annual","High","2-4 hours","Woreda-wide","Kiremt (June-Sep)","2024 Flood Event","Temporary sandbags and community clearing","Iddir and Youth Volunteer Teams","Construct primary drainage channel and retaining walls",4,4,3,3,4,4,4,3,4,4,3,4,3,4,4,4,3,3,4,3,2,"Reviewed"',
+    '"Kirkos","Woreda 03","Block 02","H-W02","2026-07-02","KII & CGD assessment","Riverine Flood & Fire","Bi-annual","Critical","1-2 days","Lowland blocks","Kiremt","2023 Akaki river overflow","Early relocation to school shelters","Woreda Emergency Response Committee","Riverbank buffer zone reinforcement and fire hydrants",3,3,2,2,3,3,3,3,3,3,2,3,4,4,3,3,3,2,3,2,3,"Submitted"',
+    '"Yeka","Woreda 02","Block 01","H-W03","2026-07-03","Initial baseline survey","Landslide & Erosion","Occasional","Medium","Varies","Sloped terrain","Belg & Kiremt","2022 Slope collapse","Terracing and hillside vegetation","Local Community Development Association","Hillside stabilization and terracing",3,4,3,3,3,3,4,3,3,3,3,3,2,3,3,3,3,3,3,3,3,"Submitted"'
 ].join('\n');
 
 export const HOUSEHOLD_ASSESSMENT_SAMPLE_ROWS = [
-    '"Bole","Woreda 01","01","Block 04","H-102","Solomon Tadesse","2026-07-01","Yes",5,2,3,2,1,0,"No","No","","Secondary Education","Employed","Trade / Shopkeeping","Petty Trading","5000-10000 ETB","Yes","No","No","Concrete / Block","Corrugated Iron Sheet",12,"No",3,"50m from river channel","Yes","Yes","Basic Fire & Flood Safety","Yes","Partial","SMS & Community Megaphone",4,"2024 Flood Damage",3,"Yes","Yes",4,"Reviewed"',
-    '"Kirkos","Woreda 03","02","Block 02","H-405","Tigist Bekele","2026-07-02","Yes",7,3,4,3,2,1,"Yes","Yes","Flood Displacement","Primary Education","Informal / Daily Labour","Daily Construction Labour","Vending","< 5000 ETB","No","Yes","No","Wood & Mud (Chika)","Corrugated Iron Sheet",25,"Yes",2,"Directly in flood zone","Yes","No","None","No","No","Radio / TV",2,"2023 Overflow Damage",8,"Yes","Yes",2,"Submitted"',
-    '"Yeka","Woreda 02","01","Block 01","H-201","Dawit Yohannes","2026-07-03","Yes",4,2,2,1,1,0,"No","No","","Degree / Higher","Civil Service","Government Officer","None","10000+ ETB","No","No","Yes","Brick / Concrete","Concrete Slab",5,"No",4,"Yes","Yes","First Aid & Evacuation","Yes","Yes","Mobile App & SMS",5,"None",0,"No","No",5,"Submitted"'
+    '"Bole","Woreda 01","Block 04","H-102","Solomon Tadesse","2026-07-01","Yes",5,2,3,2,1,0,"No","No","","Secondary Education","Employed","Trade / Shopkeeping","Petty Trading","5000-10000 ETB","Yes","No","No","Concrete / Block","Corrugated Iron Sheet",12,"No",3,"50m from river channel","Yes","Yes","Basic Fire & Flood Safety","Yes","Partial","SMS & Community Megaphone",4,"2024 Flood Damage",3,"Yes","Yes",4,"Reviewed"',
+    '"Kirkos","Woreda 03","Block 02","H-405","Tigist Bekele","2026-07-02","Yes",7,3,4,3,2,1,"Yes","Yes","Flood Displacement","Primary Education","Informal / Daily Labour","Daily Construction Labour","Vending","< 5000 ETB","No","Yes","No","Wood & Mud (Chika)","Corrugated Iron Sheet",25,"Yes",2,"Directly in flood zone","Yes","No","None","No","No","Radio / TV",2,"2023 Overflow Damage",8,"Yes","Yes",2,"Submitted"',
+    '"Yeka","Woreda 02","Block 01","H-201","Dawit Yohannes","2026-07-03","Yes",4,2,2,1,1,0,"No","No","","Degree / Higher","Civil Service","Government Officer","None","10000+ ETB","No","No","Yes","Brick / Concrete","Concrete Slab",5,"No",4,"Yes","Yes","First Aid & Evacuation","Yes","Yes","Mobile App & SMS",5,"None",0,"No","No",5,"Submitted"'
 ].join('\n');
 
 /**

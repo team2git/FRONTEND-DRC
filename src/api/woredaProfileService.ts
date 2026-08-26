@@ -3,7 +3,6 @@ import api from './axios';
 export interface AdminLocation {
     subcity?: string;
     woreda: string;
-    kebele?: string;
     block?: string;
     house_no?: string;
     coordinates?: [number, number];
@@ -12,7 +11,6 @@ export interface AdminLocation {
 export interface HouseholdIdentityLocation {
     subcity?: string;
     woreda?: string;
-    kebele?: string;
     block?: string;
     house_no?: string;
     gps_latitude?: number;
@@ -462,7 +460,6 @@ export const bulkImportProfiles = async (
                     location: {
                         subcity: item.Subcity || item.subcity || '',
                         woreda: item.Woreda || item.woreda || '',
-                        kebele: item.Kebele || item.kebele || '',
                         block: item.Block || item.block || 'Block 01',
                         house_no: item['House No'] || item.house_no || 'H-01'
                     },
@@ -470,7 +467,6 @@ export const bulkImportProfiles = async (
                     identity_location: {
                         subcity: item.Subcity || item.subcity || '',
                         woreda: item.Woreda || item.woreda || '',
-                        kebele: item.Kebele || item.kebele || '',
                         block: item.Block || item.block || 'Block 01',
                         house_no: item['House No'] || item.house_no || 'H-01',
                         enumerator_name: item['Enumerator Name'] || item.enumerator_name || '',
@@ -589,7 +585,6 @@ export interface HouseholdProfileInput {
     location: {
         subcity?: string;
         woreda: string;
-        kebele?: string;
         block?: string;
         house_no?: string;
     };
@@ -602,10 +597,16 @@ export interface HouseholdProfileInput {
     preparedness?: HouseholdPreparednessProfile;
     recovery_capacity?: HouseholdRecoveryCapacityProfile;
     status?: 'Draft' | 'Submitted' | 'Reviewed';
+    allowUpdateIfDuplicate?: boolean;
 }
 
-export const getHouseholdProfiles = async (params?: { subcity?: string; woreda?: string; kebele?: string }): Promise<any[]> => {
+export const getHouseholdProfiles = async (params?: { subcity?: string; woreda?: string; block?: string; house_no?: string }): Promise<any[]> => {
     const response = await api.get('/household-profiles', { params });
+    return response.data;
+};
+
+export const checkHouseholdHouseNo = async (params: { woreda?: string; subcity?: string; house_no: string; excludeId?: string }): Promise<{ exists: boolean; isUnnumbered?: boolean; profile?: any }> => {
+    const response = await api.get('/household-profiles/check-house-no', { params });
     return response.data;
 };
 
@@ -631,23 +632,45 @@ export const deleteHouseholdProfile = async (id: string): Promise<void> => {
 // ─── Woreda Assessment ─────────────────────────────────────────────────────────
 export type CommunityHazard = Hazard;
 
+export interface DisasterRecordItem {
+    year: number;
+    hazard_name: string;
+    location_description?: string;
+    affected_population?: number;
+    displaced_population?: number;
+    deaths?: number;
+    injuries?: number;
+    houses_damaged?: number;
+    infrastructure_damaged?: string;
+    estimated_loss_etb?: number;
+}
+
 export interface WoredaAssessmentInput {
     location: {
         subcity?: string;
         woreda: string;
+        block?: string;
+        house_no?: string;
     };
     assessment_date: string;
     remarks?: string;
     hazards?: CommunityHazard[];
     cgd_community_voice?: CgdCommunityVoice;
+    disaster_history?: DisasterRecordItem[];
     kii_capacity_indicators?: KiiCapacityIndicators;
     kii_infrastructure_exposure?: KiiInfrastructureExposure;
     kii_environmental_indicators?: KiiEnvironmentalIndicators;
     status?: 'Draft' | 'Submitted' | 'Reviewed';
+    allowUpdateIfDuplicate?: boolean;
 }
 
-export const getWoredaAssessments = async (params?: { subcity?: string; woreda?: string }): Promise<any[]> => {
+export const getWoredaAssessments = async (params?: { subcity?: string; woreda?: string; house_no?: string; block?: string }): Promise<any[]> => {
     const response = await api.get('/woreda-assessments', { params });
+    return response.data;
+};
+
+export const checkWoredaAssessmentHouseNo = async (params: { woreda?: string; subcity?: string; house_no: string; excludeId?: string }): Promise<{ exists: boolean; isUnnumbered?: boolean; assessment?: any }> => {
+    const response = await api.get('/woreda-assessments/check-house-no', { params });
     return response.data;
 };
 

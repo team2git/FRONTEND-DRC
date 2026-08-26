@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useToast } from '../../hooks/useToast';
 import PageMeta from "../../components/common/PageMeta";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
@@ -248,11 +248,12 @@ export default function Users() {
         if (!selectedUserForRoles) return;
 
         try {
+            const userId = selectedUserForRoles.id || (selectedUserForRoles as any)._id;
             const data = {
                 roles: formData.roles
             };
 
-            await api.put(`/users/${selectedUserForRoles.id}`, data);
+            await api.put(`/users/${userId}`, data);
             toast.success('User roles updated successfully');
             setIsRoleModalOpen(false);
             fetchData();
@@ -276,19 +277,25 @@ export default function Users() {
             userOrgId = typeof user.organization === 'object' ? (user.organization as any)._id || (user.organization as any).id : user.organization;
         }
 
+        const getOptionId = (val: any) => {
+            if (!val) return '';
+            if (typeof val === 'string') return val;
+            return val.id || val._id || '';
+        };
+
         if (userItem) {
             setEditUser(userItem);
             setFormData({
-                fullname: userItem.fullname,
-                email: userItem.email,
+                fullname: userItem.fullname || '',
+                email: userItem.email || '',
                 phone: userItem.phone || '',
 
-                roles: userItem.roles?.map((r: any) => r._id || r.id) || [],
-                organization: (userItem.organization as any)?._id || userItem.organization?.id || '',
-                sector: (userItem.sector as any)?._id || userItem.sector?.id || '',
-                department: (userItem.department as any)?._id || userItem.department?.id || '',
-                team: (userItem.team as any)?._id || userItem.team?.id || '',
-                status: userItem.status,
+                roles: userItem.roles?.map((r: any) => typeof r === 'string' ? r : (r.id || r._id || '')) || [],
+                organization: getOptionId(userItem.organization),
+                sector: getOptionId(userItem.sector),
+                department: getOptionId(userItem.department),
+                team: getOptionId(userItem.team),
+                status: userItem.status || 'active',
                 profileImage: null,
                 accessLevel: userItem.accessLevel || 'expert',
                 organizationType: userItem.organizationType || 'branch'
@@ -339,16 +346,14 @@ export default function Users() {
                 data.append('profileImage', formData.profileImage);
             }
 
-            if (editUser) {
-                await api.put(`/users/${editUser.id}`, data, {
-                    headers: { 'Content-Type': 'multipart/form-data' }
-                });
+            const userId = editUser ? (editUser.id || (editUser as any)._id) : null;
+
+            if (editUser && userId) {
+                await api.put(`/users/${userId}`, data);
                 closeModal();
                 toast.success('User updated successfully');
             } else {
-                await api.post('/users', data, {
-                    headers: { 'Content-Type': 'multipart/form-data' }
-                });
+                await api.post('/users', data);
                 closeModal();
                 toast.success('User created successfully');
             }
@@ -516,10 +521,11 @@ export default function Users() {
                                                 onManageRoles={() => handleOpenRoleModal(user)}
                                                 onDelete={handleDelete}
                                                 onStatusToggle={async (u) => {
+                                                    const userId = u.id || (u as any)._id;
                                                     const newStatus = u.status === 'active' ? 'suspended' : 'active';
                                                     if (confirm(`Change status to ${newStatus}?`)) {
                                                         try {
-                                                            await api.put(`/users/${u.id}`, { status: newStatus });
+                                                            await api.put(`/users/${userId}`, { status: newStatus });
                                                             toast.success(`User marked as ${newStatus}`);
                                                             fetchData();
                                                         } catch (error) { toast.error('Failed to update status'); }

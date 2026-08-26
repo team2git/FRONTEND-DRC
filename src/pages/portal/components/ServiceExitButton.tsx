@@ -2,14 +2,14 @@ import React from "react";
 import { ArrowLeft } from "lucide-react";
 
 type ServiceExitButtonProps = {
-  onClick: () => void;
+  onClick?: () => void;
   label?: string;
   className?: string;
 };
 
 const ServiceExitButton: React.FC<ServiceExitButtonProps> = ({
-  onClick,
-  label = "Back to services",
+  onClick = () => window.history.back(),
+  label = "Back to portal",
   className = "",
 }) => {
   return (

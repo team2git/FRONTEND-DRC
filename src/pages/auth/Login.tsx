@@ -19,6 +19,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePortalContent } from "../../hooks/usePortalContent";
 import { resolvePortalAssetUrl } from "../../utils/resolvePortalAssetUrl";
+import GoogleAuthModal from '../../components/auth/GoogleAuthModal';
 
 // Quick inline SVG components for social logins
 const GoogleIcon = () => (
@@ -52,6 +53,7 @@ const Login: React.FC = () => {
     const [rememberMe, setRememberMe] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
     const { login } = useAuth();
     const navigate = useNavigate();
 
@@ -64,6 +66,10 @@ const Login: React.FC = () => {
     const { portalContent } = usePortalContent();
     const logoUrl = resolvePortalAssetUrl(portalContent?.branding?.logoUrl) || "/images/logo/logo.png";
     const portalName = portalContent?.branding?.portalName || "IDRMIS";
+
+    const handleGoogleSignIn = () => {
+        setIsGoogleModalOpen(true);
+    };
 
     // Generate Captcha Code
     const generateCaptcha = () => {
@@ -520,15 +526,21 @@ const Login: React.FC = () => {
 
                     {/* Social Logins */}
                     <div className="mt-6 grid grid-cols-3 gap-3">
-                        <button type="button" className="flex justify-center items-center py-3 border border-slate-200 dark:border-slate-800 rounded-2xl bg-white/80 dark:bg-slate-900/80 hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-all shadow-sm hover:-translate-y-0.5">
+                        <button 
+                            type="button" 
+                            onClick={handleGoogleSignIn}
+                            disabled={loading}
+                            className="flex justify-center items-center py-3 border border-slate-200 dark:border-slate-800 rounded-2xl bg-white/80 dark:bg-slate-900/80 hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-all shadow-sm hover:-translate-y-0.5 group cursor-pointer"
+                            title="Sign in with Google"
+                        >
                             <span className="sr-only">Sign in with Google</span>
                             <GoogleIcon />
                         </button>
-                        <button type="button" className="flex justify-center items-center py-3 border border-slate-200 dark:border-slate-800 rounded-2xl bg-white/80 dark:bg-slate-900/80 hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-all shadow-sm hover:-translate-y-0.5">
+                        <button type="button" className="flex justify-center items-center py-3 border border-slate-200 dark:border-slate-800 rounded-2xl bg-white/80 dark:bg-slate-900/80 hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-all shadow-sm opacity-60 cursor-not-allowed" title="Microsoft Login (Coming Soon)">
                             <span className="sr-only">Sign in with Microsoft</span>
                             <MicrosoftIcon />
                         </button>
-                        <button type="button" className="flex justify-center items-center py-3 border border-slate-200 dark:border-slate-800 rounded-2xl bg-white/80 dark:bg-slate-900/80 hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-all shadow-sm hover:-translate-y-0.5">
+                        <button type="button" className="flex justify-center items-center py-3 border border-slate-200 dark:border-slate-800 rounded-2xl bg-white/80 dark:bg-slate-900/80 hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-all shadow-sm opacity-60 cursor-not-allowed" title="LinkedIn Login (Coming Soon)">
                             <span className="sr-only">Sign in with LinkedIn</span>
                             <LinkedInIcon />
                         </button>
@@ -555,6 +567,14 @@ const Login: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Google Authentication Modal */}
+            <GoogleAuthModal
+                isOpen={isGoogleModalOpen}
+                onClose={() => setIsGoogleModalOpen(false)}
+                mode="signin"
+                defaultEmail={email}
+            />
         </div>
     );
 };

@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import api from "@/api/axios";
 import PageMeta from "@/components/common/PageMeta";
 import { toast } from "react-toastify";
@@ -30,6 +30,7 @@ type PortalContent = {
     hero?: boolean;
     about?: boolean;
     services?: boolean;
+    news?: boolean;
     features?: boolean;
     feedback?: boolean;
     contact?: boolean;
@@ -49,6 +50,7 @@ type PortalContent = {
   };
   featuresSection?: { heading?: string; subheading?: string; badge?: string; features?: PortalFeature[] };
   servicesSection?: { heading?: string; subheading?: string; services?: PortalService[] };
+  newsSection?: { heading?: string; subheading?: string; items?: { title?: string; description?: string; href?: string; disabled?: boolean }[] };
   features?: PortalFeature[]; // legacy
   services?: PortalService[]; // legacy
   contact?: { email?: string; phone?: string; address?: string };
@@ -87,6 +89,7 @@ const DEFAULT_CONTENT: PortalContent = {
     hero: true,
     about: true,
     services: true,
+    news: true,
     features: true,
     feedback: true,
     contact: true,
@@ -103,6 +106,7 @@ const DEFAULT_CONTENT: PortalContent = {
       { label: "About", href: "/#about" },
       { label: "Services", href: "/#services" },
       { label: "Feedback", href: "/feedback" },
+      { label: "News", href: "/news" },
       { label: "Contact Us", href: "/#contact" },
     ],
     ctaLabel: "My Portal",
@@ -279,6 +283,18 @@ const DEFAULT_CONTENT: PortalContent = {
       },
     ],
   },
+  newsSection: {
+    heading: "Latest Portal News",
+    subheading: "Quick updates, alerts, and announcements for public visitors.",
+    items: [
+      {
+        title: "Stay informed with new alert subscriptions",
+        description:
+          "Subscribe to notifications to receive timely alerts and stay prepared for emergency situations.",
+        href: "/#services",
+      },
+    ],
+  },
   contact: {
     address: "Addis Ababa, Ethiopia",
     phone: "+251 911 22 33 44",
@@ -379,8 +395,9 @@ type SettingsTab =
   | "header"
   | "hero"
   | "about"
-  | "features"
   | "services"
+  | "news"
+  | "features"
   | "feedback"
   | "riskInformation"
   | "contact"
@@ -407,6 +424,10 @@ const PortalContentPage: React.FC = () => {
     () => content.servicesSection?.services ?? content.services ?? [],
     [content.servicesSection?.services, content.services]
   );
+  const newsItems = useMemo(
+    () => content.newsSection?.items ?? [],
+    [content.newsSection?.items]
+  );
   const features = useMemo(
     () => content.featuresSection?.features ?? content.features ?? [],
     [content.featuresSection?.features, content.features]
@@ -417,6 +438,7 @@ const PortalContentPage: React.FC = () => {
     { key: "hero", label: "Hero" },
     { key: "about", label: "About" },
     { key: "services", label: "Services" },
+    { key: "news", label: "News" },
     { key: "features", label: "Features" },
     { key: "feedback", label: "Feedback Page" },
     { key: "contact", label: "Contact Block" },
@@ -526,8 +548,9 @@ const PortalContentPage: React.FC = () => {
             ["header", "Header"],
             ["hero", "Hero"],
             ["about", "About"],
-            ["features", "Features"],
             ["services", "Services"],
+            ["news", "News"],
+            ["features", "Features"],
             ["feedback", "Feedback"],
             ["riskInformation", "Risk Info Page"],
             ["contact", "Contact"],
@@ -2088,7 +2111,7 @@ const PortalContentPage: React.FC = () => {
           </button>
         </div>
         <div>
-          <label className="text-xs font-bold text-slate-600">Copyright Text (use {'{year}'})</label>
+          <label className="text-xs font-bold text-slate-600">Copyright Text (use {"{year}"})</label>
           <input
             className={inputClass}
             value={content.footer?.copyrightText ?? ""}

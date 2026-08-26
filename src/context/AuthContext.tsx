@@ -80,14 +80,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         try {
             if (!user?.id) return;
 
-            const response = await api.get(`/users/${user.id}`);
-            const updatedUser = response.data;
-            setUser(updatedUser);
-            localStorage.setItem('user', JSON.stringify(updatedUser));
+            const userId = user?.id || (user as any)?._id;
+            if (userId) {
+                const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const updatedUser = await response.json();
+                    setUser(updatedUser);
+                    localStorage.setItem('user', JSON.stringify(updatedUser));
+                }
+            }
         } catch (e) {
             console.error("Failed to refresh user", e);
         }
-    }
+    };
 
     return (
         <AuthContext.Provider value={{ user, loading, isAuthenticated: !!user, login, logout, refreshUser }}>

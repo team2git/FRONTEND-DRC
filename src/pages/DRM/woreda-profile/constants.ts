@@ -126,7 +126,7 @@ export const HAZARD_TYPES = [
 ];
 
 export const emptyProfile = (): WProfileInput => ({
-    location: { subcity: '', woreda: '', kebele: '', block: '', house_no: '' },
+    location: { subcity: '', woreda: '', block: '', house_no: '' },
     assessment_date: new Date().toISOString().split('T')[0],
     remarks: '',
     household_profile: emptyHouseholdProfile(),

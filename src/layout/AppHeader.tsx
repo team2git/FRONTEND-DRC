@@ -5,9 +5,18 @@ import { useSidebar } from "../context/SidebarContext";
 import { ThemeToggleButton } from "../components/common/ThemeToggleButton";
 import NotificationDropdown from "../components/header/NotificationDropdown";
 import UserDropdown from "../components/header/UserDropdown";
+import { HelpCenterModal } from "../components/header/HelpCenterModal";
+import { usePortalContent } from "@/hooks/usePortalContent";
+import { resolvePortalAssetUrl } from "@/utils/resolvePortalAssetUrl";
+import { HelpCircle } from "lucide-react";
 
 const AppHeader: React.FC = () => {
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const { portalContent } = usePortalContent();
+
+  const logoUrl = resolvePortalAssetUrl(portalContent?.branding?.logoUrl) || "/images/logo/logo.png";
+  const orgName = portalContent?.branding?.orgName || portalContent?.branding?.portalName || "PDRM";
 
   const { isMobileOpen, toggleSidebar, toggleMobileSidebar } = useSidebar();
 
@@ -86,11 +95,11 @@ const AppHeader: React.FC = () => {
           <Link to="/" className="lg:hidden flex items-center gap-2">
             <img
               className="h-10 w-10 object-contain"
-              src="/images/logo/logo.png"
+              src={logoUrl}
               alt="Logo"
             />
-            <h3 className="text-lg font-bold text-gray-800 dark:text-white">
-              PDRM
+            <h3 className="text-lg font-bold text-gray-800 dark:text-white truncate max-w-[150px]">
+              {orgName}
             </h3>
           </Link>
 
@@ -154,6 +163,16 @@ const AppHeader: React.FC = () => {
             } items-center justify-between w-full gap-4 px-5 py-4 lg:flex shadow-theme-md lg:justify-end lg:px-0 lg:shadow-none`}
         >
           <div className="flex items-center gap-2 2xsm:gap-3">
+            {/* Help & Documentation Button */}
+            <button
+              onClick={() => setIsHelpOpen(true)}
+              className="relative flex items-center justify-center text-gray-500 transition-colors bg-white border border-gray-200 rounded-full hover:text-blue-600 h-11 w-11 hover:bg-blue-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-blue-400 shadow-theme-xs"
+              title="Help & Knowledge Base"
+              aria-label="Open Help Center"
+            >
+              <HelpCircle className="w-5 h-5 text-gray-600 dark:text-gray-300 hover:text-blue-500" />
+            </button>
+
             {/* <!-- Dark Mode Toggler --> */}
             <ThemeToggleButton />
             {/* <!-- Dark Mode Toggler --> */}
@@ -164,6 +183,9 @@ const AppHeader: React.FC = () => {
           <UserDropdown />
         </div>
       </div>
+
+      {/* Interactive Help Center Modal */}
+      <HelpCenterModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
     </header>
   );
 };

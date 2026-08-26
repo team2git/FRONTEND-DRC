@@ -146,3 +146,107 @@ FRONTEND/
    - Observe the notification banner: *"Unsynced Offline Surveys Detected: You have 1 offline survey response(s)..."*.
    - Click **[Sync All Now]**.
    - Verify response transitions to `syncStatus: 'synced'` and is registered directly in MongoDB `FormResponse` collection!
+
+
+**Method 1: Using the Navigation Sidebar (Recommended)**
+Open your browser and navigate to the application (e.g. http://localhost:5173 or your app's URL).
+Log in with your account credentials.
+In the left-side navigation menu, click "Live Dashboard" (located directly under Dashboard with a glowing pulse icon 🔴).
+**Method 2: Direct URL**
+Once logged in, you can directly open either of these routes in your browser:
+
+http://localhost:5173/live-dashboard
+http://localhost:5173/dashboard/live
+What You Will See on the Live Dashboard:
+🟢 Live Status Indicator: Confirms active WebSocket connection (LIVE / RECONNECTING / DISCONNECTED).
+📊 Real-time KPI Cards: Active incidents, critical emergencies, affected population, affected woredas, pending verification, and active response teams.
+🗺️ Live Incident GIS Map: Leaflet interactive map displaying real-time incident markers color-coded by severity:
+🔴 Critical (Red)
+🟠 High (Orange)
+🟡 Moderate (Yellow)
+🟢 Low (Green)
+⚡ Live Activity Stream: Real-time ticker showing incoming incident reports, survey syncs, and system actions.
+📈 Trend & Hazard Analytics: Dynamic ApexCharts time-series trends and hazard category distributions.
+🚨 Critical Alert Banners: Immediate popup notifications whenever a critical incident is reported anywhere in the system.
+🔍 Global Situational Filters: Filter by Woreda, Hazard type, Severity, Status, or Region in real-time.
+
+**Summary of Completed Work**
+We have fully developed and integrated the Real-Time DRM Live Dashboard Module into your existing Disaster Risk Management MERN application without altering or breaking any existing frontend routes, backend APIs, database models, authentication mechanisms, or RBAC controls.
+
+**Key Highlights & Accomplishments**
+**Backend Real-Time & Aggregation Architecture:**
+
+Added Socket.IO (socket.io v4) to the existing Express server bound on port 5000 via http.createServer(app).
+Created 
+
+socketService.js
+ for JWT-authenticated WebSocket handshakes and room management.
+Built high-performance MongoDB aggregation pipelines in 
+
+liveDashboardService.js
+ to compute real-time KPI metrics, GIS map marker locations, hazard breakdowns, incident frequency trends, emergency response monitoring, and live activity streams.
+Mounted protected endpoints under /api/live-dashboard/* in 
+
+liveDashboardRoutes.js
+, fully protected by protect, checkPermission('dashboard', 'view'), and applyScopeFilter.
+Connected Socket event triggers (incident:created, incident:updated, alert:critical) directly inside 
+
+incidentReportController.js
+.
+**Frontend Live Dashboard Module:**
+
+Created a modular feature structure under src/features/live-dashboard/.
+
+
+DashboardHeader.tsx
+: Displays DRM command center status (🟢 LIVE / 🟠 RECONNECTING / 🔴 DISCONNECTED), last updated timestamp, user organization, and manual refresh button.
+
+
+KPICards.tsx
+: 6 real-time KPI cards (Active Incidents, Critical Incidents, Affected Population, Affected Woredas, Pending Verification, Active Responses).
+
+
+LiveMap.tsx
+: Interactive Leaflet GIS map displaying real-time incident markers color-coded by severity (Critical: Red, High: Orange, Moderate: Yellow, Low: Green) with interactive detail popups.
+
+
+IncidentFeed.tsx
+: Live activity feed stream updating without page reloads.
+
+
+HazardAnalysis.tsx
+: ApexCharts donut chart showing hazard category distribution.
+
+
+IncidentTrend.tsx
+: ApexCharts area chart tracking incident frequency over time.
+
+
+ResponseStatus.tsx
+ & 
+
+SiteSurveyStatus.tsx
+: Emergency response progress and offline site survey sync monitoring.
+
+
+CriticalAlerts.tsx
+: Pop-up alert modal for critical DRM alerts.
+
+
+FilterPanel.tsx
+: Global filters for Region, Zone, Woreda, Hazard, Severity, Status, and Date Range.
+Routing & Sidebar Integration:
+
+Registered /live-dashboard and /dashboard/live in 
+
+App.tsx
+ wrapped in PermissionRoute.
+Added Live Dashboard item to 
+
+AppSidebar.tsx
+ navigation menu.
+Verification & Quality Check:
+
+Backend syntax check (node --check server.js): Passed cleanly with 0 errors.
+Frontend production build (npm run build / tsc -b): Passed cleanly with 0 errors.
+

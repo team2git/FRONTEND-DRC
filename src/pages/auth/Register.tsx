@@ -1,10 +1,11 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router';
 import api from '../../api/axios';
-import { Mail, Lock, Eye, EyeOff, CheckCircle2, AlertCircle, User, Phone } from 'lucide-react';
+import { Mail, CheckCircle2, AlertCircle, User, Phone, KeyRound, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { usePortalContent } from "../../hooks/usePortalContent";
 import { resolvePortalAssetUrl } from "../../utils/resolvePortalAssetUrl";
+import GoogleAuthModal from '../../components/auth/GoogleAuthModal';
 
 // Quick inline SVG components for social logins
 const GoogleIcon = () => (
@@ -35,35 +36,17 @@ const Register: React.FC = () => {
     const [formData, setFormData] = useState({
         fullname: '',
         email: '',
-        phone: '',
-        password: '',
-        confirmPassword: ''
+        phone: ''
     });
-    const [showPassword, setShowPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
     const navigate = useNavigate();
 
     // Fetch portal configuration for dynamic branding
     const { portalContent } = usePortalContent();
     const logoUrl = resolvePortalAssetUrl(portalContent?.branding?.logoUrl) || "/images/logo/logo.png";
     const portalName = portalContent?.branding?.portalName || "IDRMIS";
-
-    // Basic password strength logic for UI display
-    const getPasswordStrength = () => {
-        if (!formData.password) return 0;
-        let score = 0;
-        if (formData.password.length >= 8) score++;
-        if (/[A-Z]/.test(formData.password)) score++;
-        if (/[0-9]/.test(formData.password)) score++;
-        if (/[^A-Za-z0-9]/.test(formData.password)) score++;
-        return score;
-    };
-
-    const strength = getPasswordStrength();
-    const strengthLabels = ['Weak', 'Fair', 'Good', 'Strong'];
-    const strengthColors = ['bg-red-500', 'bg-yellow-500', 'bg-brand-500', 'bg-green-500'];
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -72,21 +55,18 @@ const Register: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
-
-        if (formData.password !== formData.confirmPassword) {
-            setError('Passwords do not match');
-            return;
-        }
-
         setLoading(true);
 
         try {
-            await api.post('/auth/register', {
-                fullname: formData.fullname,
-                email: formData.email,
-                phone: formData.phone,
-                password: formData.password
-            });
+            const payload: any = {
+                fullname: formData.fullname.trim(),
+                email: formData.email.trim()
+            };
+            if (formData.phone && formData.phone.trim() !== '') {
+                payload.phone = formData.phone.trim();
+            }
+
+            await api.post('/auth/register', payload);
             // Redirect to Verify page, passing email state for convenience
             navigate('/verify', { state: { email: formData.email } });
         } catch (err: any) {
@@ -94,6 +74,10 @@ const Register: React.FC = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleGoogleSignUp = () => {
+        setIsGoogleModalOpen(true);
     };
 
     return (
@@ -130,11 +114,11 @@ const Register: React.FC = () => {
                         
                         <h2 className="text-4xl font-bold mb-6 tracking-tight text-white">{portalName}</h2>
                         <p className="text-lg text-slate-300 mb-8 leading-relaxed">
-                            Create your account to access the {portalName} portal. Standard accounts require verification for security and data privacy.
+                            Create your account to access the {portalName} portal. Standard accounts require email verification for security and data integrity.
                         </p>
                         <div className="flex items-center justify-center space-x-6 text-sm font-medium text-slate-300">
                             <span className="flex items-center"><CheckCircle2 className="w-5 h-5 mr-2 text-[#e11d2d]" /> Simple Onboarding</span>
-                            <span className="flex items-center"><CheckCircle2 className="w-5 h-5 mr-2 text-[#e11d2d]" /> Secure Infrastructure</span>
+                            <span className="flex items-center"><CheckCircle2 className="w-5 h-5 mr-2 text-[#e11d2d]" /> Automated Credentials</span>
                         </div>
                     </motion.div>
                 </div>
@@ -160,8 +144,22 @@ const Register: React.FC = () => {
                     className="w-full max-w-md mx-auto"
                 >
                     <div className="mb-6">
+                        <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-red-500/10 text-[#e11d2d] dark:text-red-400 text-xs font-bold uppercase tracking-wider mb-2">
+                            <Sparkles className="w-3.5 h-3.5" />
+                            <span>Quick Registration</span>
+                        </div>
                         <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Create Account</h1>
-                        <p className="text-slate-500 dark:text-slate-400">Join {portalName} today</p>
+                        <p className="text-slate-500 dark:text-slate-400">Join {portalName} today in seconds</p>
+                    </div>
+
+                    {/* Notice about password delivery */}
+                    <div className="mb-6 p-4 rounded-2xl bg-indigo-50/80 dark:bg-indigo-950/40 border border-indigo-200/80 dark:border-indigo-800/60 backdrop-blur-md flex items-start space-x-3">
+                        <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex-shrink-0 mt-0.5">
+                            <KeyRound className="w-4 h-4" />
+                        </div>
+                        <div className="text-xs text-indigo-900 dark:text-indigo-200 leading-relaxed">
+                            <span className="font-bold">Password-Free Sign Up:</span> No password is required now. After verifying your email, your default login password will be delivered directly to your inbox.
+                        </div>
                     </div>
 
                     {error && (
@@ -228,77 +226,10 @@ const Register: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="space-y-1.5">
-                            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Password</label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <Lock className="h-5 w-5 text-slate-400" />
-                                </div>
-                                <input
-                                    name="password"
-                                    type={showPassword ? 'text' : 'password'}
-                                    value={formData.password}
-                                    onChange={handleChange}
-                                    required
-                                    minLength={6}
-                                    className="block w-full pl-10 pr-10 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm focus:ring-2 focus:ring-[#e11d2d] focus:border-transparent dark:text-white transition-all shadow-sm"
-                                    placeholder="Choose a password (min 6 chars)"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
-                                >
-                                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                                </button>
-                            </div>
-                            {/* Password Strength Indicator */}
-                            {formData.password.length > 0 && (
-                                <div className="mt-2 flex items-center space-x-2">
-                                    <div className="flex-1 flex space-x-1">
-                                        {[1, 2, 3, 4].map((level) => (
-                                            <div 
-                                                key={level} 
-                                                className={`h-1.5 w-full rounded-full transition-colors duration-300 ${strength >= level ? strengthColors[strength - 1] : 'bg-slate-200 dark:bg-slate-700'}`}
-                                            />
-                                        ))}
-                                    </div>
-                                    <span className="text-xs text-slate-500 dark:text-slate-400 w-12 text-right">
-                                        {strength > 0 ? strengthLabels[strength - 1] : ''}
-                                    </span>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="space-y-1.5">
-                            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Confirm Password</label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <Lock className="h-5 w-5 text-slate-400" />
-                                </div>
-                                <input
-                                    name="confirmPassword"
-                                    type={showConfirmPassword ? 'text' : 'password'}
-                                    value={formData.confirmPassword}
-                                    onChange={handleChange}
-                                    required
-                                    className="block w-full pl-10 pr-10 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm focus:ring-2 focus:ring-[#e11d2d] focus:border-transparent dark:text-white transition-all shadow-sm"
-                                    placeholder="Confirm your password"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
-                                >
-                                    {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                                </button>
-                            </div>
-                        </div>
-
                         <button
                             type="submit"
                             disabled={loading}
-                            className={`relative w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-lg shadow-[#e11d2d]/20 text-sm font-semibold text-white bg-[#e11d2d] hover:bg-[#bf1124] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#e11d2d] transition-all duration-200 overflow-hidden ${loading ? 'opacity-90 cursor-not-allowed' : 'hover:-translate-y-0.5'} mt-2`}
+                            className={`relative w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-[#e11d2d]/20 text-sm font-semibold text-white bg-[#e11d2d] hover:bg-[#bf1124] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#e11d2d] transition-all duration-200 overflow-hidden ${loading ? 'opacity-90 cursor-not-allowed' : 'hover:-translate-y-0.5'} mt-4`}
                         >
                             {loading ? (
                                 <div className="flex items-center">
@@ -309,7 +240,7 @@ const Register: React.FC = () => {
                                     Registering...
                                 </div>
                             ) : (
-                                'Sign Up'
+                                'Create Account & Receive Code'
                             )}
                         </button>
                     </form>
@@ -319,20 +250,26 @@ const Register: React.FC = () => {
                             <div className="w-full border-t border-slate-200 dark:border-slate-700" />
                         </div>
                         <div className="relative flex justify-center text-sm">
-                            <span className="px-4 bg-slate-50 dark:bg-slate-900 text-slate-500">OR Sign Up With</span>
+                            <span className="px-4 bg-slate-50 dark:bg-slate-900 text-slate-500 font-medium">OR Sign Up With</span>
                         </div>
                     </div>
 
                     <div className="mt-6 grid grid-cols-3 gap-3">
-                        <button type="button" className="flex justify-center items-center py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm">
+                        <button 
+                            type="button" 
+                            onClick={handleGoogleSignUp}
+                            disabled={loading}
+                            className="flex justify-center items-center py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm hover:-translate-y-0.5 group cursor-pointer"
+                            title="Register with Google"
+                        >
                             <span className="sr-only">Sign up with Google</span>
                             <GoogleIcon />
                         </button>
-                        <button type="button" className="flex justify-center items-center py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm">
+                        <button type="button" className="flex justify-center items-center py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm opacity-60 cursor-not-allowed" title="Microsoft Login (Coming Soon)">
                             <span className="sr-only">Sign up with Microsoft</span>
                             <MicrosoftIcon />
                         </button>
-                        <button type="button" className="flex justify-center items-center py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm">
+                        <button type="button" className="flex justify-center items-center py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm opacity-60 cursor-not-allowed" title="LinkedIn Login (Coming Soon)">
                             <span className="sr-only">Sign up with LinkedIn</span>
                             <LinkedInIcon />
                         </button>
@@ -358,6 +295,15 @@ const Register: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Google Authentication Modal */}
+            <GoogleAuthModal
+                isOpen={isGoogleModalOpen}
+                onClose={() => setIsGoogleModalOpen(false)}
+                mode="signup"
+                defaultEmail={formData.email}
+                defaultName={formData.fullname}
+            />
         </div>
     );
 };
