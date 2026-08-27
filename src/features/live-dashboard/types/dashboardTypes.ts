@@ -51,10 +51,16 @@ export interface MapIncident {
   reportCode: string;
   reportType: 'incident' | 'concern';
   category: string;
+  concernCategory?: string;
   severity: 'critical' | 'high' | 'moderate' | 'low';
   status: 'submitted' | 'received' | 'dispatched' | 'closed';
   details: string;
   locationName: string;
+  city?: string;
+  subCity?: string;
+  woreda?: string;
+  placeName?: string;
+  addressLine?: string;
   region: string;
   latitude: number;
   longitude: number;

@@ -16,6 +16,7 @@ import { AssessmentAnalyticsCard } from '../components/AssessmentAnalyticsCard';
 import { FilterPanel } from '../components/FilterPanel';
 import { DashboardLayoutModal } from '../components/DashboardLayoutModal';
 import { DisasterHistoryTrend } from '../components/DisasterHistoryTrend';
+import { LocationReportAnalytics } from '../components/LocationReportAnalytics';
 import { ThemeOption } from '../types/dashboardTypes';
 import {
   DashboardCardConfig,
@@ -262,6 +263,8 @@ export const LiveDashboard: React.FC = () => {
         return <IncidentTrend trends={trends} loading={loading} theme={theme} filters={filters} />;
       case 'hazard_analysis':
         return <HazardAnalysis hazards={hazards} loading={loading} theme={theme} />;
+      case 'location_analytics':
+        return <LocationReportAnalytics incidents={mapIncidents} loading={loading} theme={theme} />;
       case 'response_status':
         return <ResponseStatus data={responseMonitoring} loading={loading} theme={theme} />;
       case 'survey_status':

@@ -24,6 +24,7 @@ import ServiceExitButton from "./components/ServiceExitButton";
 import { usePortalContent } from "@/hooks/usePortalContent";
 import { resolvePortalAssetUrl } from "@/utils/resolvePortalAssetUrl";
 import { getLocationHierarchy, type LocationHierarchyItem } from "@/api/locationService";
+import { reverseLookupLocation } from "@/utils/geoReverseLookup";
 import { ALERT_CATEGORY_LABELS, ALERT_HAZARD_GROUPS } from "@/constants/alertCategories";
 
 type StepKey = "contact_location" | "preferences" | "household" | "delivery_review";
@@ -416,22 +417,16 @@ const AlertSubscriptionPage: React.FC = () => {
   const reverseGeocode = async (lat: string, lng: string) => {
     if (!lat || !lng) return;
     try {
-      const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${encodeURIComponent(
-        lat
-      )}&lon=${encodeURIComponent(lng)}`;
-      const res = await fetch(url, { headers: { "Accept-Language": "en" } });
-      const data = await res.json();
-      const address = data?.address || {};
-      const addressLine =
-        data?.display_name ||
-        [address.road, address.neighbourhood, address.suburb].filter(Boolean).join(", ");
+      const resolved = await reverseLookupLocation(lat, lng, []);
       setDraft((prev) => ({
         ...prev,
         location: {
           ...prev.location,
-          addressLine: addressLine || prev.location.addressLine,
-          city: address.city || address.town || address.village || prev.location.city,
-          country: address.country || prev.location.country,
+          addressLine: resolved.addressLine || prev.location.addressLine,
+          city: resolved.city || prev.location.city,
+          subCity: resolved.subCity || prev.location.subCity,
+          woreda: resolved.woreda || prev.location.woreda,
+          country: resolved.country || prev.location.country,
         },
       }));
     } catch (error) {

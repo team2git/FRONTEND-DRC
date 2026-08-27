@@ -36,6 +36,9 @@ import {
   Code,
   RefreshCw,
   Sparkles,
+  Image as ImageIcon,
+  Link as LinkIcon,
+  Quote,
 } from 'lucide-react';
 
 // ─── Markdown Toolbar Actions ───────────────────────────────────────────────
@@ -169,65 +172,129 @@ const TOOLBAR_ACTIONS: ToolbarAction[] = [
       return { newText: before + inserted + after, newCursor: s + inserted.length };
     },
   },
+  {
+    label: 'Link', icon: <LinkIcon className="w-4 h-4" />, title: 'Insert link', group: 'misc',
+    action: (text, s, e) => {
+      const sel = text.slice(s, e) || 'link text';
+      const before = text.slice(0, s);
+      const after = text.slice(e);
+      const inserted = `[${sel}](https://)`;
+      return { newText: before + inserted + after, newCursor: s + inserted.length };
+    },
+  },
+  {
+    label: 'Quote', icon: <Quote className="w-4 h-4" />, title: 'Block quote', group: 'misc',
+    action: (text, s, e) => {
+      const sel = text.slice(s, e) || 'quoted text';
+      const before = text.slice(0, s);
+      const after = text.slice(e);
+      const inserted = `\n> ${sel}\n`;
+      return { newText: before + inserted + after, newCursor: s + inserted.length };
+    },
+  },
 ];
 
-// Reuse the same preview renderer logic from HelpCenterModal
+// ─── Smart Paste: Plain text → Markdown ─────────────────────────────────────
+const smartFormatPaste = (raw: string): string => {
+  const lines = raw.split(/\r?\n/);
+  return lines.map((line) => {
+    const t = line.trim();
+    if (!t) return '';
+    // Numbered list: lines starting with "1." "2." etc.
+    if (/^\d+[.)\s]/.test(t)) return t.replace(/^(\d+)[.)\s]+/, '$1. ');
+    // ALL-CAPS lines → H3
+    if (t === t.toUpperCase() && t.length > 3 && /[A-Z]/.test(t)) return `### ${t}`;
+    // Lines ending with ":" → H4
+    if (t.endsWith(':') && t.length < 60 && !t.startsWith('-')) return `#### ${t.slice(0, -1)}`;
+    // Short leading dash/bullet
+    if (/^[-•●▪◦]\s/.test(t)) return `- ${t.slice(2).trim()}`;
+    return t;
+  }).join('\n');
+};
+
+// ─── Rich Preview Renderer (PDF-like) ───────────────────────────────────────
 const renderPreview = (content: string): React.ReactNode => {
   const lines = content.split('\n');
   const els: React.ReactNode[] = [];
   let i = 0;
+
+  const inline = (t: string) =>
+    t
+      .replace(/\*\*([^*]+)\*\*/g, '<strong class="font-extrabold text-slate-900 dark:text-white">$1</strong>')
+      .replace(/\*([^*]+)\*/g, '<em class="italic text-slate-700 dark:text-slate-300">$1</em>')
+      .replace(/`([^`]+)`/g, '<code class="px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800/80 text-blue-600 dark:text-blue-400 text-[12px] font-mono border border-slate-200 dark:border-slate-700">$1</code>')
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" class="text-blue-600 dark:text-blue-400 underline underline-offset-2 hover:text-blue-800 font-medium">$1</a>');
+
   while (i < lines.length) {
     const raw = lines[i];
     const t = raw.trim();
-    if (!t) { els.push(<div key={i} className="h-2" />); i++; continue; }
+
+    if (!t) { els.push(<div key={i} className="h-3" />); i++; continue; }
+
+    // Image markdown: ![alt](src)
+    const imgMatch = t.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
+    if (imgMatch) {
+      els.push(
+        <div key={i} className="my-5 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-md">
+          <img src={imgMatch[2]} alt={imgMatch[1]} className="w-full max-h-96 object-contain bg-slate-50 dark:bg-slate-900" />
+          {imgMatch[1] && <p className="text-center text-[11px] text-slate-400 italic py-2 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">{imgMatch[1]}</p>}
+        </div>
+      );
+      i++; continue;
+    }
 
     if (t.startsWith('### ')) {
       els.push(
-        <h3 key={i} className="flex items-center gap-2 mt-6 mb-3 pb-2.5 border-b border-blue-100 dark:border-blue-900/40 text-base font-black text-slate-900 dark:text-white">
-          <BookOpen className="w-4 h-4 text-blue-500 shrink-0" /> {t.slice(4)}
-        </h3>
+        <div key={i} className="flex items-center gap-3 mt-10 mb-4 pb-3 border-b-2 border-blue-100 dark:border-blue-900/40">
+          <div className="p-1.5 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 shrink-0"><BookOpen className="w-4 h-4" /></div>
+          <h3 className="text-[17px] font-black text-slate-900 dark:text-white tracking-tight">{t.slice(4)}</h3>
+        </div>
       );
     } else if (t.startsWith('#### ')) {
-      els.push(<h4 key={i} className="mt-4 mb-1.5 text-sm font-extrabold text-blue-700 dark:text-blue-400 uppercase tracking-wide">{t.slice(5)}</h4>);
+      els.push(<h4 key={i} className="flex items-center gap-1.5 mt-6 mb-2 text-[12px] font-extrabold text-blue-700 dark:text-blue-400 uppercase tracking-widest"><span className="w-4 h-px bg-blue-400 inline-block" />{t.slice(5)}</h4>);
     } else if (t.startsWith('## ')) {
-      els.push(<h2 key={i} className="mt-8 mb-3 text-xl font-black text-slate-900 dark:text-white">{t.slice(3)}</h2>);
+      els.push(<h2 key={i} className="mt-12 mb-4 text-2xl font-black text-slate-900 dark:text-white tracking-tight leading-tight border-l-4 border-blue-500 pl-4">{t.slice(3)}</h2>);
     } else if (t.startsWith('> ')) {
       const inner = t.slice(2);
-      const isW = inner.toLowerCase().includes('warning');
-      const isTip = inner.toLowerCase().includes('tip');
+      const isW = inner.toLowerCase().includes('warning') || inner.toLowerCase().includes('caution');
+      const isTip = inner.toLowerCase().includes('tip') || inner.toLowerCase().includes('hint');
+      const isNote = inner.toLowerCase().includes('note') || inner.toLowerCase().includes('important');
       const style = isW
-        ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-400/50 text-rose-800 dark:text-rose-200'
+        ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-400 text-rose-800 dark:text-rose-200'
         : isTip
-        ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-400/50 text-amber-800 dark:text-amber-200'
-        : 'bg-sky-50 dark:bg-sky-950/40 border-sky-400/50 text-sky-800 dark:text-sky-200';
+        ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-400 text-amber-800 dark:text-amber-200'
+        : isNote
+        ? 'bg-violet-50 dark:bg-violet-950/40 border-violet-400 text-violet-800 dark:text-violet-200'
+        : 'bg-sky-50 dark:bg-sky-950/40 border-sky-400 text-sky-800 dark:text-sky-200';
       const Icon = isW ? <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" /> : isTip ? <Lightbulb className="w-4 h-4 shrink-0 mt-0.5" /> : <Info className="w-4 h-4 shrink-0 mt-0.5" />;
       els.push(
-        <div key={i} className={`flex items-start gap-2 my-2 p-3.5 rounded-xl border-l-4 ${style}`}>
-          {Icon}<span className="text-sm font-medium leading-relaxed" dangerouslySetInnerHTML={{ __html: inner.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>') }} />
+        <div key={i} className={`flex items-start gap-3 my-4 p-4 rounded-xl border-l-[5px] shadow-sm ${style}`}>
+          {Icon}
+          <span className="text-sm font-medium leading-relaxed" dangerouslySetInnerHTML={{ __html: inline(inner) }} />
         </div>
       );
     } else if (t.startsWith('- ') || t.startsWith('* ')) {
       els.push(
-        <div key={i} className="flex items-start gap-2.5 py-0.5">
+        <div key={i} className="flex items-start gap-3 py-1.5">
           <div className="w-5 h-5 rounded-full bg-blue-500/15 border border-blue-400/30 flex items-center justify-center shrink-0 mt-0.5">
             <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
           </div>
-          <span className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed" dangerouslySetInnerHTML={{ __html: t.slice(2).replace(/\*\*([^*]+)\*\*/g, '<strong class="font-extrabold text-slate-900 dark:text-white">$1</strong>') }} />
+          <span className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed" dangerouslySetInnerHTML={{ __html: inline(t.slice(2)) }} />
         </div>
       );
     } else if (/^(\d+)\.\s/.test(t)) {
       const m = t.match(/^(\d+)\.\s+(.+)$/)!;
       els.push(
-        <div key={i} className="flex items-start gap-2.5 py-0.5">
-          <div className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-black flex items-center justify-center shrink-0 mt-0.5">{m[1]}</div>
-          <span className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed pt-0.5">{m[2]}</span>
+        <div key={i} className="flex items-start gap-3 py-1.5">
+          <div className="w-7 h-7 rounded-full bg-blue-600 text-white text-xs font-black flex items-center justify-center shrink-0 mt-0.5 shadow-sm">{m[1]}</div>
+          <span className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed pt-1" dangerouslySetInnerHTML={{ __html: inline(m[2]) }} />
         </div>
       );
     } else if (t === '---') {
-      els.push(<hr key={i} className="my-4 border-slate-200 dark:border-slate-800" />);
+      els.push(<div key={i} className="flex items-center gap-3 my-6"><div className="flex-1 h-px bg-gradient-to-r from-transparent via-slate-300 dark:via-slate-600 to-transparent" /><div className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600" /><div className="flex-1 h-px bg-gradient-to-r from-transparent via-slate-300 dark:via-slate-600 to-transparent" /></div>);
     } else {
       els.push(
-        <p key={i} className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed" dangerouslySetInnerHTML={{ __html: t.replace(/\*\*([^*]+)\*\*/g, '<strong class="font-extrabold text-slate-900 dark:text-white">$1</strong>').replace(/\`([^`]+)\`/g, '<code class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-blue-600 dark:text-blue-400 text-xs font-mono">$1</code>') }} />
+        <p key={i} className="text-[14px] text-slate-600 dark:text-slate-400 leading-[1.85] mb-1" dangerouslySetInnerHTML={{ __html: inline(t) }} />
       );
     }
     i++;
@@ -243,8 +310,25 @@ interface MarkdownEditorProps {
 
 const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ value, onChange }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const [tab, setTab] = useState<'write' | 'preview'>('write');
+  const [isDragOver, setIsDragOver] = useState(false);
 
+  // ── Insert text at cursor ─────────────────────────────────────────────────
+  const insertAtCursor = useCallback((text: string) => {
+    const ta = textareaRef.current;
+    if (!ta) { onChange(value + text); return; }
+    const s = ta.selectionStart;
+    const e = ta.selectionEnd;
+    const newVal = value.slice(0, s) + text + value.slice(e);
+    onChange(newVal);
+    setTimeout(() => {
+      ta.focus();
+      ta.setSelectionRange(s + text.length, s + text.length);
+    }, 0);
+  }, [value, onChange]);
+
+  // ── Toolbar action ────────────────────────────────────────────────────────
   const applyAction = useCallback((action: ToolbarAction) => {
     const ta = textareaRef.current;
     if (!ta) return;
@@ -252,20 +336,63 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ value, onChange }) => {
     const e = ta.selectionEnd;
     const result = action.action(value, s, e);
     onChange(result.newText);
-    // Restore cursor
     setTimeout(() => {
       ta.focus();
       ta.setSelectionRange(result.newCursor, result.newCursor);
     }, 0);
   }, [value, onChange]);
 
-  // Keyboard shortcuts inside textarea
+  // ── Smart paste ───────────────────────────────────────────────────────────
+  const handlePaste = useCallback((e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const files = e.clipboardData.files;
+    if (files.length > 0 && files[0].type.startsWith('image/')) {
+      e.preventDefault();
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const src = ev.target?.result as string;
+        insertAtCursor(`\n![image](${src})\n`);
+      };
+      reader.readAsDataURL(files[0]);
+      return;
+    }
+    const text = e.clipboardData.getData('text/plain');
+    if (!text) return;
+    const hasMarkdown = /^(#{1,4} |\d+\. |- |\* |> )/m.test(text);
+    if (!hasMarkdown && text.split('\n').length > 3) {
+      e.preventDefault();
+      const formatted = smartFormatPaste(text);
+      insertAtCursor(formatted);
+    }
+  }, [insertAtCursor]);
+
+  // ── Image file handling ───────────────────────────────────────────────────
+  const handleImageFile = useCallback((file: File) => {
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const src = ev.target?.result as string;
+      const alt = file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ');
+      insertAtCursor(`\n![${alt}](${src})\n`);
+    };
+    reader.readAsDataURL(file);
+  }, [insertAtCursor]);
+
+  const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    const file = e.dataTransfer.files[0];
+    if (file?.type.startsWith('image/')) handleImageFile(file);
+  }, [handleImageFile]);
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); setIsDragOver(true); };
+  const handleDragLeave = () => setIsDragOver(false);
+
+  // ── Keyboard shortcuts ────────────────────────────────────────────────────
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.ctrlKey || e.metaKey) {
       if (e.key === 'b') { e.preventDefault(); applyAction(TOOLBAR_ACTIONS.find(a => a.label === 'Bold')!); }
       if (e.key === 'i') { e.preventDefault(); applyAction(TOOLBAR_ACTIONS.find(a => a.label === 'Italic')!); }
+      if (e.key === 'k') { e.preventDefault(); applyAction(TOOLBAR_ACTIONS.find(a => a.label === 'Link')!); }
     }
-    // Auto-indent lists
     if (e.key === 'Enter') {
       const ta = e.currentTarget;
       const pos = ta.selectionStart;
@@ -287,7 +414,6 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ value, onChange }) => {
         setTimeout(() => { ta.setSelectionRange(pos + insert.length, pos + insert.length); }, 0);
       }
     }
-    // Tab → 2 spaces
     if (e.key === 'Tab') {
       e.preventDefault();
       const ta = e.currentTarget;
@@ -299,9 +425,30 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ value, onChange }) => {
   }, [value, onChange, applyAction]);
 
   const toolbarGroups = ['heading', 'format', 'list', 'alert', 'misc'];
+  const wordCount = value.trim() ? value.trim().split(/\s+/).length : 0;
+  const readingTime = Math.max(1, Math.ceil(wordCount / 200));
 
   return (
-    <div className="flex flex-col rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden bg-white dark:bg-slate-950/60">
+    <div
+      className={`relative flex flex-col rounded-xl border overflow-hidden bg-white dark:bg-slate-950/60 transition-all ${
+        isDragOver
+          ? 'border-blue-500 ring-2 ring-blue-500/30 shadow-lg shadow-blue-500/10'
+          : 'border-slate-200 dark:border-slate-700'
+      }`}
+      onDrop={handleDrop}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+    >
+      {/* Drag overlay */}
+      {isDragOver && (
+        <div className="absolute inset-0 z-20 bg-blue-500/10 backdrop-blur-sm flex items-center justify-center rounded-xl pointer-events-none">
+          <div className="bg-white dark:bg-slate-900 border-2 border-dashed border-blue-500 rounded-2xl px-8 py-6 flex flex-col items-center gap-2 shadow-xl">
+            <ImageIcon className="w-10 h-10 text-blue-500" />
+            <p className="text-sm font-bold text-blue-600 dark:text-blue-400">Drop image to insert</p>
+          </div>
+        </div>
+      )}
+
       {/* Toolbar */}
       <div className="flex flex-wrap items-center justify-between gap-1 px-3 py-2 bg-slate-50 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-700">
         <div className="flex flex-wrap items-center gap-0.5">
@@ -321,6 +468,23 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ value, onChange }) => {
               ))}
             </React.Fragment>
           ))}
+          {/* Image button */}
+          <div className="w-px h-5 bg-slate-200 dark:bg-slate-700 mx-1" />
+          <button
+            type="button"
+            title="Insert image (or drag & drop)"
+            onClick={() => imageInputRef.current?.click()}
+            className="inline-flex items-center justify-center w-7 h-7 rounded-md text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition"
+          >
+            <ImageIcon className="w-4 h-4" />
+          </button>
+          <input
+            ref={imageInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageFile(f); e.target.value = ''; }}
+          />
         </div>
 
         {/* Write / Preview toggle */}
@@ -330,7 +494,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ value, onChange }) => {
             onClick={() => setTab('write')}
             className={`px-2.5 py-1 rounded-md transition ${tab === 'write' ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-300 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
           >
-            Write
+            ✏️ Write
           </button>
           <button
             type="button"
@@ -344,34 +508,74 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ value, onChange }) => {
 
       {/* Editor / Preview body */}
       {tab === 'write' ? (
-        <textarea
-          ref={textareaRef}
-          required
-          rows={18}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Start writing markdown content...&#10;&#10;### Section Heading&#10;- Bullet point&#10;1. Numbered step&#10;> Note: Important note here."
-          className="w-full p-4 text-[13px] font-mono leading-relaxed resize-none focus:outline-none bg-white dark:bg-slate-950/40 text-slate-800 dark:text-slate-200 placeholder-slate-400 min-h-[400px]"
-          spellCheck
-        />
+        <div className="relative">
+          <textarea
+            ref={textareaRef}
+            required
+            rows={20}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            onKeyDown={handleKeyDown}
+            onPaste={handlePaste}
+            placeholder={`Start writing or paste any text — it will be auto-formatted...\n\n### Section Heading\n- Bullet point\n1. Numbered step\n> Note: Important note here.\n\nDrag & drop or paste an image to embed it.`}
+            className="w-full p-5 text-[13px] font-mono leading-[1.9] resize-none focus:outline-none bg-white dark:bg-slate-950/40 text-slate-800 dark:text-slate-200 placeholder-slate-300 dark:placeholder-slate-600 min-h-[420px] selection:bg-blue-200 dark:selection:bg-blue-800/60"
+            spellCheck
+          />
+          {/* Drop hint when not dragging */}
+          {!value && (
+            <div className="absolute bottom-4 right-4 flex items-center gap-1.5 text-[10px] text-slate-300 dark:text-slate-700 pointer-events-none select-none">
+              <ImageIcon className="w-3 h-3" />
+              <span>Drag image here to embed</span>
+            </div>
+          )}
+        </div>
       ) : (
-        <div className="p-5 min-h-[400px] overflow-y-auto space-y-1">
+        // PDF-like preview
+        <div className="bg-slate-100 dark:bg-slate-950 p-5 md:p-8 min-h-[420px] overflow-y-auto">
           {value.trim() ? (
-            renderPreview(value)
+            <div className="max-w-2xl mx-auto bg-white dark:bg-[#111827] rounded-2xl shadow-xl shadow-black/10 border border-slate-200/60 dark:border-slate-700/40 overflow-hidden">
+              {/* Page header */}
+              <div className="h-1.5 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500" />
+              <div className="px-10 py-10 space-y-1.5">
+                {renderPreview(value)}
+              </div>
+              {/* Page footer */}
+              <div className="flex items-center justify-between px-10 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/40">
+                <span className="text-[10px] text-slate-300 dark:text-slate-600 font-mono">PDRM Help Center — Document View</span>
+                <span className="text-[10px] text-slate-300 dark:text-slate-600 font-mono">{wordCount} words · ~{readingTime} min read</span>
+              </div>
+            </div>
           ) : (
-            <div className="flex flex-col items-center justify-center h-40 text-slate-400 gap-2">
-              <Eye className="w-8 h-8 opacity-30" />
-              <p className="text-sm font-medium">Write some content to see the preview</p>
+            <div className="flex flex-col items-center justify-center h-52 text-slate-400 gap-3">
+              <div className="w-16 h-16 rounded-2xl bg-slate-200 dark:bg-slate-800 flex items-center justify-center">
+                <Eye className="w-7 h-7 opacity-40" />
+              </div>
+              <p className="text-sm font-medium">Write some content to see the PDF preview</p>
             </div>
           )}
         </div>
       )}
 
       {/* Status bar */}
-      <div className="flex items-center justify-between px-3 py-1.5 bg-slate-50 dark:bg-slate-900/80 border-t border-slate-200 dark:border-slate-700 text-[10px] text-slate-400 font-mono">
-        <span>{value.length} characters · {value.split('\n').length} lines</span>
-        <span>Ctrl+B Bold · Ctrl+I Italic · Tab → indent</span>
+      <div className="flex items-center justify-between px-4 py-1.5 bg-slate-50 dark:bg-slate-900/80 border-t border-slate-200 dark:border-slate-700 text-[10px] text-slate-400 font-mono">
+        <span className="flex items-center gap-3">
+          <span>{value.length.toLocaleString()} chars</span>
+          <span className="text-slate-300 dark:text-slate-700">·</span>
+          <span>{wordCount.toLocaleString()} words</span>
+          <span className="text-slate-300 dark:text-slate-700">·</span>
+          <span>{value.split('\n').length} lines</span>
+          <span className="text-slate-300 dark:text-slate-700">·</span>
+          <span>~{readingTime} min read</span>
+        </span>
+        <span className="hidden sm:flex items-center gap-2">
+          <span>Ctrl+B Bold</span>
+          <span className="text-slate-300 dark:text-slate-700">·</span>
+          <span>Ctrl+I Italic</span>
+          <span className="text-slate-300 dark:text-slate-700">·</span>
+          <span>Ctrl+K Link</span>
+          <span className="text-slate-300 dark:text-slate-700">·</span>
+          <span>Drop image</span>
+        </span>
       </div>
     </div>
   );

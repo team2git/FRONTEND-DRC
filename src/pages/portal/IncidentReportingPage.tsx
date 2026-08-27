@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router";
 import {
@@ -25,6 +25,7 @@ import markerShadow from "leaflet/dist/images/marker-shadow.png";
 
 import api from "@/api/axios";
 import { getLocationHierarchy, type LocationHierarchyItem } from "@/api/locationService";
+import { reverseLookupLocation } from "@/utils/geoReverseLookup";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import ServiceExitButton from "./components/ServiceExitButton";
@@ -173,6 +174,7 @@ const IncidentReportingPage: React.FC = () => {
   const mapRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.Marker | null>(null);
   const speechRef = useRef<any>(null);
+  const locationHierarchyRef = useRef<LocationHierarchyItem[]>([]);
 
   const sectionsVisibility = portalContent?.sectionsVisibility;
   const showHeader = sectionsVisibility?.header !== false;
@@ -181,11 +183,18 @@ const IncidentReportingPage: React.FC = () => {
 
   useEffect(() => {
     getLocationHierarchy()
-      .then((data) => setLocationHierarchy(data))
+      .then((data) => {
+        setLocationHierarchy(data);
+        locationHierarchyRef.current = data;
+      })
       .catch(() => {
         toast.error("Could not load subcities and woredas.");
       });
   }, []);
+
+  useEffect(() => {
+    locationHierarchyRef.current = locationHierarchy;
+  }, [locationHierarchy]);
 
   const selectedSubcity = locationHierarchy.find((item) => item.name === draft.location.subCity);
   const availableWoredas = selectedSubcity?.woredas ?? [];
@@ -327,25 +336,46 @@ const IncidentReportingPage: React.FC = () => {
     if (!lat || !lng) return;
     try {
       setReverseGeocoding(true);
-      const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${encodeURIComponent(
-        lat
-      )}&lon=${encodeURIComponent(lng)}`;
-      const res = await fetch(url, { headers: { "Accept-Language": "en" } });
-      const data = await res.json();
-      const address = data?.address || {};
-      const addressLine =
-        data?.display_name ||
-        [address.road, address.neighbourhood, address.suburb].filter(Boolean).join(", ");
-      setDraft((prev) => ({
-        ...prev,
-        location: {
-          ...prev.location,
-          addressLine: addressLine || prev.location.addressLine,
-          city: address.city || address.town || address.village || prev.location.city,
-          // region: address.state || address.region || prev.location.region,
-          country: address.country || prev.location.country,
-        },
-      }));
+      let hierarchy = locationHierarchyRef.current;
+      if (!hierarchy || hierarchy.length === 0) {
+        try {
+          hierarchy = await getLocationHierarchy();
+          setLocationHierarchy(hierarchy);
+          locationHierarchyRef.current = hierarchy;
+        } catch {
+          // fallback to empty
+        }
+      }
+
+      const resolved = await reverseLookupLocation(lat, lng, hierarchy || []);
+
+      setDraft((prev) => {
+        const nextSubCity = resolved.subCity || prev.location.subCity;
+        let nextWoreda = resolved.woreda;
+        if (!nextWoreda && nextSubCity === prev.location.subCity) {
+          nextWoreda = prev.location.woreda;
+        }
+
+        return {
+          ...prev,
+          location: {
+            ...prev.location,
+            latitude: lat,
+            longitude: lng,
+            addressLine: resolved.addressLine || prev.location.addressLine,
+            placeName: resolved.placeName || prev.location.placeName,
+            city: resolved.city || prev.location.city,
+            subCity: nextSubCity,
+            woreda: nextWoreda || "",
+            country: resolved.country || prev.location.country,
+          },
+        };
+      });
+
+      if (resolved.subCity) {
+        const detected = [resolved.city, resolved.subCity, resolved.woreda].filter(Boolean).join(" • ");
+        toast.info(`📍 Location detected: ${detected}`, { autoClose: 3000 });
+      }
     } catch (error) {
       toast.error("Failed to reverse geocode location.");
     } finally {
@@ -476,10 +506,13 @@ const IncidentReportingPage: React.FC = () => {
       setCoordError('Longitude must be between -180 and 180');
       return;
     }
-    setDraft((prev) => ({ ...prev, location: { ...prev.location, latitude: latNum.toFixed(6), longitude: lngNum.toFixed(6) } }));
+    const latFormatted = latNum.toFixed(6);
+    const lngFormatted = lngNum.toFixed(6);
+    setDraft((prev) => ({ ...prev, location: { ...prev.location, latitude: latFormatted, longitude: lngFormatted } }));
     setCoordInputLat('');
     setCoordInputLng('');
     setCoordError(null);
+    reverseGeocode(latFormatted, lngFormatted);
   };
 
   const locationHeaderText = [
