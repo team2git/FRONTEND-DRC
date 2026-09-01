@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
-import { Edit3, X } from "lucide-react";
+import { Edit3, X, MessageSquare, Mail, Send } from "lucide-react";
+import api from "../../api/axios";
+import { toast } from "react-toastify";
 
 type SubscriptionReview = {
   _id: string;
@@ -123,9 +125,17 @@ export default function SubscriptionReviewModal({ open, subscription, onClose, o
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState({ email: "", phone: "", addressLine: "", city: "", region: "" });
 
+  // Direct single messaging state
+  const [messageMode, setMessageMode] = useState<"none" | "sms" | "email">("none");
+  const [singleSmsText, setSingleSmsText] = useState("");
+  const [singleEmailSubject, setSingleEmailSubject] = useState("Disaster Risk Management Notice");
+  const [singleEmailBody, setSingleEmailBody] = useState("");
+  const [sendingMsg, setSendingMsg] = useState(false);
+
   useEffect(() => {
     if (!subscription) return;
     setEditing(false);
+    setMessageMode("none");
     setDraft({
       email: subscription.contact?.email || "",
       phone: subscription.contact?.phone || "",
@@ -144,6 +154,49 @@ export default function SubscriptionReviewModal({ open, subscription, onClose, o
       location: { ...subscription.location, addressLine: draft.addressLine.trim(), city: draft.city.trim(), region: draft.region.trim() },
     });
     setEditing(false);
+  };
+
+  const handleSendDirectSms = async () => {
+    if (!singleSmsText.trim()) {
+      toast.warning("Please enter an SMS message body");
+      return;
+    }
+    setSendingMsg(true);
+    try {
+      const response = await api.post(`/alert-subscriptions/${subscription._id}/send-sms`, {
+        message: singleSmsText,
+        category: (subscription.preferences?.categories || [])[0] || "general",
+      });
+      toast.success(response.data?.message || "SMS sent successfully!");
+      setSingleSmsText("");
+      setMessageMode("none");
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Failed to send SMS");
+    } finally {
+      setSendingMsg(false);
+    }
+  };
+
+  const handleSendDirectEmail = async () => {
+    if (!singleEmailSubject.trim() || !singleEmailBody.trim()) {
+      toast.warning("Please enter subject and message body");
+      return;
+    }
+    setSendingMsg(true);
+    try {
+      const response = await api.post(`/alert-subscriptions/${subscription._id}/send-email`, {
+        subject: singleEmailSubject,
+        message: singleEmailBody,
+        category: (subscription.preferences?.categories || [])[0] || "general",
+      });
+      toast.success(response.data?.message || "Email sent successfully!");
+      setSingleEmailBody("");
+      setMessageMode("none");
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Failed to send Email");
+    } finally {
+      setSendingMsg(false);
+    }
   };
 
   const locationLine = buildLocationLine(subscription.location);
@@ -176,10 +229,139 @@ export default function SubscriptionReviewModal({ open, subscription, onClose, o
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {onSave ? <button type="button" onClick={() => setEditing((value) => !value)} className="inline-flex items-center gap-1.5 rounded-xl border border-amber-200 px-3 py-2 text-xs font-bold text-amber-700 hover:bg-amber-50 dark:border-amber-500/30 dark:text-amber-300"><Edit3 className="h-3.5 w-3.5" />{editing ? "Hide Edit" : "Edit"}</button> : null}
-            <button type="button" onClick={onClose} className="rounded-full border border-slate-200 p-2 text-slate-500 transition hover:border-rose-300 hover:text-rose-500 dark:border-slate-800" aria-label="Close subscription details"><X className="h-5 w-5" /></button>
+            {subscription.contact?.phone ? (
+              <button
+                type="button"
+                onClick={() => setMessageMode(messageMode === "sms" ? "none" : "sms")}
+                className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-bold transition ${
+                  messageMode === "sms"
+                    ? "border-amber-500 bg-amber-500 text-white"
+                    : "border-amber-200 text-amber-700 hover:bg-amber-50 dark:border-amber-500/30 dark:text-amber-300"
+                }`}
+              >
+                <MessageSquare className="h-3.5 w-3.5" />
+                Send SMS
+              </button>
+            ) : null}
+
+            {subscription.contact?.email ? (
+              <button
+                type="button"
+                onClick={() => setMessageMode(messageMode === "email" ? "none" : "email")}
+                className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-bold transition ${
+                  messageMode === "email"
+                    ? "border-amber-500 bg-amber-500 text-white"
+                    : "border-sky-200 text-sky-700 hover:bg-sky-50 dark:border-sky-500/30 dark:text-sky-300"
+                }`}
+              >
+                <Mail className="h-3.5 w-3.5" />
+                Send Email
+              </button>
+            ) : null}
+
+            {onSave ? (
+              <button
+                type="button"
+                onClick={() => setEditing((value) => !value)}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-2 text-xs font-bold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
+              >
+                <Edit3 className="h-3.5 w-3.5" />
+                {editing ? "Hide Edit" : "Edit"}
+              </button>
+            ) : null}
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-full border border-slate-200 p-2 text-slate-500 transition hover:border-rose-300 hover:text-rose-500 dark:border-slate-800"
+              aria-label="Close subscription details"
+            >
+              <X className="h-5 w-5" />
+            </button>
           </div>
         </div>
+
+        {/* Direct SMS Panel */}
+        {messageMode === "sms" ? (
+          <div className="mt-5 rounded-3xl border border-amber-300 bg-amber-50/50 p-5 dark:border-amber-500/30 dark:bg-amber-500/5">
+            <div className="flex items-center justify-between">
+              <h4 className="text-sm font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300">
+                Send Direct SMS to {subscription.contact?.phone}
+              </h4>
+              <span className="text-xs text-amber-700 dark:text-amber-400">
+                {singleSmsText.length} / 160 chars
+              </span>
+            </div>
+            <textarea
+              rows={3}
+              maxLength={160}
+              value={singleSmsText}
+              onChange={(e) => setSingleSmsText(e.target.value)}
+              placeholder="Type urgent SMS alert message for this subscriber..."
+              className="mt-3 w-full rounded-2xl border border-amber-200 bg-white p-3.5 text-sm text-gray-900 outline-none transition focus:border-amber-500 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+            />
+            <div className="mt-3 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setMessageMode("none")}
+                className="rounded-xl px-4 py-2 text-xs font-semibold text-gray-600 dark:text-gray-400"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSendDirectSms}
+                disabled={sendingMsg}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-amber-500 px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-amber-600 disabled:opacity-60"
+              >
+                <Send className="h-3.5 w-3.5" />
+                {sendingMsg ? "Sending..." : "Transmit SMS"}
+              </button>
+            </div>
+          </div>
+        ) : null}
+
+        {/* Direct Email Panel */}
+        {messageMode === "email" ? (
+          <div className="mt-5 rounded-3xl border border-sky-300 bg-sky-50/50 p-5 dark:border-sky-500/30 dark:bg-sky-500/5">
+            <h4 className="text-sm font-bold uppercase tracking-wider text-sky-800 dark:text-sky-300">
+              Send Direct Email to {subscription.contact?.email}
+            </h4>
+            <div className="mt-3 space-y-3">
+              <input
+                type="text"
+                value={singleEmailSubject}
+                onChange={(e) => setSingleEmailSubject(e.target.value)}
+                placeholder="Email Subject"
+                className="w-full rounded-2xl border border-sky-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition focus:border-sky-500 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+              />
+              <textarea
+                rows={4}
+                value={singleEmailBody}
+                onChange={(e) => setSingleEmailBody(e.target.value)}
+                placeholder="Type notice message body for this subscriber..."
+                className="w-full rounded-2xl border border-sky-200 bg-white p-3.5 text-sm text-gray-900 outline-none transition focus:border-sky-500 dark:border-gray-800 dark:bg-gray-950 dark:text-white"
+              />
+            </div>
+            <div className="mt-3 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setMessageMode("none")}
+                className="rounded-xl px-4 py-2 text-xs font-semibold text-gray-600 dark:text-gray-400"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSendDirectEmail}
+                disabled={sendingMsg}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-sky-600 px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-sky-700 disabled:opacity-60"
+              >
+                <Send className="h-3.5 w-3.5" />
+                {sendingMsg ? "Sending..." : "Transmit Email"}
+              </button>
+            </div>
+          </div>
+        ) : null}
 
         {editing ? (
           <div className="mt-5 rounded-3xl border border-amber-200 bg-amber-50/40 p-5 dark:border-amber-500/30 dark:bg-amber-500/5">
@@ -188,7 +370,7 @@ export default function SubscriptionReviewModal({ open, subscription, onClose, o
               {(["email", "phone", "addressLine", "city", "region"] as const).map((field) => (
                 <label key={field} className="text-xs font-bold uppercase tracking-wider text-slate-500">
                   {field === "addressLine" ? "Address" : field.replace(/([A-Z])/g, " $1")}
-                  <input value={draft[field]} onChange={(event) => setDraft((previous) => ({ ...previous, [field]: event.target.value }))} className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal normal-case tracking-normal text-slate-700" />
+                  <input value={draft[field]} onChange={(event) => setDraft((previous) => ({ ...previous, [field]: event.target.value }))} className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal normal-case tracking-normal text-slate-700 dark:border-slate-800 dark:bg-gray-950 dark:text-white" />
                 </label>
               ))}
             </div>

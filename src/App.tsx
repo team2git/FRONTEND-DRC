@@ -22,6 +22,9 @@ import LocationManagement from "./pages/admin/LocationManagement";
 import AuditLogs from "./pages/admin/AuditLogs";
 import AdminLogs from "./pages/admin/AdminLogs";
 import EmailLogs from "./pages/admin/EmailLogs";
+import SmsConfigPage from "./pages/admin/SmsConfigPage";
+import SmsLogsPage from "./pages/admin/SmsLogsPage";
+import EmailConfigPage from "./pages/admin/EmailConfigPage";
 import PortalContentPage from "./pages/admin/PortalContent";
 import AlertSubscriptions from "./pages/admin/AlertSubscriptions";
 import EmergencyContacts from "./pages/admin/EmergencyContacts";
@@ -153,6 +156,9 @@ export default function App() {
                   <Route path="/admin/audit-logs" element={<AuditLogs />} />
                   <Route path="/admin/admin-logs" element={<AdminLogs />} />
                   <Route path="/admin/email-logs" element={<EmailLogs />} />
+                  <Route path="/admin/sms-logs" element={<SmsLogsPage />} />
+                  <Route path="/admin/sms-config" element={<SmsConfigPage />} />
+                  <Route path="/admin/email-config" element={<EmailConfigPage />} />
                   <Route path="/admin/site-settings" element={<PortalContentPage />} />
                   <Route path="/admin/news" element={<PermissionRoute resource="news" action="view" element={<NewsManagement />} />} />
                   <Route path="/admin/alert-subscriptions" element={<AlertSubscriptions />} />

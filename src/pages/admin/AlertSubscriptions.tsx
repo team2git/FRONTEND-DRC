@@ -370,23 +370,51 @@ export default function AlertSubscriptions() {
   const handleSendAlert = async (event: React.FormEvent) => {
     event.preventDefault();
 
-    if (!composeState.title.trim() || !composeState.message.trim()) {
-      setFeedbackMessage("Please enter both a subject line and a message before sending.");
+    const requiresEmail = composeState.channel === "email" || composeState.channel === "push" || composeState.channel === "both" || composeState.channel === "all";
+    const requiresSms = composeState.channel === "sms" || composeState.channel === "both" || composeState.channel === "all";
+
+    if (requiresEmail && (!composeState.title.trim() || !composeState.message.trim())) {
+      setFeedbackMessage("Please enter both an email subject line and message body before sending.");
+      return;
+    }
+    if (requiresSms && !composeState.smsMessage.trim() && !composeState.message.trim()) {
+      setFeedbackMessage("Please enter an SMS alert message before sending.");
       return;
     }
 
     setIsSending(true);
-    setFeedbackMessage(
-      `Draft alert prepared for ${formatCount(recipientCount)} recipients in ${targetedLocationLabel} under ${targetedHazardLabel}.`
-    );
+    setFeedbackMessage(null);
 
-    setTimeout(() => {
-      setComposeState(initialComposeState);
-      setDeliveryMode("scheduled");
-      setLocationTarget(LOCATION_GROUP_ALL);
-      setHazardTarget(HAZARD_GROUP_ALL);
+    try {
+      const payload = {
+        title: composeState.title,
+        subject: composeState.title,
+        message: composeState.message,
+        smsMessage: composeState.smsMessage || composeState.message,
+        hazard: composeState.hazard,
+        category: composeState.hazard,
+        severity: composeState.severity,
+        channel: composeState.channel,
+        audience: composeState.audience,
+        locationTarget: locationTarget,
+        sourceAuthority: composeState.sourceAuthority,
+      };
+
+      const response = await api.post("/alert-subscriptions/broadcast", payload);
+      const data = response.data;
+
+      const summaryText = `Broadcast sent successfully! Dispatched ${data?.smsSummary?.sent ?? 0} SMS and ${data?.emailSummary?.sent ?? 0} Emails to subscribers matching ${alertCategoryLabel}.`;
+      setFeedbackMessage(summaryText);
+
+      // Refresh subscriptions list
+      fetchSubscriptions();
+    } catch (error: any) {
+      console.error("Failed to broadcast alert:", error);
+      const errMsg = error?.response?.data?.message || "Failed to broadcast alert. Check server logs.";
+      setFeedbackMessage(`Broadcast Error: ${errMsg}`);
+    } finally {
       setIsSending(false);
-    }, 600);
+    }
   };
 
   const subjectCharacterCount = composeState.title.length;
@@ -701,8 +729,9 @@ export default function AlertSubscriptions() {
                           onChange={(event) => setComposeState((prev) => ({ ...prev, channel: event.target.value }))}
                           className="w-full appearance-none rounded-2xl border border-gray-200 bg-white px-4.5 py-3.5 pr-11 text-[15px] text-gray-900 outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100 dark:border-gray-800 dark:bg-gray-950 dark:text-white dark:focus:border-amber-500 dark:focus:ring-amber-500/10"
                         >
+                          <option value="both">Both SMS & Email</option>
+                          <option value="sms">SMS (SMPP 3.4)</option>
                           <option value="email">Email</option>
-                          <option value="sms">SMS</option>
                           <option value="push">Push Notification</option>
                         </select>
                         <ArrowRightIcon className="pointer-events-none absolute right-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 rotate-90 text-gray-400" />
@@ -1140,11 +1169,11 @@ export default function AlertSubscriptions() {
                                   className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:border-amber-400/60 hover:text-amber-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
                                 >
                                   <EyeIcon className="h-3.5 w-3.5" />
-                                  View Details
+                                  View & Message
                                 </button>
                                 <RowActionMenu
                                   actions={[
-                                    { label: "Edit subscriber", onClick: () => setSelectedSubscription(sub) },
+                                    { label: "View & Message subscriber", onClick: () => setSelectedSubscription(sub) },
                                     { label: sub.status === "paused" ? "Activate subscriber" : "Pause subscriber", icon: sub.status === "paused" ? <Play size={15} /> : <Pause size={15} />, onClick: () => handleStatusChange(sub._id, sub.status === "paused" ? "active" : "paused"), hidden: sub.status === "unsubscribed" },
                                     { label: "Unsubscribe", onClick: () => handleStatusChange(sub._id, "unsubscribed"), hidden: sub.status === "unsubscribed" },
                                     { label: "Delete subscriber", icon: <Trash2 size={15} />, danger: true, onClick: () => handleDeleteSubscription(sub) },

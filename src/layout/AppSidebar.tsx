@@ -204,12 +204,6 @@ const adminItems: NavItem[] = [
         permission: "news_view",
       },
       {
-        name: "Site Settings",
-        path: "/admin/site-settings",
-        icon: <DocsIcon />,
-        permission: "portalcontent_view",
-      },
-      {
         name: "Help & Guides",
         path: "/admin/help",
         icon: <DocsIcon />,
@@ -341,9 +335,38 @@ const adminItems: NavItem[] = [
         icon: <MailIcon />,
         permission: "audit_log_view",
       },
+      {
+        name: "SMS Logs",
+        path: "/admin/sms-logs",
+        icon: <MailIcon />,
+        permission: "audit_log_view|smslog_view",
+      },
     ],
   },
-  
+  {
+    icon: <DocsIcon />,
+    name: "Settings",
+    subItems: [
+      {
+        name: "SMS Gateway Config",
+        path: "/admin/sms-config",
+        icon: <MailIcon />,
+        permission: "smsconfig_view|portalcontent_view",
+      },
+      {
+        name: "Email Gateway Config",
+        path: "/admin/email-config",
+        icon: <MailIcon />,
+        permission: "emailconfig_view|portalcontent_view",
+      },
+      {
+        name: "Site Settings",
+        path: "/admin/site-settings",
+        icon: <DocsIcon />,
+        permission: "portalcontent_view",
+      },
+    ],
+  },
 ];
 
 // ─── Component ────────────────────────────────────────────────────────────────
