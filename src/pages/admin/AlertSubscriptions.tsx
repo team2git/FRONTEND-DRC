@@ -28,8 +28,10 @@ type AlertSubscription = {
     region?: string;
     city?: string;
     subCity?: string;
+    subcity?: string;
     woreda?: string;
     addressLine?: string;
+    placeName?: string;
     latitude?: number | null;
     longitude?: number | null;
     radiusKm?: number;
@@ -153,15 +155,28 @@ const HAZARD_GROUP_ALL = "all";
 
 const normalizeText = (value?: string | null) => (value || "").trim().toLowerCase();
 
-const buildLocationLabel = (subscription: AlertSubscription) => {
-  const parts = [
-    subscription.location?.woreda,
-    subscription.location?.subCity,
-    subscription.location?.city,
-    subscription.location?.region,
-    subscription.location?.country,
+const normalizeLocationPart = (value?: string | null) => (value || "").trim();
+
+const buildLocationParts = (location?: AlertSubscription["location"]) => {
+  const primaryParts = [
+    normalizeLocationPart(location?.subCity),
+    normalizeLocationPart(location?.subcity),
+    normalizeLocationPart(location?.woreda),
+    normalizeLocationPart(location?.placeName),
+    normalizeLocationPart(location?.addressLine),
   ].filter(Boolean);
-  return parts.join(", ") || "Unknown location";
+
+  if (primaryParts.length > 0) return primaryParts;
+
+  return [
+    normalizeLocationPart(location?.city),
+    normalizeLocationPart(location?.region),
+    normalizeLocationPart(location?.country),
+  ].filter(Boolean);
+};
+
+const buildLocationLabel = (subscription: AlertSubscription) => {
+  return buildLocationParts(subscription.location).join(", ") || "Unknown location";
 };
 
 const formatPin = (latitude?: number | null, longitude?: number | null) => {
@@ -170,15 +185,7 @@ const formatPin = (latitude?: number | null, longitude?: number | null) => {
 };
 
 const buildLocationKey = (subscription: AlertSubscription) =>
-  [
-    normalizeText(subscription.location?.woreda),
-    normalizeText(subscription.location?.subCity),
-    normalizeText(subscription.location?.city),
-    normalizeText(subscription.location?.region),
-    normalizeText(subscription.location?.country),
-  ]
-    .filter(Boolean)
-    .join("|") || "unknown";
+  buildLocationParts(subscription.location).map(normalizeText).filter(Boolean).join("|") || "unknown";
 
 const buildHazardLabel = (categories: string[] | undefined) =>
   (categories || []).map(formatAlertCategory).filter(Boolean).join(", ") || "Unspecified";
@@ -234,8 +241,10 @@ export default function AlertSubscriptions() {
         sub.contact?.phone,
         sub.contact?.altPhone,
         sub.location?.addressLine,
+        sub.location?.placeName,
         sub.location?.woreda,
         sub.location?.subCity,
+        sub.location?.subcity,
         sub.location?.city,
         sub.location?.region,
         sub.location?.country,
@@ -1089,9 +1098,7 @@ export default function AlertSubscriptions() {
                               </div>
                             </td>
                             <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
-                              {[sub.location?.addressLine, sub.location?.city, sub.location?.region, sub.location?.country]
-                                .filter(Boolean)
-                                .join(", ") || "—"}
+                              {buildLocationLabel(sub)}
                               <div className="mt-1 text-[11px] text-gray-400 dark:text-gray-500">
                                 Pin: {formatPin(sub.location?.latitude, sub.location?.longitude)}
                               </div>

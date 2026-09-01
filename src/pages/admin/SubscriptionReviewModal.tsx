@@ -11,8 +11,10 @@ type SubscriptionReview = {
     region?: string;
     city?: string;
     subCity?: string;
+    subcity?: string;
     woreda?: string;
     addressLine?: string;
+    placeName?: string;
     latitude?: number | null;
     longitude?: number | null;
     radiusKm?: number;
@@ -95,6 +97,28 @@ const SummaryPill = ({ label, value }: { label: string; value: string }) => (
   </div>
 );
 
+const normalizeLocationPart = (value?: string | null) => (value || "").trim();
+
+const buildLocationLine = (location?: SubscriptionReview["location"]) => {
+  const primaryParts = [
+    normalizeLocationPart(location?.subCity),
+    normalizeLocationPart(location?.subcity),
+    normalizeLocationPart(location?.woreda),
+    normalizeLocationPart(location?.placeName),
+    normalizeLocationPart(location?.addressLine),
+  ].filter(Boolean);
+
+  if (primaryParts.length > 0) return primaryParts.join(", ");
+
+  return [
+    normalizeLocationPart(location?.city),
+    normalizeLocationPart(location?.region),
+    normalizeLocationPart(location?.country),
+  ]
+    .filter(Boolean)
+    .join(", ");
+};
+
 export default function SubscriptionReviewModal({ open, subscription, onClose, onSave }: Props) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState({ email: "", phone: "", addressLine: "", city: "", region: "" });
@@ -122,14 +146,7 @@ export default function SubscriptionReviewModal({ open, subscription, onClose, o
     setEditing(false);
   };
 
-  const locationLine = [
-    subscription.location?.addressLine,
-    subscription.location?.city,
-    subscription.location?.region,
-    subscription.location?.country,
-  ]
-    .filter(Boolean)
-    .join(", ");
+  const locationLine = buildLocationLine(subscription.location);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 px-4 py-6 backdrop-blur-sm">
@@ -187,7 +204,7 @@ export default function SubscriptionReviewModal({ open, subscription, onClose, o
           </SectionCard>
 
           <SectionCard title="Location">
-            <DetailRow label="Address" value={locationLine || "N/A"} />
+            <DetailRow label="Location" value={locationLine || "N/A"} />
             <DetailRow
               label="Exact Pin"
               value={`${formatNumber(subscription.location?.latitude)}, ${formatNumber(subscription.location?.longitude)}`}

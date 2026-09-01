@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 import api from "../../api/axios";
+import { formatReportLocation } from "../../utils/formatReportLocation";
 import { resolvePortalAssetUrl } from "../../utils/resolvePortalAssetUrl";
 import { ExternalLink, Image, Video, X } from "lucide-react";
 
@@ -31,7 +32,17 @@ export type ReviewReport = {
   trafficInfo?: { lanesBlocked?: string; injuries?: boolean };
   animalInfo?: { animalType?: string; aggressive?: boolean };
   otherInfo?: { categoryNote?: string };
-  location?: { addressLine?: string; city?: string; region?: string; country?: string; latitude?: number | null; longitude?: number | null };
+  location?: {
+    addressLine?: string;
+    city?: string;
+    subCity?: string;
+    woreda?: string;
+    placeName?: string;
+    region?: string;
+    country?: string;
+    latitude?: number | null;
+    longitude?: number | null;
+  };
   contact?: { phone?: string; email?: string };
   anonymous?: boolean;
   resolutionDescription?: string;
@@ -87,8 +98,7 @@ const getAttachmentKind = (attachment: ReportAttachment): 'image' | 'video' => {
   return "image";
 };
 
-const joinLocation = (location?: ReviewReport["location"]) =>
-  [location?.addressLine, location?.city, location?.region, location?.country].filter(Boolean).join(", ") || "N/A";
+const joinLocation = (location?: ReviewReport["location"]) => formatReportLocation(location);
 
 const formatCoordinate = (value?: number | null) =>
   typeof value === "number" && Number.isFinite(value) ? value.toFixed(6) : "N/A";

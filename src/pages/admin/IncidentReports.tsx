@@ -7,6 +7,7 @@ import ReportDashboardCards from "../../components/admin/ReportDashboardCards";
 import { Archive, CheckCircle2, Edit3, Eye, RotateCcw, Trash2 } from "lucide-react";
 import { RowActionMenu } from "../../components/common/RowActionMenu";
 import type { ReviewReport } from "./ReportReviewModal";
+import { formatReportLocation } from "../../utils/formatReportLocation";
 const ReportReviewModal = lazy(() => import("./ReportReviewModal").then((m) => ({ default: m.ReportReviewModal })));
 
 type IncidentReport = ReviewReport & {
@@ -95,6 +96,9 @@ export default function IncidentReports() {
         report.category,
         report.severity,
         report.details,
+        report.location?.subCity,
+        report.location?.woreda,
+        report.location?.placeName,
         report.location?.addressLine,
         report.location?.city,
         report.location?.region,
@@ -256,9 +260,7 @@ export default function IncidentReports() {
                       {report.severity || "—"}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
-                      {[report.location?.addressLine, report.location?.city, report.location?.region]
-                        .filter(Boolean)
-                        .join(", ") || "—"}
+                      {formatReportLocation(report.location)}
                     </td>
                     <td className="px-4 py-3">
                       <select
