@@ -2,6 +2,9 @@ import React, { useEffect, useMemo, useState, lazy, Suspense } from "react";
 import PageMeta from "../../components/common/PageMeta";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import api from "../../api/axios";
+import ReportDashboardCards from "../../components/admin/ReportDashboardCards";
+import { Pause, Play, Trash2 } from "lucide-react";
+import { RowActionMenu } from "../../components/common/RowActionMenu";
 import {
   AlertHexaIcon,
   ArrowRightIcon,
@@ -297,6 +300,11 @@ export default function AlertSubscriptions() {
     ).length;
   }, [composeState.audience, hazardTarget, locationTarget, subscriptions]);
 
+  const activeSubscriptions = subscriptions.filter((subscription) => subscription.status === "active").length;
+  const pausedSubscriptions = subscriptions.filter((subscription) => subscription.status === "paused").length;
+  const coveredSubscriptions = subscriptions.filter((subscription) => (subscription.preferences?.categories?.length || 0) > 0).length;
+  const coveragePercentage = subscriptions.length ? Math.round((coveredSubscriptions / subscriptions.length) * 100) : 0;
+
   const hazardGroupLabel = useMemo(() => {
     const group = ALERT_HAZARD_GROUPS.find((item) =>
       item.items.some((hazard) => hazard === composeState.hazard)
@@ -322,6 +330,31 @@ export default function AlertSubscriptions() {
     } catch (error) {
       console.error("Failed to update subscription status", error);
       alert("Failed to update subscription status");
+    }
+  };
+
+  const handleSaveSubscription = async (id: string, updates: Partial<AlertSubscription>) => {
+    try {
+      const response = await api.put(`/alert-subscriptions/${id}`, updates);
+      const updated = response.data as AlertSubscription;
+      setSubscriptions((prev) => prev.map((item) => (item._id === id ? updated : item)));
+      setSelectedSubscription(updated);
+    } catch (error) {
+      console.error("Failed to save alert subscription", error);
+      alert("Failed to save subscriber details");
+    }
+  };
+
+  const handleDeleteSubscription = async (subscription: AlertSubscription) => {
+    const name = subscription.contact?.fullName || subscription.contact?.email || "this subscriber";
+    if (!window.confirm(`Delete ${name}? This action cannot be undone.`)) return;
+    try {
+      await api.delete(`/alert-subscriptions/${subscription._id}`);
+      setSubscriptions((prev) => prev.filter((item) => item._id !== subscription._id));
+      setSelectedSubscription(null);
+    } catch (error) {
+      console.error("Failed to delete alert subscription", error);
+      alert("Failed to delete subscriber");
     }
   };
 
@@ -358,6 +391,14 @@ export default function AlertSubscriptions() {
         description="Send alerts and manage subscriber preferences"
       />
       <PageBreadcrumb pageTitle="Alert Subscriptions" />
+
+      <ReportDashboardCards
+        kind="subscription"
+        total={subscriptions.length}
+        open={activeSubscriptions}
+        priority={pausedSubscriptions}
+        completed={coveragePercentage}
+      />
 
       <div className="space-y-4">
         <section className="rounded-3xl border border-gray-200 bg-white px-5 py-5 shadow-sm dark:border-gray-800 dark:bg-white/[0.03] sm:px-6">
@@ -1010,7 +1051,7 @@ export default function AlertSubscriptions() {
                           Updated
                         </th>
                         <th className="px-4 py-3 text-right text-sm font-medium text-gray-500 dark:text-gray-400">
-                          Details
+                          Actions
                         </th>
                       </tr>
                     </thead>
@@ -1041,10 +1082,10 @@ export default function AlertSubscriptions() {
                           >
                             <td className="px-4 py-3">
                               <div className="text-sm font-medium text-gray-900 dark:text-white">
-                                {sub.contact?.fullName || "—"}
+                                {sub.contact?.email || "N/A"}
                               </div>
                               <div className="text-xs text-gray-500 dark:text-gray-400">
-                                {sub.contact?.email || "—"} · {sub.contact?.phone || "—"}
+                                {sub.contact?.phone || "N/A"}
                               </div>
                             </td>
                             <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
@@ -1085,14 +1126,24 @@ export default function AlertSubscriptions() {
                               {sub.updatedAt ? new Date(sub.updatedAt).toLocaleString() : "—"}
                             </td>
                             <td className="px-4 py-3 text-right">
-                              <button
-                                type="button"
-                                onClick={() => setSelectedSubscription(sub)}
-                                className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:border-amber-400/60 hover:text-amber-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
-                              >
-                                <EyeIcon className="h-3.5 w-3.5" />
-                                View Details
-                              </button>
+                              <div className="inline-flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedSubscription(sub)}
+                                  className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:border-amber-400/60 hover:text-amber-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
+                                >
+                                  <EyeIcon className="h-3.5 w-3.5" />
+                                  View Details
+                                </button>
+                                <RowActionMenu
+                                  actions={[
+                                    { label: "Edit subscriber", onClick: () => setSelectedSubscription(sub) },
+                                    { label: sub.status === "paused" ? "Activate subscriber" : "Pause subscriber", icon: sub.status === "paused" ? <Play size={15} /> : <Pause size={15} />, onClick: () => handleStatusChange(sub._id, sub.status === "paused" ? "active" : "paused"), hidden: sub.status === "unsubscribed" },
+                                    { label: "Unsubscribe", onClick: () => handleStatusChange(sub._id, "unsubscribed"), hidden: sub.status === "unsubscribed" },
+                                    { label: "Delete subscriber", icon: <Trash2 size={15} />, danger: true, onClick: () => handleDeleteSubscription(sub) },
+                                  ]}
+                                />
+                              </div>
                             </td>
                           </tr>
                         ))
@@ -1115,6 +1166,7 @@ export default function AlertSubscriptions() {
           open={!!selectedSubscription}
           subscription={selectedSubscription}
           onClose={() => setSelectedSubscription(null)}
+          onSave={handleSaveSubscription}
         />
       </Suspense>
     </>

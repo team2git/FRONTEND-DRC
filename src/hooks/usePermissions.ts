@@ -25,6 +25,7 @@ export const usePermission = (resource: string, action: PermissionAction): boole
             if (permStr === permissionName.toLowerCase()) return true;
             if (resource.toLowerCase() === 'sitesurvey' && permStr === `site_${action.toLowerCase()}`) return true;
             if (resource.toLowerCase() === 'site' && permStr === `sitesurvey_${action.toLowerCase()}`) return true;
+            if (resource.toLowerCase() === 'reportbuilder' && permStr === `report_${action.toLowerCase()}`) return true;
             return false;
         }
     );

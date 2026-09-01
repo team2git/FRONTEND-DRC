@@ -29,6 +29,8 @@ import IncidentReports from "./pages/admin/IncidentReports";
 import ConcernReports from "./pages/admin/ConcernReports";
 import NewsManagement from "./pages/admin/NewsManagement";
 import HelpManagement from "./pages/admin/HelpManagement";
+import ReportBuilder from "./pages/admin/ReportBuilder";
+import CreateReportTemplate from "./pages/admin/CreateReportTemplate";
 
 // Template Engine
 import TemplateLibrary from "./components/TemplateEngine/TemplateLibrary/TemplateLibrary";
@@ -158,6 +160,10 @@ export default function App() {
                   <Route path="/admin/incident-reports" element={<IncidentReports />} />
                   <Route path="/admin/concern-reports" element={<ConcernReports />} />
                   <Route path="/admin/help" element={<HelpManagement />} />
+                  <Route path="/admin/report-builder" element={<PermissionRoute resource="reportbuilder" action="view" element={<ReportBuilder />} />} />
+                  <Route path="/admin/report-builder/new" element={<PermissionRoute resource="reportbuilder" action="create" element={<CreateReportTemplate />} />} />
+                  <Route path="/admin/report-builder/edit/:id" element={<PermissionRoute resource="reportbuilder" action="update" element={<CreateReportTemplate />} />} />
+                  <Route path="/report-builder" element={<PermissionRoute resource="reportbuilder" action="view" element={<ReportBuilder />} />} />
                   {/* Backward compatible */}
                   {/* Forms */}
                   <Route path="/form-elements" element={<FormElements />} />

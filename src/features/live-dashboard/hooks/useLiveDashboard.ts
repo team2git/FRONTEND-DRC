@@ -28,20 +28,25 @@ import {
 } from '../services/liveDashboardApi';
 import { connectDashboardSocket, disconnectDashboardSocket } from '../socket/dashboardSocket';
 
-const initialFilters: FilterState = {
-  region: '',
-  zone: '',
-  woreda: '',
-  hazard: '',
-  severity: '',
-  status: '',
-  datePreset: 'all',
-  startDate: '',
-  endDate: '',
+const getTodayStr = () => new Date().toISOString().split('T')[0];
+
+const getInitialFilters = (): FilterState => {
+  const todayStr = getTodayStr();
+  return {
+    region: '',
+    zone: '',
+    woreda: '',
+    hazard: '',
+    severity: '',
+    status: '',
+    datePreset: 'today',
+    startDate: todayStr,
+    endDate: todayStr,
+  };
 };
 
 export const useLiveDashboard = () => {
-  const [filters, setFilters] = useState<FilterState>(initialFilters);
+  const [filters, setFilters] = useState<FilterState>(getInitialFilters);
   const [summary, setSummary] = useState<SummaryStats | null>(null);
   const [mapIncidents, setMapIncidents] = useState<MapIncident[]>([]);
   const [hazards, setHazards] = useState<HazardAnalysisData>({ incidents: [], concerns: [] });
@@ -283,7 +288,7 @@ export const useLiveDashboard = () => {
   };
 
   const resetFilters = () => {
-    setFilters(initialFilters);
+    setFilters(getInitialFilters());
   };
 
   const dismissAlert = () => {

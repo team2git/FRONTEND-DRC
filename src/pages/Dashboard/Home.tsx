@@ -1030,10 +1030,10 @@ export default function Home() {
                       <td className="p-3 font-bold text-indigo-600 dark:text-indigo-400">{k.subcity || '—'}</td>
                       <td className="p-3 font-extrabold text-slate-900 dark:text-white">{k.name}</td>
                       <td className="p-3">{k.hazard}</td>
-                      <td className="p-3 text-right font-mono">{k.pop.toLocaleString()}</td>
-                      <td className="p-3 text-right font-mono">{k.exposure.toFixed(1)}</td>
-                      <td className="p-3 text-right font-mono">{k.vulnerability.toFixed(1)}</td>
-                      <td className="p-3 text-right font-mono font-extrabold text-[#C8102E]">{k.score.toFixed(1)} / 10</td>
+                      <td className="p-3 text-right font-mono">{(k.pop || 0).toLocaleString()}</td>
+                      <td className="p-3 text-right font-mono">{(k.exposure || 0).toFixed(1)}</td>
+                      <td className="p-3 text-right font-mono">{(k.vulnerability || 0).toFixed(1)}</td>
+                      <td className="p-3 text-right font-mono font-extrabold text-[#C8102E]">{(k.score || 0).toFixed(1)} / 10</td>
                       <td className="p-3 text-center">
                         <span className={`px-2.5 py-1 rounded-full text-[10px] font-black ${
                           k.level === 'Very High' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :

@@ -3,18 +3,58 @@ import PageMeta from "../../components/common/PageMeta";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import api from "../../api/axios";
 import Button from "../../components/ui/button/Button";
-import { Eye } from "lucide-react";
+import ReportDashboardCards from "../../components/admin/ReportDashboardCards";
+import { Archive, CheckCircle2, Edit3, Eye, RotateCcw, Trash2 } from "lucide-react";
+import { RowActionMenu } from "../../components/common/RowActionMenu";
 import type { ReviewReport } from "./ReportReviewModal";
 const ReportReviewModal = lazy(() => import("./ReportReviewModal").then((m) => ({ default: m.ReportReviewModal })));
 
 type ConcernReport = ReviewReport & {
   reportType?: "concern";
-  concernCategory?: string;
+  concernCategory?: string[] | string;
   concernDetails?: string;
-  concernInfo?: { nature?: string; peopleAffected?: string };
+  concernInfo?: { nature?: string; peopleAffected?: string; householdsInArea?: string };
 };
 
-const STATUS_OPTIONS = ["all", "submitted", "received", "dispatched", "closed"] as const;
+const STATUS_OPTIONS = ["all", "new", "submitted", "received", "dispatched", "not_solved", "solved", "closed", "archived"] as const;
+
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case 'new': return 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800/50';
+    case 'submitted': return 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700';
+    case 'received': return 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800/50';
+    case 'dispatched': return 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800/50';
+    case 'not_solved': return 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800/50';
+    case 'solved': return 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800/50';
+    case 'closed': return 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700';
+    case 'archived': return 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-800/50';
+    default: return 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700';
+  }
+};
+
+const getStatusFilterColor = (status: string) => {
+  switch (status) {
+    case "new": return "border-blue-300 bg-blue-50 text-blue-700 dark:border-blue-500/50 dark:bg-blue-500/10 dark:text-blue-300";
+    case "submitted": return "border-slate-300 bg-slate-100 text-slate-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200";
+    case "received": return "border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-500/50 dark:bg-amber-500/10 dark:text-amber-300";
+    case "dispatched": return "border-orange-300 bg-orange-50 text-orange-700 dark:border-orange-500/50 dark:bg-orange-500/10 dark:text-orange-300";
+    case "not_solved": return "border-red-300 bg-red-50 text-red-700 dark:border-red-500/50 dark:bg-red-500/10 dark:text-red-300";
+    case "solved": return "border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-500/50 dark:bg-emerald-500/10 dark:text-emerald-300";
+    case "closed": return "border-gray-300 bg-gray-100 text-gray-700 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300";
+    case "archived": return "border-purple-300 bg-purple-50 text-purple-700 dark:border-purple-500/50 dark:bg-purple-500/10 dark:text-purple-300";
+    default: return "border-indigo-300 bg-indigo-50 text-indigo-700 dark:border-indigo-500/50 dark:bg-indigo-500/10 dark:text-indigo-300";
+  }
+};
+
+const getAvailableStatuses = (currentStatus: string) => {
+  const statuses = ["new", "submitted", "received", "dispatched", "not_solved", "solved", "closed", "archived"];
+  const currentIndex = statuses.indexOf(currentStatus || 'new');
+  return statuses.map((status, index) => ({
+    value: status,
+    label: status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()),
+    disabled: currentStatus !== 'archived' && status !== 'archived' && index < currentIndex
+  }));
+};
 
 export default function ConcernReports() {
   const [reports, setReports] = useState<ConcernReport[]>([]);
@@ -45,11 +85,15 @@ export default function ConcernReports() {
   const filteredReports = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
     return reports.filter((report) => {
-      if (statusFilter !== "all" && report.status !== statusFilter) return false;
+      if (statusFilter === "all") {
+        if (report.status === "archived") return false;
+      } else if (report.status !== statusFilter) {
+        return false;
+      }
       if (!term) return true;
       const haystack = [
         report.reportCode,
-        report.concernCategory,
+        Array.isArray(report.concernCategory) ? report.concernCategory.join(" ") : report.concernCategory,
         report.concernDetails,
         report.severity,
         report.concernInfo?.nature,
@@ -65,6 +109,12 @@ export default function ConcernReports() {
     });
   }, [reports, searchTerm, statusFilter]);
 
+  const activeReports = useMemo(() => reports.filter((r) => r.status !== "archived"), [reports]);
+  const openReports = activeReports.filter((report) => !["solved", "closed"].includes(report.status)).length;
+  const notResolvedReports = activeReports.filter((report) => report.status === "not_solved").length;
+  const highPriorityReports = activeReports.filter((report) => ["high", "critical"].includes(String(report.severity).toLowerCase())).length;
+  const resolvedReports = activeReports.filter((report) => ["solved", "closed"].includes(report.status)).length;
+
   const handleStatusChange = async (id: string, status: ConcernReport["status"]) => {
     try {
       await api.put(`/incident-reports/${id}`, { status, reportType: "concern" });
@@ -75,6 +125,22 @@ export default function ConcernReports() {
     } catch (error) {
       console.error("Failed to update concern report status", error);
       alert("Failed to update concern report status");
+    }
+  };
+
+  const handleDeleteReport = async (id: string) => {
+    if (!window.confirm("Are you sure you want to permanently delete this concern report? This action cannot be undone.")) {
+      return;
+    }
+    try {
+      await api.delete(`/incident-reports/${id}`);
+      setReports((prev) => prev.filter((item) => item._id !== id));
+      if (selectedReport?._id === id) {
+        setSelectedReport(null);
+      }
+    } catch (error) {
+      console.error("Failed to delete concern report", error);
+      alert("Failed to delete concern report");
     }
   };
 
@@ -104,6 +170,15 @@ export default function ConcernReports() {
       />
       <PageBreadcrumb pageTitle="Concern Reports" />
 
+      <ReportDashboardCards
+        kind="concern"
+        total={activeReports.length}
+        open={openReports}
+        priority={highPriorityReports}
+        notResolved={notResolvedReports}
+        completed={resolvedReports}
+      />
+
       <div className="rounded-2xl border border-gray-200 bg-white px-5 pb-5 pt-5 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6 sm:pb-6">
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -126,11 +201,11 @@ export default function ConcernReports() {
                 key={status}
                 onClick={() => setStatusFilter(status)}
                 className={`rounded-full border px-4 py-2 text-xs font-medium transition ${statusFilter === status
-                  ? "border-primary/50 bg-primary/10 text-primary"
+                  ? getStatusFilterColor(status)
                   : "border-gray-200 text-gray-500 hover:border-gray-300 dark:border-gray-700 dark:text-gray-400"
                   }`}
               >
-                {status === "all" ? "All" : status.charAt(0).toUpperCase() + status.slice(1)}
+                {status === "all" ? "All Active" : status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
               </button>
             ))}
           </div>
@@ -156,17 +231,19 @@ export default function ConcernReports() {
                 <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Status</th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Media</th>
                 <th className="px-4 py-3 text-right text-sm font-medium text-gray-500 dark:text-gray-400">Updated</th>
-                <th className="px-4 py-3 text-right text-sm font-medium text-gray-500 dark:text-gray-400">Review</th>
+                <th className="px-4 py-3 text-right text-sm font-medium text-gray-500 dark:text-gray-400">Actions</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="py-6 text-center text-gray-500">Loading...</td>
+                  <td colSpan={9} className="py-6 text-center text-gray-500">Loading...</td>
                 </tr>
               ) : filteredReports.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-6 text-center text-gray-500">No concern reports found</td>
+                  <td colSpan={9} className="py-6 text-center text-gray-500">
+                    {statusFilter === "archived" ? "No archived concern reports" : "No concern reports found"}
+                  </td>
                 </tr>
               ) : (
                 filteredReports.map((report) => (
@@ -180,7 +257,9 @@ export default function ConcernReports() {
                       </div>
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
-                      {report.concernCategory || "—"}
+                      {Array.isArray(report.concernCategory)
+                        ? report.concernCategory.join(", ")
+                        : (report.concernCategory || "—")}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
                       {report.concernInfo?.nature || "—"}
@@ -195,15 +274,16 @@ export default function ConcernReports() {
                     </td>
                     <td className="px-4 py-3">
                       <select
-                        className="rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
+                        className={`rounded-lg border px-2 py-1 text-xs font-semibold outline-none transition ${getStatusColor(report.status)}`}
                         value={report.status}
                         onChange={(e) => handleStatusChange(report._id, e.target.value as ConcernReport["status"])}
                       >
-                        <option value="submitted">Submitted</option>
-                        <option value="received">Received</option>
-                        <option value="dispatched">Dispatched</option>
-                        <option value="closed">Closed</option>
-                        </select>
+                        {getAvailableStatuses(report.status).map(s => (
+                          <option key={s.value} value={s.value} disabled={s.disabled}>
+                            {s.label}
+                          </option>
+                        ))}
+                      </select>
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
                       {(report.attachments?.length || 0) > 0 ? `${report.attachments?.length} file(s)` : "None"}
@@ -212,14 +292,44 @@ export default function ConcernReports() {
                       {report.updatedAt ? new Date(report.updatedAt).toLocaleString() : "—"}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <button
-                        type="button"
-                        onClick={() => setSelectedReport(report)}
-                        className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:border-primary/50 hover:text-primary dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
-                      >
-                        <Eye className="h-3.5 w-3.5" />
-                        View Details
-                      </button>
+                      <div className="inline-flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedReport(report)}
+                          className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:border-primary/50 hover:text-primary dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
+                        >
+                          <Eye className="h-3.5 w-3.5" />
+                          View Details
+                        </button>
+                        <RowActionMenu
+                          actions={[
+                            { label: "Edit report", icon: <Edit3 size={15} />, onClick: () => setSelectedReport(report) },
+                            {
+                              label: "Mark as solved",
+                              icon: <CheckCircle2 size={15} />,
+                              onClick: () => handleStatusChange(report._id, "solved"),
+                              hidden: ["solved", "closed", "archived"].includes(report.status),
+                            },
+                            {
+                              label: "Archive report",
+                              icon: <Archive size={15} />,
+                              onClick: () => handleStatusChange(report._id, "archived"),
+                              hidden: report.status === "archived",
+                            },
+                            {
+                              label: "Restore / Unarchive",
+                              icon: <RotateCcw size={15} />,
+                              onClick: () => handleStatusChange(report._id, "new"),
+                              hidden: report.status !== "archived",
+                            },
+                            {
+                              label: "Delete permanently",
+                              icon: <Trash2 size={15} className="text-red-500" />,
+                              onClick: () => handleDeleteReport(report._id),
+                            },
+                          ]}
+                        />
+                      </div>
                     </td>
                   </tr>
                 ))

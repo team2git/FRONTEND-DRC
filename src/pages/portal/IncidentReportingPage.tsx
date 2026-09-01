@@ -38,7 +38,8 @@ type IncidentReportDraft = {
   reportType: "incident" | "concern";
   category: string;
   severity: "minor" | "moderate" | "critical";
-  concernCategory: string;
+  concernPriority: "" | "very_high" | "high" | "medium" | "low";
+  concernCategory: string[];
   location: {
     addressLine: string;
     city: string;
@@ -52,6 +53,7 @@ type IncidentReportDraft = {
   };
   details: string;
   concernDetails: string;
+  concernSpecification: string;
   fireInfo: { smellOfGas: boolean; estimatedSize: string };
   floodInfo: { waterDepth: string; fastRising: boolean };
   collapseInfo: { peopleTrapped: boolean; buildingType: string };
@@ -61,7 +63,7 @@ type IncidentReportDraft = {
   trafficInfo: { lanesBlocked: string; injuries: boolean };
   animalInfo: { animalType: string; aggressive: boolean };
   otherInfo: { categoryNote: string };
-  concernInfo: { nature: string; peopleAffected: string };
+  concernInfo: { nature: string; peopleAffected: string; householdsInArea: string };
   attachments: IncidentAttachment[];
   contact: { phone: string; email: string };
   anonymous: boolean;
@@ -76,7 +78,8 @@ const DEFAULT_DRAFT: IncidentReportDraft = {
   reportType: "incident",
   category: "",
   severity: "moderate",
-  concernCategory: "",
+  concernPriority: "",
+  concernCategory: [],
   location: {
     addressLine: "",
     city: "",
@@ -90,6 +93,7 @@ const DEFAULT_DRAFT: IncidentReportDraft = {
   },
   details: "",
   concernDetails: "",
+  concernSpecification: "",
   fireInfo: { smellOfGas: false, estimatedSize: "" },
   floodInfo: { waterDepth: "", fastRising: false },
   collapseInfo: { peopleTrapped: false, buildingType: "" },
@@ -99,11 +103,19 @@ const DEFAULT_DRAFT: IncidentReportDraft = {
   trafficInfo: { lanesBlocked: "", injuries: false },
   animalInfo: { animalType: "", aggressive: false },
   otherInfo: { categoryNote: "" },
-  concernInfo: { nature: "", peopleAffected: "" },
+  concernInfo: { nature: "", peopleAffected: "", householdsInArea: "" },
   attachments: [],
   contact: { phone: "", email: "" },
   anonymous: false,
 };
+
+const isEthiopianPhone = (value: string) => {
+  const normalized = value.replace(/[\s()-]/g, "");
+  return /^(?:\+251[97]\d{8}|09\d{8}|011\d{7})$/.test(normalized);
+};
+
+const MAX_REPORT_MEDIA_MB = 5;
+const MAX_REPORT_MEDIA_BYTES = MAX_REPORT_MEDIA_MB * 1024 * 1024;
 
 const CATEGORIES = [
   { key: "fire", label: "Fire", icon: Flame, color: "text-orange-500" },
@@ -118,11 +130,14 @@ const CATEGORIES = [
 ];
 
 const CONCERN_CATEGORIES = [
-  { key: "sanitation", label: "Sanitation & Waste" },
-  { key: "public_health", label: "Public Health" },
-  { key: "infrastructure", label: "Infrastructure Risk" },
-  { key: "environment", label: "Environmental Hazard" },
-  { key: "safety", label: "Public Safety" },
+  { key: "fire", label: "Fire" },
+  { key: "flood", label: "Flood" },
+  { key: "landslide", label: "Landslide" },
+  { key: "traffic_accident", label: "Traffic Accident" },
+  { key: "building_collapse", label: "Building Collapse" },
+  { key: "road_damage", label: "Road/Infrastructure Damage" },
+  { key: "hazmat", label: "Hazardous Material/ Chemical" },
+  { key: "electrical_hazard", label: "Electrical/Utility Hazard" },
   { key: "other", label: "Other" },
 ];
 
@@ -453,6 +468,14 @@ const IncidentReportingPage: React.FC = () => {
     return res.data?.url as string;
   };
   const handleFileUpload = async (file: File) => {
+    if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
+      toast.error("Please select an image or video file.");
+      return;
+    }
+    if (file.size > MAX_REPORT_MEDIA_BYTES) {
+      toast.error(`${file.name} is larger than ${MAX_REPORT_MEDIA_MB} MB.`);
+      return;
+    }
     const id = String(Date.now()) + Math.random().toString(36).slice(2, 6);
     const kind = file.type.startsWith('video/') ? 'video' : 'image';
     const objectUrl = URL.createObjectURL(file);
@@ -482,6 +505,11 @@ const IncidentReportingPage: React.FC = () => {
   const handleSelectAndUpload = (file?: File | null) => {
     if (!file) return;
     handleFileUpload(file);
+  };
+
+  const handleSelectMultiplePhotos = (files?: FileList | null) => {
+    if (!files) return;
+    Array.from(files).forEach((file) => handleFileUpload(file));
   };
 
   const setPinFromInputs = () => {
@@ -536,8 +564,12 @@ const IncidentReportingPage: React.FC = () => {
         return;
       }
     } else {
-      if (!draft.concernCategory) {
+      if (draft.concernCategory.length === 0) {
         toast.error("Please select a concern category.");
+        return;
+      }
+      if (!draft.concernPriority) {
+        toast.error("Please select the concern priority.");
         return;
       }
       if (!draft.concernDetails.trim()) {
@@ -546,15 +578,15 @@ const IncidentReportingPage: React.FC = () => {
       }
     }
 
-    if (!draft.anonymous && !draft.contact.phone.trim()) {
-      toast.error("Please enter your contact phone number.");
+    if (!draft.anonymous && !isEthiopianPhone(draft.contact.phone)) {
+      toast.error("Please enter a valid Ethiopian phone number: +251, 09, or 011 format.");
       return;
     }
 
     const payload = {
       reportType: draft.reportType,
       category: draft.category,
-      severity: draft.reportType === "incident" ? draft.severity : "moderate",
+      severity: draft.reportType === "incident" ? draft.severity : draft.concernPriority,
       concernCategory: draft.concernCategory,
       location: {
         addressLine: draft.location.addressLine,
@@ -577,7 +609,11 @@ const IncidentReportingPage: React.FC = () => {
       securityInfo: draft.category === "security" ? draft.securityInfo : { ongoingThreat: false, incidentType: "" },
       trafficInfo: draft.category === "traffic" ? draft.trafficInfo : { lanesBlocked: "", injuries: false },
       animalInfo: draft.category === "animal" ? draft.animalInfo : { animalType: "", aggressive: false },
-      otherInfo: draft.category === "other" ? draft.otherInfo : { categoryNote: "" },
+      otherInfo: draft.reportType === "concern"
+        ? { categoryNote: draft.concernSpecification }
+        : draft.category === "other"
+          ? draft.otherInfo
+          : { categoryNote: "" },
       concernInfo: draft.concernInfo,
       attachments: draft.attachments,
       contact: draft.anonymous ? { phone: "", email: "" } : draft.contact,
@@ -923,50 +959,95 @@ const IncidentReportingPage: React.FC = () => {
                   <div className="space-y-6">
                     <div>
                       <h2 className="text-lg font-bold text-slate-900">CONCERN CATEGORY</h2>
-                      <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <select
-                          className="w-full rounded-xl border border-slate-200 px-4 py-3"
-                          value={draft.concernCategory}
-                          onChange={(e) => setDraft((p) => ({ ...p, concernCategory: e.target.value }))}
-                        >
-                          <option value="">Select category...</option>
-                          {CONCERN_CATEGORIES.map((item) => (
-                            <option key={item.key} value={item.key}>
-                              {item.label}
-                            </option>
-                          ))}
-                        </select>
+                      <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {CONCERN_CATEGORIES.map((item) => {
+                          const isChecked = draft.concernCategory.includes(item.key);
+                          return (
+                            <label
+                              key={item.key}
+                              className={`flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 transition-colors ${
+                                isChecked
+                                  ? "border-brand-500 bg-brand-50 shadow-sm"
+                                  : "border-slate-200 hover:border-slate-300"
+                              }`}
+                            >
+                              <input
+                                type="checkbox"
+                                className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                                checked={isChecked}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setDraft((p) => ({
+                                      ...p,
+                                      concernCategory: [...p.concernCategory, item.key],
+                                    }));
+                                  } else {
+                                    setDraft((p) => ({
+                                      ...p,
+                                      concernCategory: p.concernCategory.filter((k) => k !== item.key),
+                                    }));
+                                  }
+                                }}
+                              />
+                              <span className="text-sm font-semibold text-slate-700">{item.label}</span>
+                            </label>
+                          );
+                        })}
                       </div>
-                      {draft.concernCategory === "other" ? (
+                        {draft.concernCategory.includes("other") ? (
                         <div className="mt-4">
                           <label className="text-sm font-semibold text-slate-700">Specify concern</label>
                           <input
                             className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-slate-700"
-                            value={draft.concernInfo.nature}
+                            value={draft.concernSpecification}
                             onChange={(e) =>
-                              setDraft((p) => ({ ...p, concernInfo: { ...p.concernInfo, nature: e.target.value } }))
+                              setDraft((p) => ({ ...p, concernSpecification: e.target.value }))
                             }
                             placeholder="e.g., Illegal dumping, unsafe structure"
                           />
                         </div>
                       ) : null}
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-semibold text-slate-700">
+                        Concern Priority <span className="text-rose-500">*</span>
+                      </label>
+                      <select
+                        className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-slate-700"
+                        value={draft.concernPriority}
+                        onChange={(e) =>
+                          setDraft((p) => ({
+                            ...p,
+                            concernPriority: e.target.value as IncidentReportDraft["concernPriority"],
+                          }))
+                        }
+                        required
+                      >
+                        <option value="" disabled>Select priority...</option>
+                        <option value="very_high">Very High</option>
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                      </select>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
                         <label className="text-sm font-semibold text-slate-700">Nature of Concern</label>
                         <input
                           className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-slate-700"
-                          value={draft.concernCategory === "other" ? draft.concernInfo.nature : draft.concernInfo.nature}
+                          value={draft.concernInfo.nature}
                           onChange={(e) =>
                             setDraft((p) => ({ ...p, concernInfo: { ...p.concernInfo, nature: e.target.value } }))
                           }
                           placeholder="e.g., Uncollected trash, open drain"
-                          disabled={draft.concernCategory === "other"}
                         />
                       </div>
                       <div>
                         <label className="text-sm font-semibold text-slate-700">People Affected (optional)</label>
                         <input
+                          type="number"
+                          min="0"
+                          inputMode="numeric"
                           className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-slate-700"
                           value={draft.concernInfo.peopleAffected}
                           onChange={(e) =>
@@ -975,7 +1056,24 @@ const IncidentReportingPage: React.FC = () => {
                               concernInfo: { ...p.concernInfo, peopleAffected: e.target.value },
                             }))
                           }
-                          placeholder="e.g., 10 families"
+                          placeholder="e.g., 10"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-semibold text-slate-700">Households in Area</label>
+                        <input
+                          type="number"
+                          min="0"
+                          inputMode="numeric"
+                          className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-slate-700"
+                          value={draft.concernInfo.householdsInArea}
+                          onChange={(e) =>
+                            setDraft((p) => ({
+                              ...p,
+                              concernInfo: { ...p.concernInfo, householdsInArea: e.target.value },
+                            }))
+                          }
+                          placeholder="e.g., 50"
                         />
                       </div>
                     </div>
@@ -1314,7 +1412,22 @@ const IncidentReportingPage: React.FC = () => {
 
                 <div>
                   <h2 className="text-lg font-bold text-slate-900">ATTACH PHOTO/VIDEO</h2>
+                  <p className="mt-1 text-xs text-slate-500">Multiple photos supported. Maximum {MAX_REPORT_MEDIA_MB} MB per file. Image formats supported by your device are accepted.</p>
                   <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <label className="flex items-center justify-center gap-3 rounded-xl border border-dashed border-slate-300 px-4 py-4 cursor-pointer">
+                      <Camera size={18} />
+                      <span className="font-semibold">Choose Photos</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        className="hidden"
+                        onChange={(e) => {
+                          handleSelectMultiplePhotos(e.target.files);
+                          e.target.value = "";
+                        }}
+                      />
+                    </label>
                     <label className="flex items-center justify-center gap-3 rounded-xl border border-dashed border-slate-300 px-4 py-4 cursor-pointer">
                       <Camera size={18} />
                       <span className="font-semibold">Take Photo</span>
@@ -1324,8 +1437,8 @@ const IncidentReportingPage: React.FC = () => {
                         capture="environment"
                         className="hidden"
                         onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) handleSelectAndUpload(file);
+                          handleSelectMultiplePhotos(e.target.files);
+                          e.target.value = "";
                         }}
                       />
                     </label>
@@ -1396,8 +1509,11 @@ const IncidentReportingPage: React.FC = () => {
                   <h2 className="text-lg font-bold text-slate-900">YOUR CONTACT</h2>
                   <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
                     <input
+                      type="tel"
+                      required
+                      inputMode="tel"
                       className="rounded-xl border border-slate-200 px-4 py-3 text-slate-700"
-                      placeholder="+1 555-1234"
+                      placeholder="+251 911 234 567 / 09 11 234 567 / 011 123 4567"
                       value={draft.contact.phone}
                       onChange={(e) => setDraft((p) => ({ ...p, contact: { ...p.contact, phone: e.target.value } }))}
                       disabled={draft.anonymous}

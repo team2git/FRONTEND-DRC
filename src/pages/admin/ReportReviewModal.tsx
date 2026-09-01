@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 import api from "../../api/axios";
+import { resolvePortalAssetUrl } from "../../utils/resolvePortalAssetUrl";
 import { ExternalLink, Image, Video, X } from "lucide-react";
 
 export type ReportAttachment = {
@@ -14,13 +15,13 @@ export type ReviewReport = {
   _id: string;
   reportCode?: string;
   reportType?: "incident" | "concern";
-  status: "submitted" | "received" | "dispatched" | "closed";
+  status: "new" | "submitted" | "received" | "dispatched" | "not_solved" | "solved" | "closed" | "archived";
   category?: string;
   severity?: string;
   details?: string;
-  concernCategory?: string;
+  concernCategory?: string[] | string;
   concernDetails?: string;
-  concernInfo?: { nature?: string; peopleAffected?: string };
+  concernInfo?: { nature?: string; peopleAffected?: string; householdsInArea?: string };
   fireInfo?: { smellOfGas?: boolean; estimatedSize?: string };
   floodInfo?: { waterDepth?: string; fastRising?: boolean };
   collapseInfo?: { peopleTrapped?: boolean; buildingType?: string };
@@ -37,6 +38,8 @@ export type ReviewReport = {
   resolvedBy?: string;
   resolvedAt?: string;
   resolutionNotes?: string;
+  responsibleInstitution?: string;
+  assignedTo?: string;
   attachments?: ReportAttachment[];
   createdAt?: string;
   updatedAt?: string;
@@ -56,6 +59,24 @@ type ResolutionDraft = {
   resolvedBy: string;
   resolvedAt: string;
   resolutionNotes: string;
+  responsibleInstitution: string;
+  assignedTo: string;
+};
+
+type ReportEditDraft = {
+  category: string;
+  severity: string;
+  details: string;
+  concernDetails: string;
+  concernCategory: string;
+  nature: string;
+  peopleAffected: string;
+  householdsInArea: string;
+  addressLine: string;
+  city: string;
+  region: string;
+  phone: string;
+  email: string;
 };
 
 const getAttachmentKind = (attachment: ReportAttachment): 'image' | 'video' => {
@@ -150,13 +171,41 @@ const SummaryPill = ({ label, value }: { label: string; value: string }) => (
   </div>
 );
 
+const getAvailableStatuses = (currentStatus: string) => {
+  const statuses = ["new", "submitted", "received", "dispatched", "not_solved", "solved", "closed", "archived"];
+  const currentIndex = statuses.indexOf(currentStatus || 'new');
+  return statuses.map((status, index) => ({
+    value: status,
+    label: status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()),
+    disabled: index < currentIndex
+  }));
+};
+
 export const ReportReviewModal = ({ open, report, onClose, onSave, saving = false }: ReportReviewModalProps) => {
+  const [editing, setEditing] = useState(false);
+  const [reportDraft, setReportDraft] = useState<ReportEditDraft>({
+    category: "",
+    severity: "",
+    details: "",
+    concernDetails: "",
+    concernCategory: "",
+    nature: "",
+    peopleAffected: "",
+    householdsInArea: "",
+    addressLine: "",
+    city: "",
+    region: "",
+    phone: "",
+    email: "",
+  });
   const [draft, setDraft] = useState<ResolutionDraft>({
-    status: "submitted",
+    status: "new",
     resolutionDescription: "",
     resolvedBy: "",
     resolvedAt: "",
     resolutionNotes: "",
+    responsibleInstitution: "",
+    assignedTo: "",
   });
   const [resolvedLatitude, setResolvedLatitude] = useState<string>("");
   const [resolvedLongitude, setResolvedLongitude] = useState<string>("");
@@ -166,6 +215,22 @@ export const ReportReviewModal = ({ open, report, onClose, onSave, saving = fals
 
   useEffect(() => {
     if (!report) return;
+    setEditing(false);
+    setReportDraft({
+      category: report.category || "",
+      severity: report.severity || "",
+      details: report.details || "",
+      concernDetails: report.concernDetails || "",
+      concernCategory: Array.isArray(report.concernCategory) ? report.concernCategory.join(", ") : report.concernCategory || "",
+      nature: report.concernInfo?.nature || "",
+      peopleAffected: report.concernInfo?.peopleAffected || "",
+      householdsInArea: report.concernInfo?.householdsInArea || "",
+      addressLine: report.location?.addressLine || "",
+      city: report.location?.city || "",
+      region: report.location?.region || "",
+      phone: report.contact?.phone || "",
+      email: report.contact?.email || "",
+    });
     setDraft({
       status: report.status,
       resolutionDescription:
@@ -176,6 +241,8 @@ export const ReportReviewModal = ({ open, report, onClose, onSave, saving = fals
       resolvedBy: report.resolvedBy || "",
       resolvedAt: toDatetimeLocalValue(report.resolvedAt),
       resolutionNotes: report.resolutionNotes || "",
+      responsibleInstitution: report.responsibleInstitution || "",
+      assignedTo: report.assignedTo || "",
     });
     setResolvedLatitude(report.location?.latitude != null ? String(report.location?.latitude) : "");
     setResolvedLongitude(report.location?.longitude != null ? String(report.location?.longitude) : "");
@@ -185,8 +252,8 @@ export const ReportReviewModal = ({ open, report, onClose, onSave, saving = fals
 
   const incidentDescription =
     report?.reportType === "incident" ? report.details : report?.concernDetails;
-  const categoryLabel =
-    report?.reportType === "incident" ? report.category : report?.concernCategory;
+  const categoryLabelRaw = report?.reportType === "incident" ? report.category : report?.concernCategory;
+  const categoryLabel = Array.isArray(categoryLabelRaw) ? categoryLabelRaw.join(", ") : categoryLabelRaw;
 
   const selectedHazardDetail = useMemo(() => {
     if (!report || report.reportType !== "incident") return null;
@@ -230,6 +297,17 @@ export const ReportReviewModal = ({ open, report, onClose, onSave, saving = fals
 
   const handleSave = async () => {
     if (!onSave) return;
+
+    if (draft.status === "not_solved") {
+      if (!draft.responsibleInstitution.trim()) {
+        alert("Please enter the responsible institution or team for this not-solved report.");
+        return;
+      }
+      if (!draft.assignedTo.trim()) {
+        alert("Please enter the person or team assigned to this not-solved report.");
+        return;
+      }
+    }
 
     const resolvedAtValue = draft.resolvedAt || (draft.status === "closed" ? new Date().toISOString() : "");
 
@@ -287,6 +365,33 @@ export const ReportReviewModal = ({ open, report, onClose, onSave, saving = fals
       resolvedBy: draft.resolvedBy.trim(),
       resolvedAt: resolvedAtValue || undefined,
       resolutionNotes: draft.resolutionNotes.trim(),
+      responsibleInstitution: draft.responsibleInstitution.trim(),
+      assignedTo: draft.assignedTo.trim(),
+      category: reportDraft.category.trim(),
+      severity: reportDraft.severity.trim(),
+      details: report?.reportType === "incident" ? reportDraft.details.trim() : "",
+      concernDetails: report?.reportType === "concern" ? reportDraft.concernDetails.trim() : "",
+      concernCategory: report?.reportType === "concern"
+        ? reportDraft.concernCategory.split(",").map((item) => item.trim()).filter(Boolean)
+        : report?.concernCategory,
+      concernInfo: report?.reportType === "concern"
+        ? {
+            nature: reportDraft.nature.trim(),
+            peopleAffected: reportDraft.peopleAffected.trim(),
+            householdsInArea: reportDraft.householdsInArea.trim(),
+          }
+        : report?.concernInfo,
+      location: {
+        ...(report?.location || {}),
+        addressLine: reportDraft.addressLine.trim(),
+        city: reportDraft.city.trim(),
+        region: reportDraft.region.trim(),
+      },
+      contact: {
+        ...(report?.contact || {}),
+        phone: reportDraft.phone.trim(),
+        email: reportDraft.email.trim(),
+      },
     };
 
     // If user provided exact pin coordinates, include them in location
@@ -296,7 +401,7 @@ export const ReportReviewModal = ({ open, report, onClose, onSave, saving = fals
       const location = { ...(report.location || {}) } as Record<string, unknown>;
       if (lat) location.latitude = Number(lat);
       if (lng) location.longitude = Number(lng);
-      updates.location = location;
+      updates.location = { ...location, ...updates.location };
     }
 
     // Append newly uploaded attachments to existing ones
@@ -305,6 +410,7 @@ export const ReportReviewModal = ({ open, report, onClose, onSave, saving = fals
     }
 
     await onSave(report._id, updates);
+    setEditing(false);
   };
 
   const handleFilesSelected = (files: FileList | null) => {
@@ -330,7 +436,7 @@ export const ReportReviewModal = ({ open, report, onClose, onSave, saving = fals
               {joinLocation(report.location)}
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
-              <SummaryPill label="Status" value={report.status} />
+              <SummaryPill label="Status" value={titleCase(report.status)} />
               <SummaryPill label="Type" value={report.reportType || "N/A"} />
               <SummaryPill
                 label="Pin"
@@ -338,20 +444,31 @@ export const ReportReviewModal = ({ open, report, onClose, onSave, saving = fals
               />
             </div>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-full border border-slate-200 p-2 text-slate-500 transition hover:border-rose-300 hover:text-rose-500 dark:border-slate-800"
-            aria-label="Close report review"
-          >
-            <X className="h-5 w-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            {onSave ? (
+              <button
+                type="button"
+                onClick={() => setEditing((value) => !value)}
+                className="rounded-xl border border-indigo-200 px-3 py-2 text-xs font-bold text-indigo-700 transition hover:bg-indigo-50 dark:border-indigo-500/30 dark:text-indigo-300 dark:hover:bg-indigo-500/10"
+              >
+                {editing ? "Hide Edit" : "Edit Report"}
+              </button>
+            ) : null}
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-full border border-slate-200 p-2 text-slate-500 transition hover:border-rose-300 hover:text-rose-500 dark:border-slate-800"
+              aria-label="Close report review"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
         </div>
 
         <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           <InfoCard label="Report Type" value={report.reportType || "N/A"} />
           <InfoCard label="Category" value={categoryLabel || "N/A"} />
-          <InfoCard label="Severity / Status" value={`${report.severity || "N/A"} / ${report.status}`} />
+          <InfoCard label="Severity / Status" value={`${report.severity || "N/A"} / ${titleCase(report.status)}`} />
           <InfoCard label="Created" value={formatDisplayDate(report.createdAt)} />
           <InfoCard label="Updated" value={formatDisplayDate(report.updatedAt)} />
           <InfoCard label="Anonymous" value={report.anonymous ? "Yes" : "No"} />
@@ -382,6 +499,12 @@ export const ReportReviewModal = ({ open, report, onClose, onSave, saving = fals
                     People Affected
                   </span>
                   <span>{report.concernInfo?.peopleAffected || "N/A"}</span>
+                </div>
+                <div>
+                  <span className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                    Households in Area
+                  </span>
+                  <span>{report.concernInfo?.householdsInArea || "N/A"}</span>
                 </div>
               </div>
             </div>
@@ -445,6 +568,68 @@ export const ReportReviewModal = ({ open, report, onClose, onSave, saving = fals
           ) : null}
         </div>
 
+        {editing ? (
+          <div className="mt-5 rounded-3xl border border-indigo-200 bg-indigo-50/40 p-5 dark:border-indigo-500/30 dark:bg-indigo-500/5">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h4 className="text-sm font-bold uppercase tracking-wider text-indigo-700 dark:text-indigo-300">Edit Report</h4>
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Update the submitted report information below.</p>
+              </div>
+              <button type="button" onClick={() => setEditing(false)} className="text-xs font-semibold text-slate-500 hover:text-slate-900 dark:hover:text-white">Cancel edit</button>
+            </div>
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Category
+                <input value={reportDraft.category} onChange={(e) => setReportDraft((p) => ({ ...p, category: e.target.value }))} className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal normal-case tracking-normal text-slate-700" />
+              </label>
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Severity / Priority
+                <select value={reportDraft.severity} onChange={(e) => setReportDraft((p) => ({ ...p, severity: e.target.value }))} className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal normal-case tracking-normal text-slate-700">
+                  <option value="">Select severity</option>
+                  <option value="very_high">Very High</option>
+                  <option value="critical">Critical</option>
+                  <option value="high">High</option>
+                  <option value="moderate">Medium / Moderate</option>
+                  <option value="low">Low</option>
+                  <option value="minor">Minor</option>
+                </select>
+              </label>
+              {report.reportType === "concern" ? (
+                <>
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Concern Categories
+                    <input value={reportDraft.concernCategory} onChange={(e) => setReportDraft((p) => ({ ...p, concernCategory: e.target.value }))} placeholder="Separate categories with commas" className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal normal-case tracking-normal text-slate-700" />
+                  </label>
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Nature of Concern
+                    <input value={reportDraft.nature} onChange={(e) => setReportDraft((p) => ({ ...p, nature: e.target.value }))} className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal normal-case tracking-normal text-slate-700" />
+                  </label>
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-500">People Affected
+                    <input type="number" min="0" value={reportDraft.peopleAffected} onChange={(e) => setReportDraft((p) => ({ ...p, peopleAffected: e.target.value }))} className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal normal-case tracking-normal text-slate-700" />
+                  </label>
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Households in Area
+                    <input type="number" min="0" value={reportDraft.householdsInArea} onChange={(e) => setReportDraft((p) => ({ ...p, householdsInArea: e.target.value }))} className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal normal-case tracking-normal text-slate-700" />
+                  </label>
+                </>
+              ) : null}
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-500 md:col-span-2">Report Details
+                <textarea value={report.reportType === "incident" ? reportDraft.details : reportDraft.concernDetails} onChange={(e) => setReportDraft((p) => report.reportType === "incident" ? ({ ...p, details: e.target.value }) : ({ ...p, concernDetails: e.target.value }))} rows={4} className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal normal-case tracking-normal text-slate-700" />
+              </label>
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-500 md:col-span-2">Address
+                <input value={reportDraft.addressLine} onChange={(e) => setReportDraft((p) => ({ ...p, addressLine: e.target.value }))} className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal normal-case tracking-normal text-slate-700" />
+              </label>
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-500">City
+                <input value={reportDraft.city} onChange={(e) => setReportDraft((p) => ({ ...p, city: e.target.value }))} className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal normal-case tracking-normal text-slate-700" />
+              </label>
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Region
+                <input value={reportDraft.region} onChange={(e) => setReportDraft((p) => ({ ...p, region: e.target.value }))} className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal normal-case tracking-normal text-slate-700" />
+              </label>
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Phone
+                <input value={reportDraft.phone} onChange={(e) => setReportDraft((p) => ({ ...p, phone: e.target.value }))} className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal normal-case tracking-normal text-slate-700" />
+              </label>
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Email
+                <input type="email" value={reportDraft.email} onChange={(e) => setReportDraft((p) => ({ ...p, email: e.target.value }))} className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal normal-case tracking-normal text-slate-700" />
+              </label>
+            </div>
+          </div>
+        ) : null}
+
         <div className="mt-5 rounded-3xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-950/60">
           <div className="flex items-center justify-between gap-3">
             <div>
@@ -456,7 +641,7 @@ export const ReportReviewModal = ({ open, report, onClose, onSave, saving = fals
               </p>
             </div>
             <span className="rounded-full bg-rose-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-rose-600 dark:bg-rose-500/10 dark:text-rose-200">
-              {draft.status}
+              {titleCase(draft.status)}
             </span>
           </div>
 
@@ -470,10 +655,11 @@ export const ReportReviewModal = ({ open, report, onClose, onSave, saving = fals
                 onChange={(event) => setDraft((prev) => ({ ...prev, status: event.target.value as ReviewReport["status"] }))}
                 className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none focus:border-rose-400 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
               >
-                <option value="submitted">Submitted</option>
-                <option value="received">Received</option>
-                <option value="dispatched">Dispatched</option>
-                <option value="closed">Closed</option>
+                {getAvailableStatuses(report.status).map(s => (
+                  <option key={s.value} value={s.value} disabled={s.disabled}>
+                    {s.label}
+                  </option>
+                ))}
               </select>
             </div>
             <div>
@@ -533,6 +719,34 @@ export const ReportReviewModal = ({ open, report, onClose, onSave, saving = fals
                 className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none focus:border-rose-400 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
               />
             </div>
+            {draft.status === 'not_solved' ? (
+              <>
+                <div>
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                    Responsible Institution / Team <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    required
+                    value={draft.responsibleInstitution}
+                    onChange={(event) => setDraft((prev) => ({ ...prev, responsibleInstitution: event.target.value }))}
+                    placeholder="Organization or team responsible for action"
+                    className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none focus:border-rose-400 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                    Assigned To <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    required
+                    value={draft.assignedTo}
+                    onChange={(event) => setDraft((prev) => ({ ...prev, assignedTo: event.target.value }))}
+                    placeholder="Responsible person or team"
+                    className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none focus:border-rose-400 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
+                  />
+                </div>
+              </>
+            ) : null}
           </div>
           <div className="mt-4">
             <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
@@ -613,10 +827,10 @@ export const ReportReviewModal = ({ open, report, onClose, onSave, saving = fals
                       {adminAttachments.map((att, i) => (
                         <div key={i} className="overflow-hidden rounded-xl border border-rose-200 bg-white/50 dark:border-rose-800 dark:bg-black/20">
                           {getAttachmentKind(att) === 'video' ? (
-                            <video src={att.url} className="h-24 w-full object-cover" controls />
+                            <video src={resolvePortalAssetUrl(att.url)} className="h-24 w-full object-cover" controls />
                           ) : (
-                            <a href={att.url} target="_blank" rel="noreferrer">
-                              <img src={att.url} className="h-24 w-full object-cover" alt="admin upload" />
+                            <a href={resolvePortalAssetUrl(att.url)} target="_blank" rel="noreferrer">
+                              <img src={resolvePortalAssetUrl(att.url)} className="h-24 w-full object-cover" alt="admin upload" />
                             </a>
                           )}
                         </div>
@@ -668,7 +882,7 @@ export const ReportReviewModal = ({ open, report, onClose, onSave, saving = fals
                       </div>
                       {attachment.url ? (
                         <a
-                          href={attachment.url}
+                          href={resolvePortalAssetUrl(attachment.url)}
                           target="_blank"
                           rel="noreferrer"
                           className="text-slate-400 transition hover:text-slate-900 dark:hover:text-white"
@@ -680,12 +894,12 @@ export const ReportReviewModal = ({ open, report, onClose, onSave, saving = fals
                     </div>
 
                     {kind === "video" ? (
-                      <video controls className="h-56 w-full bg-black object-contain" src={attachment.url} />
+                      <video controls className="h-56 w-full bg-black object-contain" src={resolvePortalAssetUrl(attachment.url)} />
                     ) : (
                       <div className="flex h-56 items-center justify-center bg-slate-100 dark:bg-slate-950">
                         {attachment.url ? (
                           <img
-                            src={attachment.url}
+                            src={resolvePortalAssetUrl(attachment.url)}
                             alt={label}
                             className="h-full w-full object-contain"
                           />

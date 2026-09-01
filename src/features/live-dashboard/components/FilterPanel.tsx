@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FilterState, ThemeOption } from '../types/dashboardTypes';
 import { Filter, RotateCcw, Search, Calendar as CalendarIcon, X, Check, Clock } from 'lucide-react';
 
@@ -16,6 +16,13 @@ export const FilterPanel: React.FC<Props> = ({ filters, onFilterChange, onReset,
   const [isCalendarOpen, setIsCalendarOpen] = useState<boolean>(false);
   const [tempStartDate, setTempStartDate] = useState<string>(filters.startDate);
   const [tempEndDate, setTempEndDate] = useState<string>(filters.endDate);
+
+  // Keep temp dates in sync with external filter changes (e.g. reset, preset changes)
+  useEffect(() => {
+    setTempStartDate(filters.startDate);
+    setTempEndDate(filters.endDate);
+  }, [filters.startDate, filters.endDate]);
+
 
   const containerBg = isLight
     ? 'bg-white border-slate-200 text-slate-900 shadow-md'

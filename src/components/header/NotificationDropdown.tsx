@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { Link, useNavigate } from "react-router";
 import api from "@/api/axios";
@@ -53,8 +53,23 @@ interface LiveToast {
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-const getCategoryIcon = (category: string, type: string, cls = "w-3.5 h-3.5") => {
-  const c = (category || "").toLowerCase();
+const toCategoryText = (value: unknown) => {
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  if (value && typeof value === "object") {
+    const record = value as Record<string, unknown>;
+    const candidate = record.name ?? record.title ?? record.label ?? record.category;
+    if (typeof candidate === "string" || typeof candidate === "number" || typeof candidate === "boolean") {
+      return String(candidate);
+    }
+  }
+  return "";
+};
+
+const toLowerText = (value: unknown) => toCategoryText(value).toLowerCase();
+
+const getCategoryIcon = (category: unknown, type: string, cls = "w-3.5 h-3.5") => {
+  const c = toLowerText(category);
   if (c.includes("fire")) return <Flame className={`${cls} text-rose-500`} />;
   if (c.includes("flood") || c.includes("water")) return <Droplets className={`${cls} text-sky-500`} />;
   if (c.includes("medical") || c.includes("health")) return <HeartPulse className={`${cls} text-emerald-500`} />;
@@ -87,10 +102,12 @@ function LiveAlertToast({
   onView: () => void;
 }) {
   const { report } = toast;
-  const isCritical = (report.severity || "").toLowerCase() === "critical";
+  const isCritical = toLowerText(report.severity) === "critical";
   const isConcern = report.reportType === "concern";
   const categoryName =
-    report.category || report.concernCategory || (isConcern ? "Public Concern" : "Incident");
+    toCategoryText(report.category) ||
+    toCategoryText(report.concernCategory) ||
+    (isConcern ? "Public Concern" : "Incident");
 
   useEffect(() => {
     const timer = setTimeout(onDismiss, 7000);
@@ -186,6 +203,8 @@ export default function NotificationDropdown() {
   const [hasNewAlertAnimation, setHasNewAlertAnimation] = useState(false);
   const [liveToasts, setLiveToasts] = useState<LiveToast[]>([]);
   const [badgePop, setBadgePop] = useState(false);
+  const knownReportIds = useRef<Set<string>>(new Set());
+  const notificationsHydrated = useRef(false);
   const navigate = useNavigate();
 
   // ── Fetch notifications ──
@@ -194,8 +213,30 @@ export default function NotificationDropdown() {
       setLoading(true);
       const res = await api.get("/incident-reports/unread");
       if (res.data) {
-        setReports(res.data.reports || []);
+        const nextReports: PublicReportNotification[] = res.data.reports || [];
+        const newReports = notificationsHydrated.current
+          ? nextReports.filter((report) => !knownReportIds.current.has(report._id))
+          : [];
+
+        setReports(nextReports);
         setUnreadCount(res.data.unreadCount ?? 0);
+
+        if (newReports.length > 0) {
+          setLiveToasts((prev) => [
+            ...newReports.slice(0, 3).map((report) => ({
+              id: `poll-${report._id}-${Date.now()}`,
+              report: { ...report, isRead: false },
+            })),
+            ...prev,
+          ].slice(0, 3));
+          setBadgePop(true);
+          setHasNewAlertAnimation(true);
+          setTimeout(() => setBadgePop(false), 500);
+          setTimeout(() => setHasNewAlertAnimation(false), 5000);
+        }
+
+        nextReports.forEach((report) => knownReportIds.current.add(report._id));
+        notificationsHydrated.current = true;
       }
     } catch (err) {
       console.error("Failed to fetch notification reports:", err);
@@ -218,6 +259,7 @@ export default function NotificationDropdown() {
     const handleNewNotification = (data: any) => {
       const payload: PublicReportNotification = data.payload || data;
       if (!payload || !payload._id) return;
+      knownReportIds.current.add(payload._id);
 
       setReports((prev) => {
         if (prev.some((r) => r._id === payload._id)) return prev;
@@ -529,12 +571,12 @@ export default function NotificationDropdown() {
                 const isUnread = !report.isRead || report.status === "submitted";
                 const isConcern = report.reportType === "concern";
                 const categoryName =
-                  report.category ||
-                  report.concernCategory ||
+                  toCategoryText(report.category) ||
+                  toCategoryText(report.concernCategory) ||
                   (isConcern ? "Public Concern" : "Incident");
                 const detailsText =
                   report.details || report.concernDetails || "No additional description provided.";
-                const isCritical = (report.severity || "").toLowerCase() === "critical";
+                const isCritical = toLowerText(report.severity) === "critical";
 
                 return (
                   <div

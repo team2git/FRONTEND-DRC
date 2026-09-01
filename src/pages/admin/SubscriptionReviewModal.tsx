@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Edit3, X } from "lucide-react";
 
 type SubscriptionReview = {
   _id: string;
@@ -48,6 +49,7 @@ type Props = {
   open: boolean;
   subscription: SubscriptionReview | null;
   onClose: () => void;
+  onSave?: (id: string, updates: Partial<SubscriptionReview>) => Promise<void> | void;
 };
 
 const formatNumber = (value?: number | null) =>
@@ -93,8 +95,32 @@ const SummaryPill = ({ label, value }: { label: string; value: string }) => (
   </div>
 );
 
-export default function SubscriptionReviewModal({ open, subscription, onClose }: Props) {
+export default function SubscriptionReviewModal({ open, subscription, onClose, onSave }: Props) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState({ email: "", phone: "", addressLine: "", city: "", region: "" });
+
+  useEffect(() => {
+    if (!subscription) return;
+    setEditing(false);
+    setDraft({
+      email: subscription.contact?.email || "",
+      phone: subscription.contact?.phone || "",
+      addressLine: subscription.location?.addressLine || "",
+      city: subscription.location?.city || "",
+      region: subscription.location?.region || "",
+    });
+  }, [subscription]);
+
   if (!open || !subscription) return null;
+
+  const saveDraft = async () => {
+    if (!onSave) return;
+    await onSave(subscription._id, {
+      contact: { ...subscription.contact, email: draft.email.trim(), phone: draft.phone.trim() },
+      location: { ...subscription.location, addressLine: draft.addressLine.trim(), city: draft.city.trim(), region: draft.region.trim() },
+    });
+    setEditing(false);
+  };
 
   const locationLine = [
     subscription.location?.addressLine,
@@ -114,11 +140,8 @@ export default function SubscriptionReviewModal({ open, subscription, onClose }:
               Subscription Details
             </p>
             <h3 className="mt-1 text-2xl font-black tracking-tight text-slate-900 dark:text-white">
-              {subscription.contact?.fullName || "Alert Subscription"}
+              {subscription.contact?.email || subscription.contact?.phone || "Alert Subscription"}
             </h3>
-            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              {locationLine || "No location entered"}
-            </p>
             <div className="mt-3 flex flex-wrap gap-2">
               <SummaryPill label="Status" value={subscription.status} />
               <SummaryPill
@@ -135,19 +158,29 @@ export default function SubscriptionReviewModal({ open, subscription, onClose }:
               />
             </div>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-full border border-slate-200 p-2 text-slate-500 transition hover:border-rose-300 hover:text-rose-500 dark:border-slate-800"
-            aria-label="Close subscription details"
-          >
-            <X className="h-5 w-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            {onSave ? <button type="button" onClick={() => setEditing((value) => !value)} className="inline-flex items-center gap-1.5 rounded-xl border border-amber-200 px-3 py-2 text-xs font-bold text-amber-700 hover:bg-amber-50 dark:border-amber-500/30 dark:text-amber-300"><Edit3 className="h-3.5 w-3.5" />{editing ? "Hide Edit" : "Edit"}</button> : null}
+            <button type="button" onClick={onClose} className="rounded-full border border-slate-200 p-2 text-slate-500 transition hover:border-rose-300 hover:text-rose-500 dark:border-slate-800" aria-label="Close subscription details"><X className="h-5 w-5" /></button>
+          </div>
         </div>
+
+        {editing ? (
+          <div className="mt-5 rounded-3xl border border-amber-200 bg-amber-50/40 p-5 dark:border-amber-500/30 dark:bg-amber-500/5">
+            <h4 className="text-sm font-bold uppercase tracking-wider text-amber-700 dark:text-amber-300">Edit Subscriber</h4>
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              {(["email", "phone", "addressLine", "city", "region"] as const).map((field) => (
+                <label key={field} className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  {field === "addressLine" ? "Address" : field.replace(/([A-Z])/g, " $1")}
+                  <input value={draft[field]} onChange={(event) => setDraft((previous) => ({ ...previous, [field]: event.target.value }))} className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal normal-case tracking-normal text-slate-700" />
+                </label>
+              ))}
+            </div>
+            <div className="mt-4 flex justify-end"><button type="button" onClick={saveDraft} className="rounded-xl bg-amber-500 px-4 py-2 text-sm font-bold text-white hover:bg-amber-600">Save subscriber</button></div>
+          </div>
+        ) : null}
 
         <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           <SectionCard title="Contact">
-            <DetailRow label="Full Name" value={subscription.contact?.fullName || "N/A"} />
             <DetailRow label="Email" value={subscription.contact?.email || "N/A"} />
             <DetailRow label="Phone" value={subscription.contact?.phone || "N/A"} />
             <DetailRow label="Alt Phone" value={subscription.contact?.altPhone || "N/A"} />
@@ -216,12 +249,7 @@ export default function SubscriptionReviewModal({ open, subscription, onClose }:
           </SectionCard>
 
           <SectionCard title="Delivery">
-            <DetailRow label="Channels" value={valueText(subscription.delivery?.channels)} />
-            <DetailRow label="Email Enabled" value={subscription.delivery?.emailEnabled} />
-            <DetailRow label="SMS Enabled" value={subscription.delivery?.smsEnabled} />
-            <DetailRow label="WhatsApp Enabled" value={subscription.delivery?.whatsappEnabled} />
-            <DetailRow label="In-App Enabled" value={subscription.delivery?.inAppEnabled} />
-            <DetailRow label="Voice Call Enabled" value={subscription.delivery?.voiceCallEnabled} />
+            <DetailRow label="Selected Channels" value={valueText(subscription.delivery?.channels)} />
             <DetailRow label="Emergency Contact" value={subscription.delivery?.emergencyContact || "N/A"} />
           </SectionCard>
 
@@ -231,38 +259,6 @@ export default function SubscriptionReviewModal({ open, subscription, onClose }:
             <DetailRow label="Created" value={formatDateTime(subscription.createdAt)} />
             <DetailRow label="Updated" value={formatDateTime(subscription.updatedAt)} />
           </SectionCard>
-        </div>
-
-        <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900/60">
-          <div className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-            Location Snapshot
-          </div>
-          <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <div>
-              <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Country</div>
-              <div className="text-sm text-slate-700 dark:text-slate-300">{subscription.location?.country || "N/A"}</div>
-            </div>
-            <div>
-              <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Region</div>
-              <div className="text-sm text-slate-700 dark:text-slate-300">{subscription.location?.region || "N/A"}</div>
-            </div>
-            <div>
-              <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">City</div>
-              <div className="text-sm text-slate-700 dark:text-slate-300">{subscription.location?.city || "N/A"}</div>
-            </div>
-            <div>
-              <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Sub City</div>
-              <div className="text-sm text-slate-700 dark:text-slate-300">{subscription.location?.subCity || "N/A"}</div>
-            </div>
-            <div>
-              <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Woreda</div>
-              <div className="text-sm text-slate-700 dark:text-slate-300">{subscription.location?.woreda || "N/A"}</div>
-            </div>
-            <div>
-              <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Address Line</div>
-              <div className="text-sm text-slate-700 dark:text-slate-300">{subscription.location?.addressLine || "N/A"}</div>
-            </div>
-          </div>
         </div>
 
         <div className="mt-6 flex justify-end">

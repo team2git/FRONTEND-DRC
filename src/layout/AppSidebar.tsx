@@ -48,6 +48,16 @@ const GISIcon = () => (
   </svg>
 );
 
+const ReportIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+    <polyline points="14 2 14 8 20 8" />
+    <line x1="16" y1="13" x2="8" y2="13" />
+    <line x1="16" y1="17" x2="8" y2="17" />
+    <polyline points="10 9 9 9 8 9" />
+  </svg>
+);
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 type SubItem = {
   name: string;
@@ -86,6 +96,12 @@ const navItems: NavItem[] = [
     name: "Live Dashboard",
     path: "/live-dashboard",
     permission: "livedashboard_view",
+  },
+  {
+    icon: <ReportIcon />,
+    name: "Report Builder",
+    path: "/admin/report-builder",
+    permission: "reportbuilder_view|report_view",
   },
   {
     icon: <BoxCubeIcon />,
@@ -170,6 +186,7 @@ const navItems: NavItem[] = [
         icon: <CheckCircleIcon />,
         permission: "inspectionrequest_view",
       },
+     
     ],
   },
 ];
@@ -293,6 +310,12 @@ const adminItems: NavItem[] = [
         path: "/admin/responses/all",
         icon: <FolderIcon />,
         permission: "formresponse_view",
+      },
+      {
+        name: "Report Builder",
+        path: "/admin/report-builder",
+        icon: <DocsIcon />,
+        permission: "reportbuilder_view|report_view",
       },
     ],
   },

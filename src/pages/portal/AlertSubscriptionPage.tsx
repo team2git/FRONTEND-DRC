@@ -137,6 +137,11 @@ const CHANNEL_OPTIONS = [
 
 const isEmailLike = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 
+const isEthiopianPhone = (value: string) => {
+  const normalized = value.replace(/[\s()-]/g, "");
+  return /^(?:\+251[97]\d{8}|09\d{8}|011\d{7})$/.test(normalized);
+};
+
 const StepBubble: React.FC<{
   active: boolean;
   done: boolean;
@@ -222,7 +227,7 @@ const AlertSubscriptionPage: React.FC = () => {
 
   const canGoNext = () => {
     if (step === "contact_location") {
-      if (!draft.contact.phone.trim()) return false;
+      if (!isEthiopianPhone(draft.contact.phone)) return false;
       if (!draft.contact.email.trim() || !isEmailLike(draft.contact.email)) return false;
       if (!draft.preferences.language) return false;
       return Boolean(draft.location.addressLine.trim());
@@ -562,10 +567,12 @@ const AlertSubscriptionPage: React.FC = () => {
                       <div className="mt-2 flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2">
                         <Phone className="h-4 w-4 text-slate-400" />
                         <input
+                          type="tel"
+                          required
                           className="w-full outline-none text-slate-700"
                           value={draft.contact.phone}
                           onChange={(e) => setDraft((p) => ({ ...p, contact: { ...p.contact, phone: e.target.value } }))}
-                          placeholder="+251 000-000-000"
+                          placeholder="+251 911 234 567 / 09 11 234 567 / 011 123 4567"
                           inputMode="tel"
                         />
                       </div>
@@ -575,10 +582,11 @@ const AlertSubscriptionPage: React.FC = () => {
                       <div className="mt-2 flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2">
                         <Phone className="h-4 w-4 text-slate-400" />
                         <input
+                          type="tel"
                           className="w-full outline-none text-slate-700"
                           value={draft.contact.altPhone}
                           onChange={(e) => setDraft((p) => ({ ...p, contact: { ...p.contact, altPhone: e.target.value } }))}
-                          placeholder="+1 (555) 987-6543"
+                          placeholder="+251 911 234 567 / 09 11 234 567 / 011 123 4567"
                           inputMode="tel"
                         />
                       </div>

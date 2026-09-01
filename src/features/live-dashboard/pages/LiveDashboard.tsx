@@ -192,15 +192,14 @@ export const LiveDashboard: React.FC = () => {
     }
   };
 
-  // Check if any filter is active
+  // Check if any filter is active (deviating from defaults).
+  // 'today' is the default preset, so only non-default values count as active.
   const hasActiveFilters =
     filters.woreda !== '' ||
     filters.hazard !== '' ||
     filters.severity !== '' ||
     filters.status !== '' ||
-    filters.datePreset !== 'all' ||
-    filters.startDate !== '' ||
-    filters.endDate !== '';
+    (filters.datePreset !== 'all' && filters.datePreset !== 'today');
 
   // Handle switching screen profile
   const handleSelectProfile = (profileId: string, newCards: DashboardCardConfig[]) => {
