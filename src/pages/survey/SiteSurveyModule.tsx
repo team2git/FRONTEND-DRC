@@ -22,6 +22,7 @@ import {
     WifiOff
 } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { isPortalFeedbackTemplate } from '../../utils/templateUtils';
 
 // ─── Template Preview Modal (Matching TemplateLibrary) ────────────────────────
 const PreviewModal: React.FC<{ template: any; onClose: () => void; onStartSurvey: (t: any) => void }> = ({
@@ -258,7 +259,8 @@ export const SiteSurveyModule: React.FC = () => {
             const pending = await db.surveyResponses.where('syncStatus').equals('pending').toArray();
             const logs = await db.syncLogs.orderBy('timestamp').reverse().limit(50).toArray();
 
-            setTemplates(tmps);
+            // Exclude portal feedback templates from field/offline survey view
+            setTemplates(tmps.filter(t => !isPortalFeedbackTemplate(t)));
             setPendingResponses(pending);
             setSyncLogs(logs);
         } catch (err) {
@@ -290,6 +292,9 @@ export const SiteSurveyModule: React.FC = () => {
             if (tmplData.success && Array.isArray(tmplData.data)) {
                 await db.surveyTemplates.clear();
                 for (const tmpl of tmplData.data) {
+                    // Do not cache portal feedback templates into field site survey package
+                    if (isPortalFeedbackTemplate(tmpl)) continue;
+
                     await db.surveyTemplates.add({
                         serverId: tmpl._id,
                         name: tmpl.name,
@@ -347,11 +352,12 @@ export const SiteSurveyModule: React.FC = () => {
         }
     };
 
-    // Filtered Templates by Search
+    // Filtered Templates by Search (ensuring portal feedback is excluded)
     const filteredTemplates = useMemo(() => {
-        if (!searchQuery.trim()) return templates;
+        const surveyList = templates.filter(t => !isPortalFeedbackTemplate(t));
+        if (!searchQuery.trim()) return surveyList;
         const q = searchQuery.toLowerCase();
-        return templates.filter(t =>
+        return surveyList.filter(t =>
             t.name.toLowerCase().includes(q) ||
             (t.category && t.category.toLowerCase().includes(q)) ||
             (t.description && t.description.toLowerCase().includes(q))

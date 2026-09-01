@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import api from '@/api/axios';
 import {
     Search, Filter, Plus, MoreVertical,
@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router';
 import WordImportModal from './WordImportModal';
 import { Can } from '@/components/auth/PermissionGuard';
+import { isPortalFeedbackTemplate } from '@/utils/templateUtils';
 
 const PreviewModal: React.FC<{ template: any; onClose: () => void }> = ({ template, onClose }) => {
     return (
@@ -415,7 +416,11 @@ const TemplateLibrary: React.FC<TemplateLibraryProps> = ({ mode = 'admin' }) => 
         }
     };
 
-    const filteredTemplates = templates.filter(t => {
+    const relevantTemplates = isSurveyMode
+        ? templates.filter(t => !isPortalFeedbackTemplate(t))
+        : templates;
+
+    const filteredTemplates = relevantTemplates.filter(t => {
         const matchesSearch = t.name.toLowerCase().includes(searchQuery.toLowerCase());
 
         let matchesStatus = false;
@@ -429,8 +434,6 @@ const TemplateLibrary: React.FC<TemplateLibraryProps> = ({ mode = 'admin' }) => 
 
         return matchesSearch && matchesStatus;
     });
-
-
 
     return (
         <div className="p-8 bg-gray-50 min-h-screen">
@@ -473,9 +476,9 @@ const TemplateLibrary: React.FC<TemplateLibraryProps> = ({ mode = 'admin' }) => 
             {/* ── Stats Bar ── */}
             <div className="grid grid-cols-3 gap-4 mb-8">
                 {[
-                    { label: 'Total Templates', value: templates.length, color: 'bg-white border-gray-100', textColor: 'text-gray-900' },
-                    { label: 'Published', value: templates.filter(t => t.status === 'Published').length, color: 'bg-green-50 border-green-100', textColor: 'text-green-700' },
-                    { label: 'Drafts', value: templates.filter(t => t.status === 'Draft').length, color: 'bg-amber-50 border-amber-100', textColor: 'text-amber-700' },
+                    { label: 'Total Templates', value: relevantTemplates.length, color: 'bg-white border-gray-100', textColor: 'text-gray-900' },
+                    { label: 'Published', value: relevantTemplates.filter(t => t.status === 'Published').length, color: 'bg-green-50 border-green-100', textColor: 'text-green-700' },
+                    { label: 'Drafts', value: relevantTemplates.filter(t => t.status === 'Draft').length, color: 'bg-amber-50 border-amber-100', textColor: 'text-amber-700' },
                 ].map(stat => (
                     <div key={stat.label} className={`${stat.color} border rounded-2xl p-5 flex items-center gap-4`}>
                         <p className={`text-3xl font-black ${stat.textColor}`}>{stat.value}</p>

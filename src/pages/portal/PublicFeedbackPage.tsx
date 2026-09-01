@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import api from '@/api/axios';
 import FormRenderer from '@/components/TemplateEngine/FormRenderer/FormRenderer';
@@ -17,6 +17,7 @@ import Footer from './components/Footer';
 import ServiceExitButton from './components/ServiceExitButton';
 import { usePortalContent } from '@/hooks/usePortalContent';
 import { resolvePortalAssetUrl } from '@/utils/resolvePortalAssetUrl';
+import { isPortalFeedbackTemplate } from '@/utils/templateUtils';
 
 const PublicFeedbackPage: React.FC = () => {
     const navigate = useNavigate();
@@ -45,7 +46,10 @@ const PublicFeedbackPage: React.FC = () => {
                 if (response.data && response.data.length > 0) {
                     setTemplate(response.data[0]);
                 } else {
-                    setTemplate(null);
+                    // Fallback: fetch all published templates and find any feedback-designated template
+                    const allRes = await api.get('/templates?status=Published');
+                    const found = (allRes.data || []).find((t: any) => isPortalFeedbackTemplate(t));
+                    setTemplate(found || null);
                 }
             } catch (error: any) {
                 console.error("Error finding feedback template:", error);
